@@ -7,6 +7,7 @@ import { SignupOwnerPage } from '@/pages/common/signup-owner'
 import { SignupRiderPage } from '@/pages/common/signup-rider'
 import { SignupRolePage } from '@/pages/common/signup-role'
 import { CartPage } from '@/pages/customer/cart'
+import { GalleryPage } from '@/pages/dev/gallery'
 import { CheckoutPage } from '@/pages/customer/checkout'
 import { OrderDetailPage } from '@/pages/customer/order-detail'
 import { OrderListPage } from '@/pages/customer/order-list'
@@ -60,6 +61,9 @@ export function AppRouter() {
       {/* 라이더 */}
       <Route path="/rider" element={<WaitingListPage />} />
       <Route path="/rider/active" element={<ActiveDeliveryPage />} />
+
+      {/* 개발용 */}
+      <Route path="/gallery" element={<GalleryPage />} />
 
       {/* 폴백 */}
       <Route path="*" element={<NotFoundPage />} />

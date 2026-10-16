@@ -1,1 +1,111 @@
 @import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * 디자인 토큰 (docs/components.md §2)
+ * 색은 전부 CSS 변수. 라이트/다크 자동(prefers-color-scheme).
+ * 역할 강조색(--rc)은 상위 레이아웃이 내려준다(기본: 고객 파랑).
+ * 컴포넌트는 hex·px 폰트를 직접 쓰지 않고 이 토큰만 참조한다.
+ * ------------------------------------------------------------------ */
+:root {
+  /* 역할 강조색: 고객 파랑 / 사장님 갈색 / 라이더 청록. 레이아웃이 덮어쓴다. */
+  --rc: #2563eb;
+
+  /* 표면·텍스트 */
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f5;
+  --border: #e4e7ec;
+  --fg: #1a1d21;
+  --fg-muted: #5b636e;
+  --fg-subtle: #8a909b;
+
+  /* 상태 톤: ok 초록 · warn 주황 · info 파랑 · muted 회색 (soft = 배지 배경) */
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --warn: #c2410c;
+  --warn-soft: #ffedd5;
+  --info: #1d4ed8;
+  --info-soft: #dbeafe;
+  --muted: #5b636e;
+  --muted-soft: #eceef1;
+
+  --overlay: rgb(0 0 0 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rc: #3b82f6;
+
+    --canvas: #0f1114;
+    --surface: #17191d;
+    --surface-hover: #202329;
+    --border: #2b2f36;
+    --fg: #e8eaed;
+    --fg-muted: #a1a7b0;
+    --fg-subtle: #6b727c;
+
+    --ok: #4ade80;
+    --ok-soft: #14321f;
+    --warn: #fb923c;
+    --warn-soft: #3a2411;
+    --info: #60a5fa;
+    --info-soft: #152338;
+    --muted: #a1a7b0;
+    --muted-soft: #242830;
+
+    --overlay: rgb(0 0 0 / 0.6);
+  }
+}
+
+/* CSS 변수를 Tailwind 테마 토큰으로 노출 (inline → 다크 모드가 var()로 전파됨) */
+@theme inline {
+  --color-role: var(--rc);
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+
+  --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+
+  /* 폰트: 본문 14.5 / 보조 12.5 / 제목 22 */
+  --text-note: 0.78125rem; /* 12.5px */
+  --text-body: 0.90625rem; /* 14.5px */
+  --text-title: 1.375rem; /* 22px */
+}
+
+/* 브레이크포인트 3구간 고정: Mobile ≤760(기본) · tablet ≥761 · desktop ≥1101.
+   기본 sm/md/lg/xl을 지우고 두 구간만 둔다(다른 브레이크포인트 금지). */
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 761px;
+  --breakpoint-desktop: 1101px;
+}
+
+@layer base {
+  body {
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 숫자는 tabular-nums 기본 */
+  :where(table, .tabular) {
+    font-variant-numeric: tabular-nums;
+  }
+}
