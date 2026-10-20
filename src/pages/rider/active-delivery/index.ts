@@ -1,1 +1,1 @@
-export { ActiveDeliveryPage } from './ui/active-delivery-page'
+export { ActiveDeliveryPage } from './ui/active-delivery-page';

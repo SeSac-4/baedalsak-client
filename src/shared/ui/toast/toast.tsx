@@ -38,14 +38,14 @@ export function ToastProvider({ children, duration = 1800 }: ToastProviderProps)
       {children}
       {createPortal(
         <div
-          role="status"
-          aria-live="polite"
-          className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex flex-col items-center gap-2 px-4"
+          role='status'
+          aria-live='polite'
+          className='pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex flex-col items-center gap-2 px-4'
         >
           {items.map((t) => (
             <div
               key={t.id}
-              className="pointer-events-auto max-w-[90vw] rounded-lg bg-fg px-4 py-2 text-note text-canvas shadow-lg"
+              className='pointer-events-auto max-w-[90vw] rounded-lg bg-fg px-4 py-2 text-note text-canvas shadow-lg'
             >
               {t.message}
             </div>

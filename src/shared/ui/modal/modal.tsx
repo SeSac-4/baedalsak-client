@@ -71,16 +71,19 @@ export function Modal({ open, onClose, title, children, footer, className, close
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className='fixed inset-0 z-50 flex items-center justify-center px-4'
       onMouseDown={(e) => {
         if (closeOnOverlay && e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="absolute inset-0 bg-[var(--overlay)]" aria-hidden />
+      <div
+        className='absolute inset-0 bg-[var(--overlay)]'
+        aria-hidden
+      />
       <div
         ref={panelRef}
-        role="dialog"
-        aria-modal="true"
+        role='dialog'
+        aria-modal='true'
         aria-labelledby={title ? titleId : undefined}
         tabIndex={-1}
         className={cn(
@@ -89,22 +92,25 @@ export function Modal({ open, onClose, title, children, footer, className, close
         )}
       >
         {title ? (
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <h3 id={titleId} className="text-body font-bold text-fg">
+          <div className='mb-3 flex items-start justify-between gap-3'>
+            <h3
+              id={titleId}
+              className='text-body font-bold text-fg'
+            >
               {title}
             </h3>
             <button
-              type="button"
-              aria-label="닫기"
+              type='button'
+              aria-label='닫기'
               onClick={onClose}
-              className="-m-1 rounded p-1 text-fg-subtle transition hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-role/50"
+              className='-m-1 rounded p-1 text-fg-subtle transition hover:text-fg focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none'
             >
               ✕
             </button>
           </div>
         ) : null}
-        <div className="text-body text-fg">{children}</div>
-        {footer ? <div className="mt-5 flex justify-end gap-2">{footer}</div> : null}
+        <div className='text-body text-fg'>{children}</div>
+        {footer ? <div className='mt-5 flex justify-end gap-2'>{footer}</div> : null}
       </div>
     </div>,
     document.body,

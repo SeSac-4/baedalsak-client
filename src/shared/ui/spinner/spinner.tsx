@@ -10,10 +10,13 @@ export interface SpinnerProps {
 export function Spinner({ size = 20, className, label = '로딩 중' }: SpinnerProps) {
   return (
     <span
-      role="status"
+      role='status'
       aria-label={label}
       style={{ width: size, height: size }}
-      className={cn('inline-block animate-spin rounded-full border-2 border-border border-t-role align-[-0.125em]', className)}
+      className={cn(
+        'inline-block animate-spin rounded-full border-2 border-border border-t-role align-[-0.125em]',
+        className,
+      )}
     />
   );
 }

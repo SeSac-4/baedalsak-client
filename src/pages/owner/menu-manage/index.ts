@@ -1,1 +1,1 @@
-export { MenuManagePage } from './ui/menu-manage-page'
+export { MenuManagePage } from './ui/menu-manage-page';

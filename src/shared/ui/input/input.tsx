@@ -14,8 +14,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({ className, ...p
     className={cn(
       'h-9 w-full rounded-lg border border-border bg-surface px-3 text-body text-fg transition',
       'placeholder:text-fg-subtle',
-      'focus-visible:border-role focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-role/50',
-      'disabled:opacity-40 read-only:bg-surface-hover',
+      'focus-visible:border-role focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none',
+      'read-only:bg-surface-hover disabled:opacity-40',
       'aria-[invalid=true]:border-warn aria-[invalid=true]:ring-warn/40',
       className,
     )}

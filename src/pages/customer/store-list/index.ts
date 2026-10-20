@@ -1,1 +1,1 @@
-export { StoreListPage } from './ui/store-list-page'
+export { StoreListPage } from './ui/store-list-page';

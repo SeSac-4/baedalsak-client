@@ -7,11 +7,12 @@
 - 개발 서버: `npm run dev`
 - 린트: `npm run lint`
 - 타입·빌드: `npm run build`
-- FSD 검증: `npx steiger src`
+- FSD 검증: `npm run lint:fsd`
+- 포맷: `npm run format`
 
 ## 작업 규칙
 
-- 작업 완료 전 린트·빌드·FSD 검증 모두 통과 확인
+- 작업 완료 전 포맷 적용 후 린트·빌드·FSD 검증 모두 통과 확인
 - 패키지 설치, `.env` 수정은 먼저 확인 요청
 - 문제가 생기거나 더 나은 대안이 있으면 바로 바꾸지 말고 ADR 형식으로 제안
 - 아래 문서의 규칙을 따른다
