@@ -19,4 +19,5 @@
 - `owner`·`customer` 등 그룹 폴더에 코드 직접 두지 않음
 - 다른 슬라이스는 `@/` + `index.ts`(public API)로만 참조
 - 같은 슬라이스 내부는 상대 경로로 import
+- features·widgets 슬라이스는 2곳 이상에서 쓸 때만 만든다. 1곳에서만 쓰면 그 페이지 안에 두고, 두 번째 사용처가 생기면 옮긴다. 사용처가 화면 흐름으로 확정됐으면 미리 둘 수 있다 (ADR-0001)
 - 새 페이지: `ui/<slice>-page.tsx` 작성 → `index.ts` export → `app-router.tsx` 등록

@@ -101,11 +101,19 @@ MVP 이후 구조를 정리할 때 C로 옮길지 다시 보면 된다.
 
 ## 5. 결정 기록
 
-(팀 논의 후 작성)
+- 결정일: 2026-10-20
+- 결정: **C. 참조 1곳이면 페이지 안으로 합치고, 2곳 이상이면 features로 올림**
+- 근거: 현재 프론트 작업자가 1명이라 C의 주요 위험(작업 중인 위치 변경에 따른 충돌)이 없다. 규칙을 끄지 않고 FSD 권장 방식을 그대로 따른다.
+- 적용 범위
+  - features와 widgets 모두 같은 규칙을 적용한다.
+  - 두 번째 사용처가 화면 흐름 시트로 확정된 슬라이스는 미리 features에 둔다. (`store/toggle-operation-status`: O-04 + O-01 예정)
+  - 빈 스캐폴드 슬라이스는 각 도메인 작업 때 정리한다. #9에서는 store 관련만 정리한다.
 
 ## 6. 후속 작업
 
-- [ ] 팀 논의 후 결정 기록 작성
-- [ ] (B 채택 시) `steiger.config.ts`에 features 대상 `fsd/insignificant-slice` off 추가
-- [ ] (C 채택 시) 단일 참조 features 슬라이스를 페이지로 옮기고 ARCHITECTURE.md에 승격 규칙 추가
+- [x] 결정 기록 작성
+- [x] ARCHITECTURE.md에 승격 규칙 추가
+- [x] store 관련 단일 참조 슬라이스 정리 (#9: `update-business-hours`는 페이지로 이동, 빈 `filter-by-category`·`store-card-list`·`store-menu-board`·`business-hours-editor` 삭제)
+- [ ] 나머지 도메인(auth·cart·delivery·menu·order·payment)의 빈 스캐폴드 슬라이스는 해당 도메인 작업 때 정리
+- [ ] O-01 구현 시 `store/toggle-operation-status` 참조 2곳 확인
 - [ ] develop에 이미 있는 FSD 오류(public-api 44건 등) 정리는 별도 이슈로 분리
