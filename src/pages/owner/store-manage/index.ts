@@ -1,1 +1,1 @@
-export { StoreManagePage } from './ui/store-manage-page'
+export { StoreManagePage } from './ui/store-manage-page';

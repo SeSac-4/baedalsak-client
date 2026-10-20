@@ -1,1 +1,1 @@
-export { OrderDetailPage } from './ui/order-detail-page'
+export { OrderDetailPage } from './ui/order-detail-page';

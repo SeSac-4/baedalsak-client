@@ -24,7 +24,7 @@ export function Stepper({ steps, current, className }: StepperProps) {
           <li
             key={step.label}
             aria-current={state === 'current' ? 'step' : undefined}
-            className="flex min-w-[90px] flex-1 flex-col items-center gap-1 text-center"
+            className='flex min-w-[90px] flex-1 flex-col items-center gap-1 text-center'
           >
             <span
               className={cn(
@@ -39,7 +39,7 @@ export function Stepper({ steps, current, className }: StepperProps) {
             <span className={cn('text-note font-medium', state === 'upcoming' ? 'text-fg-subtle' : 'text-fg')}>
               {step.label}
             </span>
-            {step.time ? <span className="text-note tabular-nums text-fg-subtle">{step.time}</span> : null}
+            {step.time ? <span className='text-note text-fg-subtle tabular-nums'>{step.time}</span> : null}
           </li>
         );
       })}

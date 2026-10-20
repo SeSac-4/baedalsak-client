@@ -1,1 +1,1 @@
-export { SignupRolePage } from './ui/signup-role-page'
+export { SignupRolePage } from './ui/signup-role-page';

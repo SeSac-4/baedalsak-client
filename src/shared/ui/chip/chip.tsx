@@ -11,11 +11,9 @@ export function Chip({ selected = false, className, type = 'button', ...props }:
       type={type}
       aria-pressed={selected}
       className={cn(
-        'inline-flex h-8 items-center whitespace-nowrap rounded-full border px-3 text-note font-medium transition',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-role/50',
-        selected
-          ? 'border-role bg-role text-white'
-          : 'border-border bg-surface text-fg-muted hover:bg-surface-hover',
+        'inline-flex h-8 items-center rounded-full border px-3 text-note font-medium whitespace-nowrap transition',
+        'focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none',
+        selected ? 'border-role bg-role text-white' : 'border-border bg-surface text-fg-muted hover:bg-surface-hover',
         className,
       )}
       {...props}

@@ -1,1 +1,1 @@
-export { StoreDetailPage } from './ui/store-detail-page'
+export { StoreDetailPage } from './ui/store-detail-page';

@@ -4,17 +4,17 @@
 
 ## 기술 스택
 
-| 구분 | 사용 기술 |
-|------|-----------|
-| 코어 | React 19, TypeScript 6, Vite 8 (Rolldown + React Compiler) |
-| 스타일 | Tailwind CSS 4 (`@tailwindcss/vite`) |
-| 라우팅 | React Router 7 (선언형 `<Routes>`) |
-| 서버 상태 | TanStack Query 5 |
-| 클라이언트 상태 | Zustand 5 |
-| 폼/검증 | React Hook Form 7 + Zod 4 |
-| HTTP | axios |
-| 유틸 | clsx, tailwind-merge, class-variance-authority |
-| 아키텍처 린트 | `@feature-sliced/steiger-plugin` |
+| 구분            | 사용 기술                                                  |
+| --------------- | ---------------------------------------------------------- |
+| 코어            | React 19, TypeScript 6, Vite 8 (Rolldown + React Compiler) |
+| 스타일          | Tailwind CSS 4 (`@tailwindcss/vite`)                       |
+| 라우팅          | React Router 7 (선언형 `<Routes>`)                         |
+| 서버 상태       | TanStack Query 5                                           |
+| 클라이언트 상태 | Zustand 5                                                  |
+| 폼/검증         | React Hook Form 7 + Zod 4                                  |
+| HTTP            | axios                                                      |
+| 유틸            | clsx, tailwind-merge, class-variance-authority             |
+| 아키텍처 린트   | `@feature-sliced/steiger-plugin`                           |
 
 ## 요구 사항
 
@@ -30,12 +30,12 @@ npm run dev        # http://localhost:5173
 
 ### npm 스크립트
 
-| 명령 | 설명 |
-|------|------|
-| `npm run dev` | Vite 개발 서버 (HMR) |
-| `npm run build` | 타입 체크(`tsc -b`) 후 프로덕션 빌드 |
-| `npm run preview` | 빌드 결과 로컬 미리보기 |
-| `npm run lint` | ESLint |
+| 명령              | 설명                                 |
+| ----------------- | ------------------------------------ |
+| `npm run dev`     | Vite 개발 서버 (HMR)                 |
+| `npm run build`   | 타입 체크(`tsc -b`) 후 프로덕션 빌드 |
+| `npm run preview` | 빌드 결과 로컬 미리보기              |
+| `npm run lint`    | ESLint                               |
 
 ## Docker (개발 환경 통일)
 
@@ -61,7 +61,7 @@ docker run --rm -it -p 5173:5173 -v "$PWD":/app -v /app/node_modules baedalsak-c
 `@/*` → `src/*` (tsconfig `paths` + `vite-tsconfig-paths`)
 
 ```ts
-import { LoginPage } from '@/pages/common/login'
+import { LoginPage } from '@/pages/common/login';
 ```
 
 ## 아키텍처: Feature-Sliced Design

@@ -1,1 +1,1 @@
-export { StoreCreatePage } from './ui/store-create-page'
+export { StoreCreatePage } from './ui/store-create-page';

@@ -16,9 +16,9 @@ export interface PageHeaderProps {
 export function PageHeader({ title, badge, actions, className }: PageHeaderProps) {
   return (
     <div className={cn('mb-4 flex flex-wrap items-center gap-x-3 gap-y-2', className)}>
-      <h2 className="text-title font-bold text-fg">{title}</h2>
+      <h2 className='text-title font-bold text-fg'>{title}</h2>
       {badge}
-      {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}
+      {actions ? <div className='ml-auto flex items-center gap-2'>{actions}</div> : null}
     </div>
   );
 }

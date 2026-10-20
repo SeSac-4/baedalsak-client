@@ -18,8 +18,8 @@ export function EmptyState({ message, icon, action, className }: EmptyStateProps
         className,
       )}
     >
-      {icon ? <div className="text-fg-subtle">{icon}</div> : null}
-      <p className="text-body text-fg-muted">{message}</p>
+      {icon ? <div className='text-fg-subtle'>{icon}</div> : null}
+      <p className='text-body text-fg-muted'>{message}</p>
       {action}
     </div>
   );
