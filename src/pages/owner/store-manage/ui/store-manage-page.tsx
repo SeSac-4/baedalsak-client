@@ -2,10 +2,11 @@ import type { ReactNode } from 'react';
 
 import { STORE_DETAIL_MOCK } from '@/entities/store';
 import { OperationStatusCard } from '@/features/store/toggle-operation-status';
-import { BusinessHoursForm } from '@/features/store/update-business-hours';
 import { StoreForm } from '@/features/store/upsert-store';
 import { Card } from '@/shared/ui/card';
 import { PageHeader } from '@/shared/ui/page-header';
+
+import { BusinessHoursForm } from './business-hours-form';
 
 /**
  * O-04 가게 관리 화면. 운영 상태, 가게 정보 수정, 요일별 영업시간 편집을 보여 준다. (목 데이터)
