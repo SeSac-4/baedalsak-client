@@ -2,7 +2,7 @@
 
 - 폴더·파일 모두 kebab-case
 - 파일명: `<도메인>-<역할>` (예: `not-found/ui/not-found-page.tsx`)
-- 역할 접미사: page · form · card · modal · store · schema · api · query · types
+- 역할 접미사: page · form · card · modal · store · schema · api · query · types · mock
 - 훅은 `use-` 접두사 (`use-cart.ts` → `useCart`)
 - 컴포넌트는 `.tsx`, 그 외는 `.ts`
 - 파일 하나에 컴포넌트 하나, 이름은 파일명의 PascalCase (`not-found-page.tsx` → `NotFoundPage`)
