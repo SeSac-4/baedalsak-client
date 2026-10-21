@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
+import { CART_MOCK } from '@/entities/cart';
 import { CATEGORY_LIST_MOCK } from '@/entities/category';
 import { STORE_DETAIL_MOCK, StoreHoursCard, formatBusinessHour } from '@/entities/store';
 import { formatPrice } from '@/shared/lib/format';
@@ -8,10 +9,11 @@ import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
+import { CartSummaryCard } from '@/widgets/cart-summary';
 
 /**
  * U-02 가게 상세·메뉴 화면. 가게 정보와 요일별 영업시간을 보여 주고,
- * 메뉴 목록·장바구니 패널은 자리만 둔다. (목 데이터)
+ * 메뉴 목록은 자리만 둔다. (목 데이터)
  * @returns 가게 상세 페이지
  */
 export function StoreDetailPage(): ReactNode {
@@ -74,7 +76,7 @@ export function StoreDetailPage(): ReactNode {
         </div>
 
         <aside className='tablet:sticky tablet:top-4'>
-          <EmptyState message='장바구니 패널 영역 (cart 도메인에서 구현 예정)' />
+          <CartSummaryCard cart={CART_MOCK} />
         </aside>
       </div>
     </div>
