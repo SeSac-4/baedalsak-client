@@ -11,7 +11,6 @@ import { GalleryPage } from '@/pages/dev/gallery';
 import { CheckoutPage } from '@/pages/customer/checkout';
 import { OrderDetailPage } from '@/pages/customer/order-detail';
 import { OrderListPage } from '@/pages/customer/order-list';
-import { PaymentPage } from '@/pages/customer/payment';
 import { PaymentDetailPage } from '@/pages/customer/payment-detail';
 import { PaymentFailPage } from '@/pages/customer/payment-fail';
 import { PaymentListPage } from '@/pages/customer/payment-list';
@@ -80,10 +79,6 @@ export function AppRouter() {
       <Route
         path='/orders/:orderId'
         element={<OrderDetailPage />}
-      />
-      <Route
-        path='/payment'
-        element={<PaymentPage />}
       />
       <Route
         path='/payments'
