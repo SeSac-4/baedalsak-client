@@ -1,11 +1,13 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
-import { MENU_LIST_MOCK, SALE_STATUS_LABEL } from '@/entities/menu';
+import { MENU_LIST_MOCK, SALE_STATUS_LABEL, type Menu } from '@/entities/menu';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
+
+import { MenuFormModal } from './menu-form-modal';
 
 /**
  * O-05 메뉴 관리 화면. 메뉴 표(이름·설명·가격·판매 상태·수정·삭제)와 메뉴 추가 버튼을 보여 준다. (목 데이터)
@@ -13,12 +15,23 @@ import { PageHeader } from '@/shared/ui/page-header';
  */
 export function MenuManagePage(): ReactNode {
   const menus = MENU_LIST_MOCK;
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
+
+  /**
+   * 폼 모달을 연다. 메뉴를 넘기면 수정 모드.
+   * @param menu 수정할 메뉴 (추가면 null)
+   */
+  const handleFormOpen = (menu: Menu | null): void => {
+    setEditingMenu(menu);
+    setIsFormOpen(true);
+  };
 
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
       <PageHeader
         title='메뉴 관리'
-        actions={<Button>메뉴 추가</Button>}
+        actions={<Button onClick={() => handleFormOpen(null)}>메뉴 추가</Button>}
       />
 
       {menus.length > 0 ? (
@@ -57,6 +70,7 @@ export function MenuManagePage(): ReactNode {
                       <Button
                         size='sm'
                         variant='secondary'
+                        onClick={() => handleFormOpen(menu)}
                       >
                         수정
                       </Button>
@@ -77,6 +91,13 @@ export function MenuManagePage(): ReactNode {
         <EmptyState message='등록된 메뉴가 없어요. 메뉴 추가 버튼으로 첫 메뉴를 등록하세요.' />
       )}
       <p className='mt-3 text-note text-fg-muted'>판매 상태 버튼을 누르면 판매 중 ↔ 품절이 바로 바뀌어요.</p>
+
+      <MenuFormModal
+        key={editingMenu?.id ?? 'new'}
+        open={isFormOpen}
+        menu={editingMenu}
+        onClose={() => setIsFormOpen(false)}
+      />
     </div>
   );
 }
