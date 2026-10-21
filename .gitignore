@@ -29,5 +29,5 @@ dist-ssr
 *.sw?
 
 
-# Claude Code 로컬 개발 서버 설정
-.claude/launch.json
+# Claude Code 로컬 설정
+.claude/
