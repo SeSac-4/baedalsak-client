@@ -79,12 +79,17 @@ ADR-0001에서 규칙을 끄지 않고 FSD 권장 방식을 따르기로 한 방
 
 ## 5. 결정 기록
 
-(팀 논의 후 작성)
+- 결정일: 2026-10-21
+- 결정: **A. 문서를 FSD 규칙에 맞추기**
+- 근거: 세 폴더 모두 비어 있어 옮길 코드가 없고, ADR-0001과 같이 규칙을 끄지 않는 방향을 유지한다.
+- 공통 코드 위치
+  - 공통 상수 → `shared/config`
+  - API 공통 타입(응답 봉투·페이지 등) → `shared/api`
+  - Provider 조립 → `app/app.tsx`
 
 ## 6. 후속 작업
 
-- [ ] 결정 기록 작성
-- [ ] (A 채택 시) `shared/constants`, `shared/types`, `app/providers` 삭제
-- [ ] (A 채택 시) ARCHITECTURE.md 세그먼트 규칙 수정 (공통 상수·타입 위치 명시)
-- [ ] (B 채택 시) `steiger.config.ts`에 예외 경로 추가, ARCHITECTURE.md에 예외 명시
-- [ ] `npm run lint:fsd`로 segments-by-purpose 오류 0건 확인
+- [x] 결정 기록 작성
+- [x] `shared/constants`, `shared/types`, `app/providers` 삭제
+- [x] ARCHITECTURE.md 세그먼트 규칙 수정 (공통 상수·타입 위치 명시)
+- [x] `npm run lint:fsd`로 segments-by-purpose 오류 0건 확인
