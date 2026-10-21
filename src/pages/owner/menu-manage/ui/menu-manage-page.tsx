@@ -8,6 +8,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 
 import { MenuFormModal } from './menu-form-modal';
+import { MenuRemoveModal } from './menu-remove-modal';
 
 /**
  * O-05 메뉴 관리 화면. 메뉴 표(이름·설명·가격·판매 상태·수정·삭제)와 메뉴 추가 버튼을 보여 준다. (목 데이터)
@@ -17,6 +18,7 @@ export function MenuManagePage(): ReactNode {
   const menus = MENU_LIST_MOCK;
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Menu | null>(null);
 
   /**
    * 폼 모달을 연다. 메뉴를 넘기면 수정 모드.
@@ -77,6 +79,7 @@ export function MenuManagePage(): ReactNode {
                       <Button
                         size='sm'
                         variant='secondary'
+                        onClick={() => setRemoveTarget(menu)}
                       >
                         삭제
                       </Button>
@@ -97,6 +100,10 @@ export function MenuManagePage(): ReactNode {
         open={isFormOpen}
         menu={editingMenu}
         onClose={() => setIsFormOpen(false)}
+      />
+      <MenuRemoveModal
+        menu={removeTarget}
+        onClose={() => setRemoveTarget(null)}
       />
     </div>
   );
