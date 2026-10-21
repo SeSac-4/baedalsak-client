@@ -28,3 +28,6 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Claude Code 로컬 설정
+.claude/

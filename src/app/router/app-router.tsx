@@ -104,11 +104,11 @@ export function AppRouter() {
 
       {/* 점주 */}
       <Route
-        path='/owner'
+        path='/owner/store'
         element={<StoreManagePage />}
       />
       <Route
-        path='/owner/store/create'
+        path='/owner/store/new'
         element={<StoreCreatePage />}
       />
       <Route
