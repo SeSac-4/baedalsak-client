@@ -6,6 +6,9 @@ import { PageHeader } from '@/shared/ui/page-header';
 
 import { CheckoutForm } from './checkout-form';
 
+/** 주문 생성 후 받을 주문 ID — 결제대기 목 주문 (API 연동 전 임시) */
+const PENDING_ORDER_ID_MOCK = 1005;
+
 /**
  * U-04 주문서 화면. 장바구니가 주문 가능할 때만 진입한다. (목 데이터)
  * @returns 주문서 페이지
@@ -23,6 +26,7 @@ export function CheckoutPage(): ReactNode {
       <CheckoutForm
         cart={CART_MOCK}
         phone='010-1234-5678'
+        orderId={PENDING_ORDER_ID_MOCK}
       />
     </div>
   );
