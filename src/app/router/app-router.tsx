@@ -112,7 +112,7 @@ export function AppRouter() {
         element={<StoreCreatePage />}
       />
       <Route
-        path='/owner/menu'
+        path='/owner/menus'
         element={<MenuManagePage />}
       />
       <Route
