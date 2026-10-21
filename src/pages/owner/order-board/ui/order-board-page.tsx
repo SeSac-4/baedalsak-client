@@ -9,6 +9,8 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
+import { AcceptOrderModal } from './accept-order-modal';
+
 type BoardTab = 'new' | 'progress' | 'done';
 
 /** 탭별로 보여 줄 주문 상태 */
@@ -47,6 +49,7 @@ const isBoardTab = (value: string): value is BoardTab => value in TAB_STATUSES;
  */
 export function OrderBoardPage(): ReactNode {
   const [tab, setTab] = useState<BoardTab>('new');
+  const [acceptTarget, setAcceptTarget] = useState<OrderDetail | null>(null);
   const orders = getOrdersByTab(STORE_ORDER_LIST_MOCK, tab);
 
   const tabItems: TabItem[] = [
@@ -103,7 +106,14 @@ export function OrderBoardPage(): ReactNode {
                       요청: {order.storeRequest ?? '없음'} · {order.deliveryAddress}
                     </p>
                     <div className='flex gap-2'>
-                      {tab === 'new' ? <Button size='sm'>수락</Button> : null}
+                      {tab === 'new' ? (
+                        <Button
+                          size='sm'
+                          onClick={() => setAcceptTarget(order)}
+                        >
+                          수락
+                        </Button>
+                      ) : null}
                       <Link
                         to={`/owner/orders/${order.id}`}
                         className='inline-flex h-7 items-center rounded-lg border border-border bg-surface px-2.5 text-note font-medium text-fg transition hover:bg-surface-hover'
@@ -120,6 +130,12 @@ export function OrderBoardPage(): ReactNode {
       ) : (
         <EmptyState message={EMPTY_MESSAGES[tab]} />
       )}
+
+      <AcceptOrderModal
+        key={acceptTarget?.id}
+        order={acceptTarget}
+        onClose={() => setAcceptTarget(null)}
+      />
     </div>
   );
 }
