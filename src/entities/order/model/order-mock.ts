@@ -88,10 +88,36 @@ export const ORDER_LIST_MOCK: OrderDetail[] = [
   },
 ];
 
+/** 화면 확인용 가게 주문 목록 — 사장님 화면용, 결제대기 제외 (신규 2 · 진행 중 2 · 완료 1) */
+export const STORE_ORDER_LIST_MOCK: OrderDetail[] = [
+  {
+    ...BASE_ORDER_MOCK,
+    id: 1006,
+    status: 'PAID',
+    items: [
+      { menuId: 3, menuName: '치즈김밥', price: 5000, quantity: 1 },
+      { menuId: 4, menuName: '떡볶이', price: 5500, quantity: 2 },
+    ],
+    itemsAmount: 16000,
+    totalAmount: 19000,
+    deliveryAddress: '서울 성동구 연무장길 45, 1층',
+    storeRequest: null,
+    riderRequest: '공동현관 비밀번호 1234',
+    createdAt: '2026-10-13T12:45:00+09:00',
+    paymentId: 506,
+    estimatedReadyAt: null,
+    statusHistory: [
+      { status: 'PENDING_PAYMENT', at: '2026-10-13T12:44:00+09:00' },
+      { status: 'PAID', at: '2026-10-13T12:45:00+09:00' },
+    ],
+  },
+  ...ORDER_LIST_MOCK.filter((order) => order.status !== 'PENDING_PAYMENT'),
+];
+
 /**
  * 주문 ID로 목 주문 상세를 찾는다.
  * @param orderId 주문 ID
  * @returns 주문 상세 (없으면 undefined)
  */
 export const getOrderMock = (orderId: number): OrderDetail | undefined =>
-  ORDER_LIST_MOCK.find((order) => order.id === orderId);
+  [...ORDER_LIST_MOCK, ...STORE_ORDER_LIST_MOCK].find((order) => order.id === orderId);
