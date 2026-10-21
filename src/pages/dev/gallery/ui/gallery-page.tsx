@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
+import { CART_EMPTY_MOCK, CART_MIN_NOT_MET_MOCK, CART_MOCK } from '@/entities/cart';
+
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Chip } from '@/shared/ui/chip';
@@ -13,6 +15,7 @@ import { Stepper } from '@/shared/ui/stepper';
 import { Tabs } from '@/shared/ui/tabs';
 import { Textarea } from '@/shared/ui/textarea';
 import { ToastProvider, useToast } from '@/shared/ui/toast';
+import { CartSummaryCard } from '@/widgets/cart-summary';
 
 /** 개발용 컴포넌트 갤러리. shared/ui 프리미티브를 variant·state별로 전시한다. */
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -259,6 +262,17 @@ export function GalleryPage() {
               message='아직 주문이 없습니다'
               action={<Button size='sm'>가게 둘러보기</Button>}
             />
+          </div>
+        </Section>
+
+        <Section
+          id='CMP-12'
+          title='CartPanel (주문 가능 · 최소주문 미달 · 비어 있음)'
+        >
+          <div className='grid w-full grid-cols-[repeat(auto-fill,minmax(280px,1fr))] items-start gap-3'>
+            <CartSummaryCard cart={CART_MOCK} />
+            <CartSummaryCard cart={CART_MIN_NOT_MET_MOCK} />
+            <CartSummaryCard cart={CART_EMPTY_MOCK} />
           </div>
         </Section>
 
