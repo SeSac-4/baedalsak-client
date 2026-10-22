@@ -8,22 +8,18 @@ import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 
-import { PaymentWidgetCard } from './payment-widget-card';
-
-/** 처음 선택된 결제수단 (목업) */
-const DEFAULT_PAYMENT_METHOD = '신용·체크카드';
+import { TossPaymentCard } from './toss-payment-card';
 
 /**
- * U-05 결제 화면. 결제대기 주문의 결제위젯(목업)과 결제 금액을 보여 주고, 결제하면 결제 완료로 이동한다. (목 데이터)
- * 토스 결제위젯·결제 요청 연동은 #25에서 한다.
+ * U-05 결제 화면. 결제대기 주문의 토스 결제위젯과 결제 금액을 보여 주고, 결제하면 결제 완료로 이동한다. (목 데이터)
+ * 결제 요청(requestPayment) 연동은 #28에서 한다.
  * @returns 결제 페이지
  */
 export function PaymentPage(): ReactNode {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const order = getOrderMock(Number(orderId));
-  const [selectedMethod, setSelectedMethod] = useState<string>(DEFAULT_PAYMENT_METHOD);
-  const [isAgreed, setIsAgreed] = useState<boolean>(true);
+  const [isPayable, setIsPayable] = useState<boolean>(false);
 
   /**
    * 결제 완료 화면으로 이동한다. (결제 요청·승인 API 연동 전 임시)
@@ -61,11 +57,9 @@ export function PaymentPage(): ReactNode {
       <PageHeader title='결제하기' />
 
       <div className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'>
-        <PaymentWidgetCard
-          selectedMethod={selectedMethod}
-          isAgreed={isAgreed}
-          onMethodChange={setSelectedMethod}
-          onAgreementChange={setIsAgreed}
+        <TossPaymentCard
+          amount={order.totalAmount}
+          onPayableChange={setIsPayable}
         />
 
         <aside className='tablet:sticky tablet:top-4'>
@@ -79,7 +73,7 @@ export function PaymentPage(): ReactNode {
             <Button
               size='lg'
               block
-              disabled={!isAgreed}
+              disabled={!isPayable}
               onClick={handlePayClick}
             >
               {formatPrice(order.totalAmount)} 결제하기
