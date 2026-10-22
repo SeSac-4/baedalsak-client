@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 import { getDeliveryMockByOrder } from '@/entities/delivery';
 import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, getOrderMock } from '@/entities/order';
@@ -11,10 +11,12 @@ import { OrderTrackingCard } from '@/widgets/order-tracking';
 
 /**
  * U-09 주문 상세 화면. 진행 단계·주문 정보·배달 정보와 새로고침·결제 상세 링크를 보여 준다. (목 데이터)
+ * 결제대기 주문이면 결제하기로 결제 화면으로 이동한다.
  * @returns 주문 상세 페이지
  */
 export function OrderDetailPage(): ReactNode {
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
   const order = getOrderMock(Number(orderId));
 
   if (!order) {
@@ -62,7 +64,9 @@ export function OrderDetailPage(): ReactNode {
       />
 
       <div className='mt-2 flex flex-wrap gap-2'>
-        {order.status === 'PENDING_PAYMENT' ? <Button>결제하기</Button> : null}
+        {order.status === 'PENDING_PAYMENT' ? (
+          <Button onClick={() => navigate(`/payment/${order.id}`)}>결제하기</Button>
+        ) : null}
         {order.paymentId ? (
           <Link
             to={`/payments/${order.paymentId}`}

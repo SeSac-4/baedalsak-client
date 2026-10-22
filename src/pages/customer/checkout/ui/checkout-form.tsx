@@ -1,4 +1,5 @@
 import type { FormEvent, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 
 import type { Cart } from '@/entities/cart';
 import { formatPrice } from '@/shared/lib/format';
@@ -10,24 +11,29 @@ export interface CheckoutFormProps {
   cart: Cart;
   /** 가입 시 휴대폰 번호 (읽기 전용 표시) */
   phone: string;
+  /** 제출 후 결제할 주문 ID (주문 생성 API 연동 전 임시) */
+  orderId: number;
 }
 
 const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
 
 /**
- * 제출 시 새로고침을 막는다. (API 연동 전 임시)
- * @param event 폼 제출 이벤트
- */
-const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
-  event.preventDefault();
-};
-
-/**
- * U-04 주문서 폼. 배달 주소·요청사항 입력과 주문 요약·결제 금액을 보여 준다.
- * @param props cart(주문할 장바구니), phone(연락처)
+ * U-04 주문서 폼. 배달 주소·요청사항 입력과 주문 요약·결제 금액을 보여 주고, 제출하면 결제 화면으로 이동한다.
+ * @param props cart(주문할 장바구니), phone(연락처), orderId(결제할 주문 ID)
  * @returns 주문서 폼 요소
  */
-export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
+export function CheckoutForm({ cart, phone, orderId }: CheckoutFormProps): ReactNode {
+  const navigate = useNavigate();
+
+  /**
+   * 새로고침을 막고 결제 화면으로 이동한다. (주문 생성 API 연동 전 임시)
+   * @param event 폼 제출 이벤트
+   */
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    navigate(`/payment/${orderId}`);
+  };
+
   return (
     <form
       onSubmit={handleSubmit}

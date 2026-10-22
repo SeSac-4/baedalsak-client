@@ -86,7 +86,7 @@ export function AppRouter() {
         element={<OrderDetailPage />}
       />
       <Route
-        path='/payment'
+        path='/payment/:orderId'
         element={<PaymentPage />}
       />
       <Route
