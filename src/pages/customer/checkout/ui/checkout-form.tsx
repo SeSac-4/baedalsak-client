@@ -1,7 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import type { FormEvent, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 
 import type { Cart } from '@/entities/cart';
-import { RequestPaymentModal } from '@/features/payment/request-payment';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
@@ -18,20 +18,20 @@ export interface CheckoutFormProps {
 const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
 
 /**
- * U-04 주문서 폼. 배달 주소·요청사항 입력과 주문 요약·결제 금액을 보여 주고, 제출하면 결제 팝업을 연다.
+ * U-04 주문서 폼. 배달 주소·요청사항 입력과 주문 요약·결제 금액을 보여 주고, 제출하면 결제 화면으로 이동한다.
  * @param props cart(주문할 장바구니), phone(연락처), orderId(결제할 주문 ID)
  * @returns 주문서 폼 요소
  */
 export function CheckoutForm({ cart, phone, orderId }: CheckoutFormProps): ReactNode {
-  const [isPaymentOpen, setIsPaymentOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   /**
-   * 새로고침을 막고 결제 팝업을 연다. (주문 생성 API 연동 전 임시)
+   * 새로고침을 막고 결제 화면으로 이동한다. (주문 생성 API 연동 전 임시)
    * @param event 폼 제출 이벤트
    */
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    setIsPaymentOpen(true);
+    navigate(`/payment/${orderId}`);
   };
 
   return (
@@ -124,15 +124,6 @@ export function CheckoutForm({ cart, phone, orderId }: CheckoutFormProps): React
           </Button>
         </Card>
       </aside>
-
-      <RequestPaymentModal
-        open={isPaymentOpen}
-        storeId={cart.storeId}
-        storeName={cart.storeName ?? ''}
-        orderId={orderId}
-        amount={cart.totalAmount}
-        onClose={() => setIsPaymentOpen(false)}
-      />
     </form>
   );
 }
