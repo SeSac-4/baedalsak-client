@@ -27,7 +27,11 @@ import { StoreManagePage } from '@/pages/owner/store-manage';
 import { ActiveDeliveryPage } from '@/pages/rider/active-delivery';
 import { WaitingListPage } from '@/pages/rider/waiting-list';
 
+import { useAuthEventHandlers } from '../model/use-auth-event-handlers';
+
 export function AppRouter() {
+  useAuthEventHandlers();
+
   return (
     <Routes>
       {/* 공통 */}
