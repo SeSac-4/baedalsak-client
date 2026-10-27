@@ -14,6 +14,8 @@ const PAYMENT_REQUEST_ERROR_MESSAGE = '결제창을 열지 못했어요. 다시 
 /** PC에서 구매자가 토스 결제창을 닫으면 failUrl 대신 이 코드의 오류로 끝난다 */
 const USER_CANCEL_CODE = 'USER_CANCEL';
 const PAYMENT_FAIL_PATH = '/payment/fail';
+/** 승인이 이미 끝난 경우(409) 결제 완료 화면이 주문 상세로 보낼 주문 ID 쿼리 이름 (payment-success-page.tsx와 같은 값) */
+const ORDER_ID_PARAM = 'order';
 
 /**
  * 구매자가 결제창을 닫아 생긴 오류인지 확인한다.
@@ -51,7 +53,7 @@ export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactN
       await requestPayment({
         orderId: paymentReady.tossOrderId,
         orderName: paymentReady.orderName,
-        successUrl: `${window.location.origin}/payment/success`,
+        successUrl: `${window.location.origin}/payment/success?${ORDER_ID_PARAM}=${orderId}`,
         failUrl: `${window.location.origin}/payment/fail`,
       });
     } catch (error: unknown) {
