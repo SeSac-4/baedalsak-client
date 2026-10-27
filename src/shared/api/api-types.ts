@@ -1,4 +1,13 @@
-/** 서버 에러 응답 본문. 형식이 확정되지 않아 message만 선택적으로 읽는다 */
+/** 400 VALIDATION_FAILED의 필드별 오류 */
+export interface ApiFieldError {
+  field: string;
+  reason: string;
+}
+
+/** 서버 에러 응답 본문. message는 사용자에게 그대로 보여 줘도 되는 한국어 */
 export interface ApiErrorResponse {
-  message?: string;
+  code: string;
+  message: string;
+  errors?: ApiFieldError[];
+  traceId?: string;
 }
