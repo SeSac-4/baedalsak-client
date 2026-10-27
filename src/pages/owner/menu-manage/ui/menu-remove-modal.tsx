@@ -4,18 +4,28 @@ import type { Menu } from '@/entities/menu';
 import { Button } from '@/shared/ui/button';
 import { Modal } from '@/shared/ui/modal';
 
+import { useRemoveMenu } from '../model/use-remove-menu';
+
 export interface MenuRemoveModalProps {
+  storeId: number;
   /** 삭제할 메뉴 (null이면 닫힘) */
   menu: Menu | null;
   onClose: () => void;
 }
 
 /**
- * 메뉴 삭제 확인 모달. (삭제는 API 연동 시 구현)
- * @param props menu(삭제할 메뉴), onClose(닫기)
+ * 메뉴 삭제 확인 모달. 삭제하면 닫는다.
+ * @param props storeId(가게 ID), menu(삭제할 메뉴), onClose(닫기)
  * @returns 삭제 확인 모달 요소
  */
-export function MenuRemoveModal({ menu, onClose }: MenuRemoveModalProps): ReactNode {
+export function MenuRemoveModal({ storeId, menu, onClose }: MenuRemoveModalProps): ReactNode {
+  const { mutate: removeMenu, isPending } = useRemoveMenu(storeId);
+
+  /** 메뉴를 삭제하고 성공하면 닫는다. */
+  const handleRemoveClick = (): void => {
+    if (menu) removeMenu(menu.id, { onSuccess: onClose });
+  };
+
   return (
     <Modal
       open={menu !== null}
@@ -29,7 +39,13 @@ export function MenuRemoveModal({ menu, onClose }: MenuRemoveModalProps): ReactN
           >
             취소
           </Button>
-          <Button variant='danger'>삭제</Button>
+          <Button
+            variant='danger'
+            disabled={isPending}
+            onClick={handleRemoveClick}
+          >
+            삭제
+          </Button>
         </>
       }
     >

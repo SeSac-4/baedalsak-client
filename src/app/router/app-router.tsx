@@ -28,6 +28,7 @@ import { ActiveDeliveryPage } from '@/pages/rider/active-delivery';
 import { WaitingListPage } from '@/pages/rider/waiting-list';
 
 import { useAuthEventHandlers } from '../model/use-auth-event-handlers';
+import { OwnerStoreGuard } from './guards/owner-store-guard';
 
 export function AppRouter() {
   useAuthEventHandlers();
@@ -106,27 +107,29 @@ export function AppRouter() {
         element={<PaymentFailPage />}
       />
 
-      {/* 점주 */}
-      <Route
-        path='/owner/store'
-        element={<StoreManagePage />}
-      />
+      {/* 점주 — 가게 등록 전에는 등록 화면만, 나머지는 내 가게가 있어야 진입 */}
       <Route
         path='/owner/store/new'
         element={<StoreCreatePage />}
       />
-      <Route
-        path='/owner/menus'
-        element={<MenuManagePage />}
-      />
-      <Route
-        path='/owner/orders'
-        element={<OrderBoardPage />}
-      />
-      <Route
-        path='/owner/orders/:orderId'
-        element={<OwnerOrderDetailPage />}
-      />
+      <Route element={<OwnerStoreGuard />}>
+        <Route
+          path='/owner/store'
+          element={<StoreManagePage />}
+        />
+        <Route
+          path='/owner/menus'
+          element={<MenuManagePage />}
+        />
+        <Route
+          path='/owner/orders'
+          element={<OrderBoardPage />}
+        />
+        <Route
+          path='/owner/orders/:orderId'
+          element={<OwnerOrderDetailPage />}
+        />
+      </Route>
 
       {/* 라이더 */}
       <Route

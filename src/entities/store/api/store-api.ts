@@ -22,3 +22,12 @@ export const getStore = async (storeId: number): Promise<StoreDetail> => {
   const { data } = await apiClient.get<StoreDetail>(`/stores/${storeId}`);
   return data;
 };
+
+/**
+ * 내 가게(사장님)를 조회한다. 아직 등록하지 않았으면 404 STORE_NOT_FOUND.
+ * @returns 내 가게 상세
+ */
+export const getMyStore = async (): Promise<StoreDetail> => {
+  const { data } = await apiClient.get<StoreDetail>('/stores/me');
+  return data;
+};

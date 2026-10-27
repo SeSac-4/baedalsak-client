@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { OrderCard, STORE_ORDER_LIST_MOCK, type OrderDetail, type OrderStatus } from '@/entities/order';
-import { STORE_DETAIL_MOCK } from '@/entities/store';
+import { useMyStore } from '@/entities/store';
 import { OperationStatusCard } from '@/features/store/toggle-operation-status';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -48,6 +48,7 @@ const isBoardTab = (value: string): value is BoardTab => value in TAB_STATUSES;
  * @returns 주문 관리 페이지
  */
 export function OrderBoardPage(): ReactNode {
+  const { data: store } = useMyStore();
   const [tab, setTab] = useState<BoardTab>('new');
   const [acceptTarget, setAcceptTarget] = useState<OrderDetail | null>(null);
   const orders = getOrdersByTab(STORE_ORDER_LIST_MOCK, tab);
@@ -72,10 +73,12 @@ export function OrderBoardPage(): ReactNode {
         title='주문 관리'
         actions={
           <>
-            <OperationStatusCard
-              status={STORE_DETAIL_MOCK.operationStatus}
-              compact
-            />
+            {store ? (
+              <OperationStatusCard
+                store={store}
+                compact
+              />
+            ) : null}
             <Button
               variant='secondary'
               size='sm'

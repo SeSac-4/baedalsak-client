@@ -1,6 +1,6 @@
-import type { CategoryCode } from '../model/category-types';
+import { CATEGORY_CODES, type CategoryCode } from '../model/category-types';
 
-const CATEGORY_CODES: readonly string[] = ['KOREAN', 'SNACK', 'CHICKEN', 'CHINESE', 'PIZZA', 'CAFE_DESSERT'];
+const CATEGORY_CODE_LIST: readonly string[] = CATEGORY_CODES;
 
 /**
  * 문자열이 카테고리 코드인지 확인한다. (URL 쿼리 값 검증용)
@@ -8,4 +8,4 @@ const CATEGORY_CODES: readonly string[] = ['KOREAN', 'SNACK', 'CHICKEN', 'CHINES
  * @returns 카테고리 코드 여부
  */
 export const isCategoryCode = (value: string | null): value is CategoryCode =>
-  value !== null && CATEGORY_CODES.includes(value);
+  value !== null && CATEGORY_CODE_LIST.includes(value);

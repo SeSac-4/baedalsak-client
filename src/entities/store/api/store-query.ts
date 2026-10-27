@@ -15,4 +15,9 @@ export const storeKeys = {
    * @returns 쿼리 키
    */
   detail: (storeId: number) => [...storeKeys.all, 'detail', storeId] as const,
+  /**
+   * 내 가게(사장님) 키를 만든다.
+   * @returns 쿼리 키
+   */
+  me: () => [...storeKeys.all, 'me'] as const,
 };
