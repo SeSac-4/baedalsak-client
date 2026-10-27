@@ -1,5 +1,5 @@
 /** 주문 불가 사유 (GET /cart cannotOrderReason) */
-export type CannotOrderReason = 'CART_EMPTY' | 'MIN_ORDER_AMOUNT_NOT_MET' | 'STORE_CLOSED';
+export type CannotOrderReason = 'CART_EMPTY' | 'MIN_ORDER_AMOUNT_NOT_MET';
 
 /** 장바구니 항목. 메뉴명·가격은 담을 때 스냅샷 */
 export interface CartItem {
