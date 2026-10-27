@@ -2,4 +2,5 @@ export { apiClient, setAuthEventHandlers, type AuthEventHandlers } from './api-c
 export type { ApiErrorResponse, ApiFieldError } from './api-types';
 export { getErrorCode } from './get-error-code';
 export { getErrorMessage } from './get-error-message';
+export { getFieldErrors } from './get-field-errors';
 export { queryClient } from './query-client';
