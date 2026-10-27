@@ -1,30 +1,25 @@
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Card } from '@/shared/ui/card';
 import { Spinner } from '@/shared/ui/spinner';
 
-import { AGREEMENT_SELECTOR, PAYMENT_METHOD_SELECTOR, useTossPaymentWidget } from '../model/use-toss-payment-widget';
+import {
+  AGREEMENT_SELECTOR,
+  PAYMENT_METHOD_SELECTOR,
+  type TossPaymentWidgetStatus,
+} from '../model/use-toss-payment-widget';
 
 export interface TossPaymentCardProps {
-  /** 결제 금액 (원) */
-  amount: number;
-  /** 결제할 수 있는 상태(렌더링 완료 + 필수 약관 동의)가 바뀔 때 호출 */
-  onPayableChange: (isPayable: boolean) => void;
+  /** 결제위젯 렌더링 상태 */
+  status: TossPaymentWidgetStatus;
 }
 
 /**
- * U-05 토스 결제위젯 카드. 결제 UI와 약관 UI를 보여 준다. (테스트 환경)
- * @param props amount(결제 금액), onPayableChange(결제 가능 여부 변경)
+ * U-05 토스 결제위젯 카드. 결제 UI와 약관 UI가 그려질 자리와 불러오는 중·오류 안내를 보여 준다. (테스트 환경)
+ * @param props status(결제위젯 렌더링 상태)
  * @returns 결제위젯 카드 요소
  */
-export function TossPaymentCard({ amount, onPayableChange }: TossPaymentCardProps): ReactNode {
-  const { status, isAgreed } = useTossPaymentWidget(amount);
-  const isPayable = status === 'ready' && isAgreed;
-
-  useEffect(() => {
-    onPayableChange(isPayable);
-  }, [isPayable, onPayableChange]);
-
+export function TossPaymentCard({ status }: TossPaymentCardProps): ReactNode {
   return (
     <Card className='flex flex-col gap-2'>
       {status === 'loading' ? (

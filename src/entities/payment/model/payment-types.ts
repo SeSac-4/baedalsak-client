@@ -1,6 +1,16 @@
 /** 결제 상태: 결제 요청됨 → 승인완료 */
 export type PaymentStatus = 'REQUESTED' | 'APPROVED';
 
+/** POST /payments 응답. 토스 결제창 호출에 쓰는 결제 요청 정보 */
+export interface PaymentReady {
+  paymentId: number;
+  /** 토스 orderId (6~64자, 영문·숫자·-·_) */
+  tossOrderId: string;
+  /** 토스 orderName (최대 100자) */
+  orderName: string;
+  amount: number;
+}
+
 /** GET /payments 응답 항목 */
 export interface PaymentSummary {
   paymentId: number;
