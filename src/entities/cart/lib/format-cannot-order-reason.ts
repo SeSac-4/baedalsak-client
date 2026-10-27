@@ -12,8 +12,5 @@ export const formatCannotOrderReason = (cart: Cart): string | null => {
     const shortage = cart.minOrderAmount - cart.itemsAmount;
     return `최소주문금액 ${formatPrice(cart.minOrderAmount)}까지 ${formatPrice(shortage)} 더 담아 주세요.`;
   }
-  if (cart.cannotOrderReason === 'STORE_CLOSED') {
-    return '지금은 가게 영업시간이 아니라 주문할 수 없어요.';
-  }
   return null;
 };

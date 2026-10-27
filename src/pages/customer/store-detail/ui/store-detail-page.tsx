@@ -1,24 +1,61 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
 
-import { CART_MOCK } from '@/entities/cart';
-import { CATEGORY_LIST_MOCK } from '@/entities/category';
-import { STORE_DETAIL_MOCK, StoreHoursCard, formatBusinessHour } from '@/entities/store';
+import { useCart } from '@/entities/cart';
+import { useCategoryList } from '@/entities/category';
+import { StoreHoursCard, formatBusinessHour, useStore } from '@/entities/store';
+import { getErrorMessage } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
+import { Spinner } from '@/shared/ui/spinner';
 import { CartSummaryCard } from '@/widgets/cart-summary';
 
+import { MenuListCard } from './menu-list-card';
+
+const HOME_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+
 /**
- * U-02 가게 상세·메뉴 화면. 가게 정보와 요일별 영업시간을 보여 주고,
- * 메뉴 목록은 자리만 둔다. (목 데이터)
+ * U-02 가게 상세·메뉴 화면. 가게 정보·요일별 영업시간·메뉴 목록(담기)과 내 장바구니를 보여 준다.
+ * 없는 가게(404 STORE_NOT_FOUND)는 서버 메시지로 안내한다.
  * @returns 가게 상세 페이지
  */
 export function StoreDetailPage(): ReactNode {
-  const store = STORE_DETAIL_MOCK;
-  const categoryName = CATEGORY_LIST_MOCK.find((item) => item.code === store.category)?.name ?? '';
+  const { storeId } = useParams<{ storeId: string }>();
+  const { data: store, error, isPending } = useStore(Number(storeId));
+  const { data: categories } = useCategoryList();
+  const { data: cart } = useCart();
+
+  if (isPending) {
+    return (
+      <div className='flex items-center justify-center gap-2 py-16 text-note text-fg-muted'>
+        <Spinner label='가게 정보 불러오는 중' />
+        가게 정보를 불러오고 있어요.
+      </div>
+    );
+  }
+
+  if (!store) {
+    return (
+      <div className='mx-auto max-w-[1100px] px-4 py-6'>
+        <EmptyState
+          message={error ? getErrorMessage(error) : '가게를 찾을 수 없어요.'}
+          action={
+            <Link
+              to='/'
+              className={HOME_LINK_CLASS}
+            >
+              가게 목록으로
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
+  const categoryName = categories?.find((item) => item.code === store.category)?.name ?? '';
 
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-6'>
@@ -65,7 +102,7 @@ export function StoreDetailPage(): ReactNode {
 
           <section>
             <PageHeader title='메뉴' />
-            <EmptyState message='메뉴 목록 영역 (menu 도메인에서 구현 예정)' />
+            <MenuListCard store={store} />
           </section>
 
           {store.isOpenNow ? null : (
@@ -75,9 +112,7 @@ export function StoreDetailPage(): ReactNode {
           )}
         </div>
 
-        <aside className='tablet:sticky tablet:top-4'>
-          <CartSummaryCard cart={CART_MOCK} />
-        </aside>
+        <aside className='tablet:sticky tablet:top-4'>{cart ? <CartSummaryCard cart={cart} /> : null}</aside>
       </div>
     </div>
   );

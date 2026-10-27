@@ -12,7 +12,7 @@ const SERVICE_UNAVAILABLE_MESSAGE = '잠시 후 다시 시도해 주세요.';
  * @returns 사용자에게 보여줄 메시지
  */
 export const getErrorMessage = (error: unknown): string => {
-  if (!axios.isAxiosError<ApiErrorResponse>(error)) return DEFAULT_ERROR_MESSAGE;
+  if (!axios.isAxiosError<Partial<ApiErrorResponse>>(error)) return DEFAULT_ERROR_MESSAGE;
   if (!error.response) return NETWORK_ERROR_MESSAGE;
   if (error.response.status === 503) return SERVICE_UNAVAILABLE_MESSAGE;
 
