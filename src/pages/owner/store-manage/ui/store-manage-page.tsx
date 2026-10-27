@@ -19,7 +19,7 @@ export function StoreManagePage(): ReactNode {
     <div className='mx-auto flex max-w-[720px] flex-col gap-4 px-4 py-6'>
       <PageHeader title='가게 관리' />
 
-      <OperationStatusCard status={store.operationStatus} />
+      <OperationStatusCard store={store} />
 
       <Card className='flex flex-col gap-3'>
         <strong className='text-body text-fg'>가게 정보</strong>

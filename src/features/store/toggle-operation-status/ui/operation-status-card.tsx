@@ -1,29 +1,34 @@
 import type { ReactNode } from 'react';
 
-import type { OperationStatus } from '@/entities/store';
+import type { StoreDetail } from '@/entities/store';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 
+import { useToggleOperationStatus } from '../model/use-toggle-operation-status';
+
 export interface OperationStatusCardProps {
-  status: OperationStatus;
+  store: Pick<StoreDetail, 'id' | 'operationStatus'>;
   /** true면 카드·안내 문구 없이 배지+전환 버튼 한 줄 (O-01 상단용) */
   compact?: boolean;
 }
 
 /**
- * 현재 운영 상태 배지와 전환 버튼을 렌더링한다. (전환 동작은 API 연동 시 구현)
- * @param props status(현재 운영 상태), compact(한 줄 표시 여부)
+ * 현재 운영 상태 배지와 전환 버튼을 렌더링한다. 버튼을 누르면 반대 상태로 바꾼다.
+ * @param props store(가게 ID·운영 상태), compact(한 줄 표시 여부)
  * @returns 운영 상태 요소
  */
-export function OperationStatusCard({ status, compact = false }: OperationStatusCardProps): ReactNode {
-  const isOpen = status === 'OPEN';
+export function OperationStatusCard({ store, compact = false }: OperationStatusCardProps): ReactNode {
+  const { mutate: toggleOperationStatus, isPending } = useToggleOperationStatus(store.id);
+  const isOpen = store.operationStatus === 'OPEN';
   const badge = <Badge tone={isOpen ? 'ok' : 'warn'}>{isOpen ? '정상 운영' : '임시 중지'}</Badge>;
   const toggleButton = (
     <Button
       variant='secondary'
       size='sm'
       className={compact ? undefined : 'ml-auto'}
+      disabled={isPending}
+      onClick={() => toggleOperationStatus(isOpen ? 'PAUSED' : 'OPEN')}
     >
       {isOpen ? '임시 중지로 전환' : '정상 운영으로 전환'}
     </Button>
