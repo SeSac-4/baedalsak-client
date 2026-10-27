@@ -1,4 +1,4 @@
-export type { Category, CategoryCode } from './model/category-types';
+export { CATEGORY_CODES, type Category, type CategoryCode } from './model/category-types';
 export { CATEGORY_LIST_MOCK } from './model/category-mock';
 export { categoryKeys } from './api/category-query';
 export { isCategoryCode } from './lib/is-category-code';
