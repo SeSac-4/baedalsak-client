@@ -31,6 +31,7 @@
 | toggle                     | 두 상태 전환                    | -          | `toggleSaleStatus`                |
 | upsert                     | 생성·수정 겸용                  | -          | `upsertMenu`                      |
 | accept / pickup / complete | 주문·배달 상태 전이             | -          | `acceptOrder`, `completeDelivery` |
+| request                    | 외부 서비스에 처리 요청         | -          | `requestPayment`                  |
 
 - 표에 없는 동사는 이 표에 먼저 추가한 뒤 사용
 - feature 슬라이스명도 표의 동사 사용 (`remove-cart-item`)
