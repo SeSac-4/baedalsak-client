@@ -32,7 +32,8 @@ export function StoreManagePage(): ReactNode {
       <Card className='flex flex-col gap-3'>
         <strong className='text-body text-fg'>요일별 영업시간</strong>
         <BusinessHoursForm
-          defaultValues={store.businessHours}
+          storeId={store.id}
+          hours={store.businessHours}
           today={store.todayHour.dayOfWeek}
         />
       </Card>
