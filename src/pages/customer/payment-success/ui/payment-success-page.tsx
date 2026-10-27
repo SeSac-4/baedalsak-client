@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import axios from 'axios';
 
-import { getErrorMessage } from '@/shared/api';
+import { getErrorCode, getErrorMessage } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Spinner } from '@/shared/ui/spinner';
@@ -17,9 +16,12 @@ const PAYMENT_FAIL_PATH = '/payment/fail';
 const MISSING_PAYMENT_MESSAGE = '결제 정보를 찾을 수 없어요.';
 const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
 
-const HTTP_BAD_REQUEST = 400;
-const HTTP_CONFLICT = 409;
-const HTTP_BAD_GATEWAY = 502;
+const PAYMENT_ALREADY_APPROVED = 'PAYMENT_ALREADY_APPROVED';
+const PAYMENT_AMOUNT_MISMATCH = 'PAYMENT_AMOUNT_MISMATCH';
+const VALIDATION_FAILED = 'VALIDATION_FAILED';
+const PAYMENT_GATEWAY_ERROR = 'PAYMENT_GATEWAY_ERROR';
+/** 결제 실패 안내(U-07)로 보내는 승인 오류 (승인 API의 400 응답 코드) */
+const PAYMENT_FAIL_CODES: readonly string[] = [PAYMENT_AMOUNT_MISMATCH, VALIDATION_FAILED];
 
 /**
  * 토스 successUrl 쿼리(paymentKey·orderId·amount)를 승인 요청으로 바꾼다.
@@ -46,14 +48,6 @@ const parseOrderId = (searchParams: URLSearchParams): number | null => {
 };
 
 /**
- * 요청 오류의 HTTP 상태 코드를 꺼낸다.
- * @param error 요청 오류
- * @returns 상태 코드, 응답이 없으면 undefined
- */
-const getErrorStatus = (error: unknown): number | undefined =>
-  axios.isAxiosError(error) ? error.response?.status : undefined;
-
-/**
  * 주문내역 링크를 그린다.
  * @returns 주문내역 링크 요소
  */
@@ -68,8 +62,8 @@ const renderOrderListLink = (): ReactNode => (
 
 /**
  * U-06 결제 승인 화면. 토스 successUrl 쿼리로 결제를 승인하고 승인 결과를 보여 준다.
- * 이미 승인된 결제(409)는 주문 상세로, 금액 불일치 등(400)은 결제 실패 안내로 보낸다.
- * 토스 승인 실패(502)는 재시도 버튼으로 같은 승인을 다시 요청한다.
+ * 이미 승인된 결제(PAYMENT_ALREADY_APPROVED)는 주문 상세로, 승인할 수 없는 요청(PAYMENT_AMOUNT_MISMATCH·VALIDATION_FAILED)은 결제 실패 안내로 보낸다.
+ * 토스 승인 실패(PAYMENT_GATEWAY_ERROR)는 재시도 버튼으로 같은 승인을 다시 요청한다.
  * @returns 결제 승인 페이지
  */
 export function PaymentSuccessPage(): ReactNode {
@@ -100,9 +94,9 @@ export function PaymentSuccessPage(): ReactNode {
     );
   }
 
-  const status = getErrorStatus(error);
+  const errorCode = getErrorCode(error);
 
-  if (status === HTTP_CONFLICT && orderId !== null) {
+  if (errorCode === PAYMENT_ALREADY_APPROVED && orderId !== null) {
     return (
       <Navigate
         to={`/orders/${orderId}`}
@@ -111,7 +105,7 @@ export function PaymentSuccessPage(): ReactNode {
     );
   }
 
-  if (status === HTTP_BAD_REQUEST) {
+  if (errorCode !== null && PAYMENT_FAIL_CODES.includes(errorCode)) {
     return (
       <Navigate
         to={PAYMENT_FAIL_PATH}
@@ -125,7 +119,7 @@ export function PaymentSuccessPage(): ReactNode {
       <EmptyState
         message={getErrorMessage(error)}
         action={
-          status === HTTP_BAD_GATEWAY ? (
+          errorCode === PAYMENT_GATEWAY_ERROR ? (
             <Button onClick={() => void refetch()}>다시 시도</Button>
           ) : (
             renderOrderListLink()
