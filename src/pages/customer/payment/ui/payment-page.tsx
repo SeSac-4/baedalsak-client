@@ -1,86 +1,63 @@
-import { useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import type { ReactNode } from 'react';
+import { Link, useParams } from 'react-router';
 
-import { getOrderMock } from '@/entities/order';
-import { formatPrice } from '@/shared/lib/format';
-import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
+import { usePaymentReady } from '@/features/payment/request-payment';
+import { getErrorMessage } from '@/shared/api';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
+import { Spinner } from '@/shared/ui/spinner';
 
-import { TossPaymentCard } from './toss-payment-card';
+import { PaymentForm } from './payment-form';
+
+const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
 
 /**
- * U-05 결제 화면. 결제대기 주문의 토스 결제위젯과 결제 금액을 보여 주고, 결제하면 결제 완료로 이동한다. (목 데이터)
- * 결제 요청(requestPayment) 연동은 #28에서 한다.
+ * U-05 결제 화면. 진입 시 결제 요청(POST /payments)을 만들고, 받은 금액·주문명으로 토스 결제위젯과 결제하기를 보여 준다.
+ * 결제대기가 아닌 주문(409)·없는 주문(404)·다른 고객 주문(403) 등 요청 실패는 서버 메시지로 안내한다.
  * @returns 결제 페이지
  */
 export function PaymentPage(): ReactNode {
   const { orderId } = useParams<{ orderId: string }>();
-  const navigate = useNavigate();
-  const order = getOrderMock(Number(orderId));
-  const [isPayable, setIsPayable] = useState<boolean>(false);
-
-  /**
-   * 결제 완료 화면으로 이동한다. (결제 요청·승인 API 연동 전 임시)
-   */
-  const handlePayClick = (): void => {
-    navigate('/payment/success');
-  };
-
-  if (!order || order.status !== 'PENDING_PAYMENT') {
-    return (
-      <div className='mx-auto max-w-[1100px] px-4 py-6'>
-        <EmptyState
-          message='결제할 수 있는 주문이 아니에요.'
-          action={
-            <Link
-              to='/orders'
-              className='text-note font-medium text-role hover:underline'
-            >
-              주문내역으로
-            </Link>
-          }
-        />
-      </div>
-    );
-  }
+  const orderIdNumber = Number(orderId);
+  const { data: paymentReady, error, isPending } = usePaymentReady(orderIdNumber);
 
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col gap-2 px-4 py-6'>
       <Link
-        to={`/orders/${order.id}`}
+        to={`/orders/${orderIdNumber}`}
         className='self-start text-note text-fg-muted hover:text-fg'
       >
         ‹ 주문 상세
       </Link>
       <PageHeader title='결제하기' />
 
-      <div className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'>
-        <TossPaymentCard
-          amount={order.totalAmount}
-          onPayableChange={setIsPayable}
+      {paymentReady ? (
+        <PaymentForm
+          orderId={orderIdNumber}
+          paymentReady={paymentReady}
         />
+      ) : null}
 
-        <aside className='tablet:sticky tablet:top-4'>
-          <Card className='flex flex-col gap-2'>
-            <strong className='text-body text-fg'>{order.storeName}</strong>
-            <p className='text-note text-fg-muted tabular-nums'>주문번호 {order.id}</p>
-            <div className='flex justify-between border-t border-border pt-2 text-body font-bold tabular-nums'>
-              <span className='text-fg'>결제 금액</span>
-              <span className='text-fg'>{formatPrice(order.totalAmount)}</span>
-            </div>
-            <Button
-              size='lg'
-              block
-              disabled={!isPayable}
-              onClick={handlePayClick}
+      {!paymentReady && isPending ? (
+        <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>
+          <Spinner label='결제 정보 불러오는 중' />
+          결제 정보를 불러오고 있어요.
+        </div>
+      ) : null}
+
+      {!paymentReady && error ? (
+        <EmptyState
+          message={getErrorMessage(error)}
+          action={
+            <Link
+              to='/orders'
+              className={ORDER_LIST_LINK_CLASS}
             >
-              {formatPrice(order.totalAmount)} 결제하기
-            </Button>
-          </Card>
-        </aside>
-      </div>
+              주문내역으로
+            </Link>
+          }
+        />
+      ) : null}
     </div>
   );
 }
