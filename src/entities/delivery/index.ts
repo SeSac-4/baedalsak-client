@@ -1,4 +1,10 @@
-export type { Delivery, DeliveryStatus, RiderDelivery, WaitingDelivery } from './model/delivery-types';
+export type {
+  Delivery,
+  DeliveryStatus,
+  RiderDelivery,
+  WaitingDelivery,
+  WaitingDeliveryPage,
+} from './model/delivery-types';
 export {
   DELIVERY_LIST_MOCK,
   RIDER_DELIVERY_MOCK,

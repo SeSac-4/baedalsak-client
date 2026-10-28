@@ -1,7 +1,7 @@
 /** 배달 상태: 배차대기 → 배차완료 → 픽업완료 → 배달완료 */
 export type DeliveryStatus = 'WAITING' | 'ASSIGNED' | 'PICKED_UP' | 'DELIVERED';
 
-/** GET /deliveries/by-order/{orderId}·POST /deliveries/{deliveryId}/complete 응답. 고객 연락처는 없음 */
+/** GET /deliveries/by-order/{orderId}(배달 생성 전이면 204)·POST /deliveries/{deliveryId}/complete 응답. 고객 연락처는 없음 */
 export interface Delivery {
   deliveryId: number;
   orderId: number;
@@ -33,7 +33,16 @@ export interface WaitingDelivery {
   createdAt: string;
 }
 
-/** GET /deliveries/me/active·POST /deliveries/{deliveryId}/accept·pickup 응답. 배정된 라이더에게만 상세 주소·연락처 공개 */
+/** GET /deliveries/waiting 응답. page는 0부터 */
+export interface WaitingDeliveryPage {
+  content: WaitingDelivery[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+/** GET /deliveries/me/active(없으면 204)·POST /deliveries/{deliveryId}/accept·pickup 응답. 배정된 라이더에게만 상세 주소 공개 */
 export interface RiderDelivery {
   deliveryId: number;
   orderId: number;
@@ -41,7 +50,8 @@ export interface RiderDelivery {
   storeName: string;
   pickupAddress: string;
   deliveryAddress: string;
-  customerPhone: string;
+  /** 고객 연락처. 진행 중 배달 조회(GET /me/active)에만 있고, 수락·픽업 응답에는 없음 */
+  customerPhone?: string;
   /** 라이더 요청사항 (없으면 null) */
   riderRequest: string | null;
   deliveryFee: number;
