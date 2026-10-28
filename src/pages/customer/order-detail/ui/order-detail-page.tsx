@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
-import { getDeliveryMockByOrder } from '@/entities/delivery';
+import { useDeliveryByOrder } from '@/entities/delivery';
 import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, getOrderMock } from '@/entities/order';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -10,7 +10,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { OrderTrackingCard } from '@/widgets/order-tracking';
 
 /**
- * U-09 주문 상세 화면. 진행 단계·주문 정보·배달 정보와 새로고침·결제 상세 링크를 보여 준다. (목 데이터)
+ * U-09 주문 상세 화면. 진행 단계·주문 정보·배달 정보와 새로고침·결제 상세 링크를 보여 준다. (주문은 목 데이터, 배달 정보는 GET /deliveries/by-order/{orderId})
  * 결제대기 주문이면 결제하기로 결제 화면으로 이동한다.
  * @returns 주문 상세 페이지
  */
@@ -18,6 +18,12 @@ export function OrderDetailPage(): ReactNode {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const order = getOrderMock(Number(orderId));
+  const {
+    data: delivery,
+    error: deliveryError,
+    isFetching: isDeliveryFetching,
+    refetch: refetchDelivery,
+  } = useDeliveryByOrder(Number(orderId));
 
   if (!order) {
     return (
@@ -52,6 +58,8 @@ export function OrderDetailPage(): ReactNode {
           <Button
             variant='secondary'
             size='sm'
+            disabled={isDeliveryFetching}
+            onClick={() => void refetchDelivery()}
           >
             새로고침
           </Button>
@@ -60,7 +68,8 @@ export function OrderDetailPage(): ReactNode {
 
       <OrderTrackingCard
         order={order}
-        delivery={getDeliveryMockByOrder(order.id)}
+        delivery={delivery}
+        deliveryError={deliveryError}
       />
 
       <div className='mt-2 flex flex-wrap gap-2'>

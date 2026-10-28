@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, type Delivery } from '@/entities/delivery';
 import { ORDER_STATUS_FLOW, ORDER_STATUS_LABEL, formatOrderItems, type OrderDetail } from '@/entities/order';
+import { getErrorMessage } from '@/shared/api';
 import { formatDateTime, formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
@@ -11,8 +12,10 @@ import { Stepper, type Step } from '@/shared/ui/stepper';
 /** 주문 진행 단계 + 주문 정보 + 배달 정보. U-09 고객 주문 상세·O-03 사장님 주문 상세에서 사용. */
 export interface OrderTrackingCardProps {
   order: OrderDetail;
-  /** 배달 정보 (배달 API 404면 null) */
-  delivery: Delivery | null;
+  /** 배달 정보 (배달 생성 전이면 null, 불러오는 중·실패면 undefined) */
+  delivery: Delivery | null | undefined;
+  /** 배달 조회 에러 (403 등) */
+  deliveryError?: unknown;
 }
 
 /**
@@ -85,11 +88,28 @@ const getNoDeliveryMessage = (order: OrderDetail): string =>
   order.status === 'COOKING' ? '배차 준비 중이에요.' : '가게가 주문을 수락하면 배달 요청이 만들어져요.';
 
 /**
+ * 배달 정보 대신 보여 줄 문구를 고른다.
+ * @param order 주문 상세
+ * @param delivery 배달 정보 (생성 전이면 null, 불러오는 중·실패면 undefined)
+ * @param deliveryError 배달 조회 에러
+ * @returns 실패 메시지 · 불러오는 중 안내 · 배달 없음 안내
+ */
+const getDeliveryPlaceholder = (
+  order: OrderDetail,
+  delivery: Delivery | null | undefined,
+  deliveryError: unknown,
+): string => {
+  if (deliveryError) return getErrorMessage(deliveryError);
+  if (delivery === undefined) return '배달 정보를 불러오고 있어요.';
+  return getNoDeliveryMessage(order);
+};
+
+/**
  * 주문 추적 카드를 렌더링한다.
- * @param props order(주문 상세), delivery(배달 정보)
+ * @param props order(주문 상세), delivery(배달 정보), deliveryError(배달 조회 에러)
  * @returns 진행 단계·주문 정보·배달 정보 요소
  */
-export function OrderTrackingCard({ order, delivery }: OrderTrackingCardProps): ReactNode {
+export function OrderTrackingCard({ order, delivery, deliveryError }: OrderTrackingCardProps): ReactNode {
   return (
     <div className='flex flex-col gap-4'>
       <Card>
@@ -110,7 +130,7 @@ export function OrderTrackingCard({ order, delivery }: OrderTrackingCardProps): 
           {delivery ? (
             <KeyValueList items={getDeliveryInfoItems(delivery)} />
           ) : (
-            <p className='text-body text-fg-muted'>{getNoDeliveryMessage(order)}</p>
+            <p className='text-body text-fg-muted'>{getDeliveryPlaceholder(order, delivery, deliveryError)}</p>
           )}
         </Card>
       </div>

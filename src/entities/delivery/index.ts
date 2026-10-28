@@ -5,12 +5,7 @@ export type {
   WaitingDelivery,
   WaitingDeliveryPage,
 } from './model/delivery-types';
-export {
-  DELIVERY_LIST_MOCK,
-  RIDER_DELIVERY_MOCK,
-  WAITING_DELIVERY_MOCK,
-  getDeliveryMockByOrder,
-} from './model/delivery-mock';
+export { RIDER_DELIVERY_MOCK, WAITING_DELIVERY_MOCK } from './model/delivery-mock';
 export { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE } from './lib/format-delivery';
 export { deliveryKeys } from './api/delivery-query';
 export { useActiveDelivery } from './model/use-active-delivery';
