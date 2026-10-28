@@ -1,44 +1,65 @@
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
 
-import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, getPaymentMock } from '@/entities/payment';
+import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, usePayment } from '@/entities/payment';
+import { getErrorMessage } from '@/shared/api';
 import { formatDateTime, formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { KeyValueList } from '@/shared/ui/key-value-list';
 import { PageHeader } from '@/shared/ui/page-header';
+import { Spinner } from '@/shared/ui/spinner';
 
 const PRIMARY_LINK_CLASS =
   'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-white transition hover:brightness-110';
 const SECONDARY_LINK_CLASS =
   'inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-body font-medium text-fg transition hover:bg-surface-hover';
+const MISSING_PAYMENT_MESSAGE = '결제를 찾을 수 없어요.';
 
 /**
- * U-11 결제 상세 화면. 결제 정보와 영수증·주문 상세 링크를 보여 준다. (목 데이터)
+ * 결제내역으로 돌아가는 링크와 함께 안내 문구를 그린다.
+ * @param message 안내 문구
+ * @returns 안내 요소
+ */
+const renderNotice = (message: string): ReactNode => (
+  <div className='mx-auto max-w-[1100px] px-4 py-6'>
+    <EmptyState
+      message={message}
+      action={
+        <Link
+          to='/payments'
+          className='text-note font-medium text-role hover:underline'
+        >
+          결제내역으로
+        </Link>
+      }
+    />
+  </div>
+);
+
+/**
+ * U-11 결제 상세 화면. 결제 정보와 영수증·주문 상세 링크를 보여 준다.
+ * 다른 고객의 결제(403)·없는 결제(404)는 서버 메시지로 안내한다.
  * @returns 결제 상세 페이지
  */
 export function PaymentDetailPage(): ReactNode {
   const { paymentId } = useParams<{ paymentId: string }>();
-  const payment = getPaymentMock(Number(paymentId));
+  const id = Number(paymentId);
+  const { data: payment, error, isPending } = usePayment(id);
 
-  if (!payment) {
+  if (!Number.isInteger(id) || id <= 0) return renderNotice(MISSING_PAYMENT_MESSAGE);
+
+  if (isPending) {
     return (
-      <div className='mx-auto max-w-[1100px] px-4 py-6'>
-        <EmptyState
-          message='결제를 찾을 수 없어요.'
-          action={
-            <Link
-              to='/payments'
-              className='text-note font-medium text-role hover:underline'
-            >
-              결제내역으로
-            </Link>
-          }
-        />
+      <div className='flex items-center justify-center gap-2 px-4 py-10 text-note text-fg-muted'>
+        <Spinner label='결제 상세 불러오는 중' />
+        결제 정보를 불러오고 있어요.
       </div>
     );
   }
+
+  if (error) return renderNotice(getErrorMessage(error));
 
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col gap-2 px-4 py-6'>

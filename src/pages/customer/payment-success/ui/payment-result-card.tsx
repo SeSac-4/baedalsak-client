@@ -18,7 +18,7 @@ export interface PaymentResultCardProps {
 
 /**
  * U-06 결제 승인 결과. 주문번호·금액·결제수단·승인번호와 주문 상세·홈 버튼을 보여 준다.
- * 승인번호는 값이 있을 때만 보여 준다 (카드 결제가 아니거나 server #16 전이면 없음).
+ * 승인번호는 카드 결제에만 있어서, 값이 없으면 '-'로 보여 준다 (결제마다 항목 구성을 같게 유지).
  * @param props payment(승인된 결제 상세)
  * @returns 결제 승인 결과 요소
  */
@@ -42,7 +42,7 @@ export function PaymentResultCard({ payment }: PaymentResultCardProps): ReactNod
             { label: '주문번호', value: payment.orderId },
             { label: '결제 금액', value: formatPrice(payment.amount) },
             { label: '결제수단', value: payment.method ?? '-' },
-            ...(payment.approvalNumber ? [{ label: '승인번호', value: payment.approvalNumber }] : []),
+            { label: '승인번호', value: payment.approvalNumber ?? '-' },
           ]}
         />
       </Card>
