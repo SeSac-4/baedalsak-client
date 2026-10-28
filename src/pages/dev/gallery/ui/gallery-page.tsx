@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
 import { CART_EMPTY_MOCK, CART_MIN_NOT_MET_MOCK, CART_MOCK } from '@/entities/cart';
+import { DeliveryCard, RIDER_DELIVERY_MOCK, WAITING_DELIVERY_MOCK } from '@/entities/delivery';
 
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -273,6 +274,26 @@ export function GalleryPage() {
             <CartSummaryCard cart={CART_MOCK} />
             <CartSummaryCard cart={CART_MIN_NOT_MET_MOCK} />
             <CartSummaryCard cart={CART_EMPTY_MOCK} />
+          </div>
+        </Section>
+
+        <Section
+          id='CMP-20'
+          title='DeliveryCard (배차 대기 · 배차 완료 · 픽업 완료)'
+        >
+          <div className='grid w-full grid-cols-[repeat(auto-fill,minmax(260px,1fr))] items-start gap-3'>
+            <DeliveryCard
+              delivery={WAITING_DELIVERY_MOCK}
+              footer={<Button block>수락</Button>}
+            />
+            <DeliveryCard
+              delivery={RIDER_DELIVERY_MOCK}
+              footer={<Button block>픽업 완료</Button>}
+            />
+            <DeliveryCard
+              delivery={{ ...RIDER_DELIVERY_MOCK, status: 'PICKED_UP', pickedUpAt: '2026-10-13T12:32:00+09:00' }}
+              footer={<Button block>배달 완료</Button>}
+            />
           </div>
         </Section>
 
