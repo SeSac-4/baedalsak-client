@@ -57,7 +57,7 @@ export function AppRouter() {
         element={<SignupRiderPage />}
       />
       <Route
-        path='/my-page'
+        path='/me'
         element={<MyPage />}
       />
 
