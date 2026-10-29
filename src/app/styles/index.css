@@ -7,8 +7,11 @@
  * 컴포넌트는 hex·px 폰트를 직접 쓰지 않고 이 토큰만 참조한다.
  * ------------------------------------------------------------------ */
 :root {
-  /* 역할 강조색: 고객 파랑 / 사장님 갈색 / 라이더 청록. 레이아웃이 덮어쓴다. */
-  --rc: #2563eb;
+  /* 역할 강조색: 고객 파랑 / 사장님 갈색 / 라이더 청록. 레이아웃이 data-role로 덮어쓴다. */
+  --role-customer: #2563eb;
+  --role-owner: #b45f12;
+  --role-rider: #0f766e;
+  --rc: var(--role-customer);
 
   /* 표면·텍스트 */
   --canvas: #f6f7f9;
@@ -34,7 +37,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --rc: #3b82f6;
+    --role-customer: #3b82f6;
+    --role-owner: #f0a35c;
+    --role-rider: #5fd0c4;
 
     --canvas: #0f1114;
     --surface: #17191d;
@@ -55,6 +60,19 @@
 
     --overlay: rgb(0 0 0 / 0.6);
   }
+}
+
+/* 역할별 레이아웃(RoleLayout)이 data-role로 하위 화면의 역할 강조색을 바꾼다 */
+[data-role='CUSTOMER'] {
+  --rc: var(--role-customer);
+}
+
+[data-role='OWNER'] {
+  --rc: var(--role-owner);
+}
+
+[data-role='RIDER'] {
+  --rc: var(--role-rider);
 }
 
 /* CSS 변수를 Tailwind 테마 토큰으로 노출 (inline → 다크 모드가 var()로 전파됨) */
