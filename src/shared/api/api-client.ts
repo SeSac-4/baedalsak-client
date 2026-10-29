@@ -4,6 +4,10 @@ const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const AUTH_REFRESH_PATH = '/auth/refresh';
 const AUTH_LOGOUT_PATH = '/auth/logout';
+/** gateway가 상태 변경 요청에 필수로 검사하는 CSRF 방어 헤더 */
+const REQUESTED_WITH_HEADER = 'X-Requested-With';
+const REQUESTED_WITH_VALUE = 'XMLHttpRequest';
+const STATE_CHANGING_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 /** 인증 이벤트가 생겼을 때 app 레이어에서 실행할 처리 */
 export interface AuthEventHandlers {
@@ -96,4 +100,17 @@ const handleResponseError = async (error: unknown): Promise<AxiosResponse> => {
   return apiClient(config);
 };
 
+/**
+ * 상태 변경 요청(POST·PUT·PATCH·DELETE)에 X-Requested-With 헤더를 붙인다. GET에는 붙이지 않는다.
+ * @param config - 보낼 요청 설정
+ * @returns 헤더를 붙인 요청 설정
+ */
+const addRequestedWithHeader = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  if (STATE_CHANGING_METHODS.has(config.method?.toLowerCase() ?? '')) {
+    config.headers.set(REQUESTED_WITH_HEADER, REQUESTED_WITH_VALUE);
+  }
+  return config;
+};
+
+apiClient.interceptors.request.use(addRequestedWithHeader);
 apiClient.interceptors.response.use(undefined, handleResponseError);
