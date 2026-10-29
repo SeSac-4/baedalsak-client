@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
+import { clearSession } from '@/entities/session';
 import { queryClient, setAuthEventHandlers } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -16,7 +17,7 @@ export function useAuthEventHandlers(): void {
     () =>
       setAuthEventHandlers({
         onSessionExpired: (): void => {
-          queryClient.clear();
+          clearSession(queryClient);
           navigate(LOGIN_PATH, { replace: true });
         },
         onServiceUnavailable: (): void => toast(SERVICE_UNAVAILABLE_MESSAGE),
