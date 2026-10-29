@@ -2,6 +2,7 @@ import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axio
 
 const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
+const AUTH_LOGIN_PATH = '/auth/login';
 const AUTH_REFRESH_PATH = '/auth/refresh';
 const AUTH_LOGOUT_PATH = '/auth/logout';
 /** gateway가 상태 변경 요청에 필수로 검사하는 CSRF 방어 헤더 */
@@ -45,12 +46,15 @@ export const setAuthEventHandlers = (handlers: AuthEventHandlers): (() => void) 
   };
 };
 
+const AUTH_PATHS = new Set([AUTH_LOGIN_PATH, AUTH_REFRESH_PATH, AUTH_LOGOUT_PATH]);
+
 /**
- * 갱신·로그아웃 요청인지 확인한다. 이 요청은 401이어도 다시 갱신하지 않는다.
+ * 로그인·갱신·로그아웃 요청인지 확인한다. 이 요청은 401이어도 다시 갱신하지 않는다.
+ * (로그인 401은 이메일·비밀번호 불일치라 갱신해도 결과가 같다)
  * @param url - 요청 경로
  * @returns 인증 창구 요청 여부
  */
-const isAuthRequest = (url: string | undefined): boolean => url === AUTH_REFRESH_PATH || url === AUTH_LOGOUT_PATH;
+const isAuthRequest = (url: string | undefined): boolean => AUTH_PATHS.has(url ?? '');
 
 /**
  * 갱신 실패 결과에 맞는 인증 이벤트를 알린다.
