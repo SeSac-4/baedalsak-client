@@ -34,6 +34,7 @@
 | request                    | 외부 서비스에 처리 요청         | -          | `requestPayment`                  |
 | confirm                    | 외부 서비스 처리 결과 확정      | -          | `confirmPayment`                  |
 | login / logout             | 인증 세션 시작·종료             | POST       | `loginMember`, `logoutMember`     |
+| signup                     | 회원 가입 (계정 생성 + 로그인)  | POST       | `signupMember`                    |
 
 - 표에 없는 동사는 이 표에 먼저 추가한 뒤 사용
 - feature 슬라이스명도 표의 동사 사용 (`remove-cart-item`)
