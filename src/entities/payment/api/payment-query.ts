@@ -12,4 +12,10 @@ export const paymentKeys = {
    * @returns 쿼리 키
    */
   detail: (paymentId: number) => [...paymentKeys.all, 'detail', paymentId] as const,
+  /**
+   * 주문의 결제 키를 만든다.
+   * @param orderId - 주문 ID
+   * @returns 쿼리 키
+   */
+  byOrder: (orderId: number) => [...paymentKeys.all, 'by-order', orderId] as const,
 };
