@@ -5,7 +5,7 @@ import { paymentKeys } from '../api/payment-query';
 import type { PaymentDetail } from './payment-types';
 
 /**
- * 주문의 결제를 조회한다. 결제가 아직 없으면(결제대기) data가 null.
+ * 주문의 결제를 조회한다. 결제 요청이 아직 없으면(결제창을 연 적 없는 주문) data가 null, 결제창만 열고 닫았으면 REQUESTED 결제.
  * @param orderId - 주문 ID
  * @returns 주문의 결제 쿼리 결과
  */

@@ -2,7 +2,7 @@ import { apiClient, getErrorCode } from '@/shared/api';
 
 import type { PaymentDetail, PaymentPage } from '../model/payment-types';
 
-/** 주문에 결제가 없을 때(결제대기) 주문의 결제 조회가 돌려주는 404 코드 */
+/** 주문에 결제 요청이 아직 없을 때(결제창을 연 적 없는 주문) 주문의 결제 조회가 돌려주는 404 코드 */
 const PAYMENT_NOT_FOUND = 'PAYMENT_NOT_FOUND';
 
 /**
@@ -29,7 +29,7 @@ export const getPayment = async (paymentId: number): Promise<PaymentDetail> => {
 /**
  * 주문의 결제를 조회한다. (주문 상세의 결제 상세 링크용) 본인 주문이 아니면 403.
  * @param orderId - 주문 ID
- * @returns 결제 상세 (결제대기처럼 결제가 없으면 404 PAYMENT_NOT_FOUND → null)
+ * @returns 결제 상세 (결제창만 열고 닫은 주문은 REQUESTED 결제, 결제 요청이 아직 없으면 404 PAYMENT_NOT_FOUND → null)
  */
 export const getPaymentByOrder = async (orderId: number): Promise<PaymentDetail | null> => {
   try {
