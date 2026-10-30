@@ -8,6 +8,8 @@ export interface QtyStepperProps {
   /** 스크린리더용 대상 이름 (예: 메뉴명) */
   label: string;
   min?: number;
+  /** true면 −·+ 모두 막는다 (요청 중 등) */
+  disabled?: boolean;
   onDecrease?: () => void;
   onIncrease?: () => void;
   className?: string;
@@ -18,16 +20,24 @@ const BUTTON_CLASS =
 
 /**
  * 수량 감소·표시·증가 버튼 묶음을 렌더링한다.
- * @param props value(현재 수량), label(대상 이름), min(최소 수량), onDecrease, onIncrease
+ * @param props value(현재 수량), label(대상 이름), min(최소 수량), disabled(모두 막기), onDecrease, onIncrease
  * @returns 수량 조절 요소
  */
-export function QtyStepper({ value, label, min = 1, onDecrease, onIncrease, className }: QtyStepperProps): ReactNode {
+export function QtyStepper({
+  value,
+  label,
+  min = 1,
+  disabled = false,
+  onDecrease,
+  onIncrease,
+  className,
+}: QtyStepperProps): ReactNode {
   return (
     <div className={cn('inline-flex items-center gap-1 rounded-lg border border-border p-0.5', className)}>
       <button
         type='button'
         aria-label={`${label} 수량 빼기`}
-        disabled={value <= min}
+        disabled={disabled || value <= min}
         onClick={onDecrease}
         className={BUTTON_CLASS}
       >
@@ -42,6 +52,7 @@ export function QtyStepper({ value, label, min = 1, onDecrease, onIncrease, clas
       <button
         type='button'
         aria-label={`${label} 수량 더하기`}
+        disabled={disabled}
         onClick={onIncrease}
         className={BUTTON_CLASS}
       >
