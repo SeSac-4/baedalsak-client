@@ -39,17 +39,11 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
           <div className='grid gap-3 tablet:grid-cols-2'>
             <label className={`${LABEL_CLASS} tablet:col-span-2`}>
               주소
-              <Input
-                name='address'
-                defaultValue='서울 성동구 성수이로 113'
-              />
+              <Input name='address' />
             </label>
             <label className={LABEL_CLASS}>
               상세 주소
-              <Input
-                name='addressDetail'
-                defaultValue='302호'
-              />
+              <Input name='addressDetail' />
             </label>
             <label className={LABEL_CLASS}>
               연락처
