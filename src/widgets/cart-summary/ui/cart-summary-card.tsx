@@ -1,10 +1,16 @@
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 
-import { CartItemCard, formatCannotOrderReason, type Cart } from '@/entities/cart';
+import { CartItemCard, formatCannotOrderReason, type Cart, type CartItem } from '@/entities/cart';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { QtyStepper } from '@/shared/ui/qty-stepper';
+
+import { useRemoveCartItem } from '../model/use-remove-cart-item';
+import { useUpdateCartItem } from '../model/use-update-cart-item';
+
+const CHECKOUT_PATH = '/checkout';
 
 /** CMP-12 CartPanel — 가게명·항목·합계·주문하기·주문 불가 안내. U-02(aside)·U-03에서 사용. */
 export interface CartSummaryCardProps {
@@ -13,11 +19,24 @@ export interface CartSummaryCardProps {
 }
 
 /**
- * 장바구니 요약 카드를 렌더링한다. 수량·삭제·주문하기 동작은 API 연동 시 구현한다.
+ * 장바구니 요약 카드를 렌더링한다. 수량 ±·삭제는 바로 서버에 반영하고, 주문하기는 주문서로 이동한다.
+ * 수량이 1이면 −는 막고 삭제로 지운다. 요청 중인 항목은 버튼을 잠시 막는다.
  * @param props cart(장바구니)
  * @returns 장바구니 요약 요소
  */
 export function CartSummaryCard({ cart, className }: CartSummaryCardProps): ReactNode {
+  const navigate = useNavigate();
+  const { mutate: updateCartItem, isPending: isUpdating, variables: updating } = useUpdateCartItem();
+  const { mutate: removeCartItem, isPending: isRemoving, variables: removingMenuId } = useRemoveCartItem();
+
+  /**
+   * 이 항목에 보낸 요청이 아직 진행 중인지 확인한다.
+   * @param item - 장바구니 항목
+   * @returns 요청 중 여부
+   */
+  const isItemPending = (item: CartItem): boolean =>
+    (isUpdating && updating?.menuId === item.menuId) || (isRemoving && removingMenuId === item.menuId);
+
   if (cart.items.length === 0) {
     return (
       <Card className={className}>
@@ -43,10 +62,15 @@ export function CartSummaryCard({ cart, className }: CartSummaryCardProps): Reac
                   <QtyStepper
                     value={item.quantity}
                     label={item.menuName}
+                    disabled={isItemPending(item)}
+                    onDecrease={() => updateCartItem({ menuId: item.menuId, quantity: item.quantity - 1 })}
+                    onIncrease={() => updateCartItem({ menuId: item.menuId, quantity: item.quantity + 1 })}
                   />
                   <Button
                     variant='secondary'
                     size='sm'
+                    disabled={isItemPending(item)}
+                    onClick={() => removeCartItem(item.menuId)}
                   >
                     삭제
                   </Button>
@@ -77,6 +101,7 @@ export function CartSummaryCard({ cart, className }: CartSummaryCardProps): Reac
         size='lg'
         disabled={!cart.canOrder}
         className='mt-3'
+        onClick={() => navigate(CHECKOUT_PATH)}
       >
         주문하기
       </Button>
