@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ReactNode } from 'react';
-import { useForm, type Path } from 'react-hook-form';
+import { useState, type ReactNode } from 'react';
+import { Controller, useForm, type Path } from 'react-hook-form';
 
 import { useCategoryList } from '@/entities/category';
 import { getFieldErrors } from '@/shared/api';
@@ -10,16 +10,26 @@ import { Select } from '@/shared/ui/select';
 
 import { storeSchema, type StoreFormValues } from '../model/store-schema';
 
+/** 사진 입력칸에 넘기는 폼 값 (사진 업로드 기능을 페이지가 끼워 넣는다) */
+export interface StoreImageField {
+  value: string | null;
+  onChange: (imageKey: string | null) => void;
+  /** 업로드 중이면 저장 버튼을 막는다 */
+  onPendingChange: (isPending: boolean) => void;
+}
+
 export interface StoreFormProps {
   defaultValues?: Partial<StoreFormValues>;
   submitLabel: string;
   /** 제출 처리. 400 VALIDATION_FAILED를 그대로 던지면 errors[]를 필드 에러로 보여 준다 */
   onSubmit: (values: StoreFormValues) => Promise<void>;
+  /** 사진 입력칸 (없으면 사진 없이 저장, 예: 가게 등록) */
+  renderImageField?: (field: StoreImageField) => ReactNode;
 }
 
 const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
 const ERROR_CLASS = 'text-note text-warn';
-const STORE_FIELDS: readonly string[] = ['name', 'category', 'address', 'minOrderAmount', 'deliveryFee'];
+const STORE_FIELDS: readonly string[] = ['name', 'category', 'address', 'minOrderAmount', 'deliveryFee', 'imageKey'];
 
 /**
  * 서버 필드명이 폼 필드인지 확인한다.
@@ -31,19 +41,22 @@ const isStoreField = (field: string): field is Path<StoreFormValues> => STORE_FI
 /**
  * 가게 이름·카테고리·주소·최소주문금액·배달비 입력 폼 (O-00 등록 · O-04 수정 공용).
  * Zod로 먼저 검증하고, 서버 검증 실패(errors[])는 해당 필드 아래에 보여 준다.
- * @param props defaultValues(입력 기본값), submitLabel(제출 버튼 문구), onSubmit(제출 처리)
+ * 사진은 renderImageField로 받은 입력칸이 imageKey 값을 채운다 (수정은 전체 교체라 기존 키를 그대로 다시 보낸다).
+ * @param props defaultValues(입력 기본값), submitLabel(제출 버튼 문구), onSubmit(제출 처리), renderImageField(사진 입력칸)
  * @returns 가게 정보 폼 요소
  */
-export function StoreForm({ defaultValues, submitLabel, onSubmit }: StoreFormProps): ReactNode {
+export function StoreForm({ defaultValues, submitLabel, onSubmit, renderImageField }: StoreFormProps): ReactNode {
   const { data: categories } = useCategoryList();
+  const [isImageUploading, setIsImageUploading] = useState<boolean>(false);
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<StoreFormValues>({
     resolver: zodResolver(storeSchema),
-    defaultValues: { name: '', category: 'KOREAN', address: '', ...defaultValues },
+    defaultValues: { name: '', category: 'KOREAN', address: '', imageKey: null, ...defaultValues },
   });
 
   /**
@@ -125,11 +138,30 @@ export function StoreForm({ defaultValues, submitLabel, onSubmit }: StoreFormPro
           {errors.deliveryFee ? <span className={ERROR_CLASS}>{errors.deliveryFee.message}</span> : null}
         </label>
       </div>
+      {renderImageField ? (
+        <div className={LABEL_CLASS}>
+          가게 사진
+          <Controller
+            control={control}
+            name='imageKey'
+            render={({ field }) => (
+              <>
+                {renderImageField({
+                  value: field.value,
+                  onChange: field.onChange,
+                  onPendingChange: setIsImageUploading,
+                })}
+              </>
+            )}
+          />
+          {errors.imageKey ? <span className={ERROR_CLASS}>{errors.imageKey.message}</span> : null}
+        </div>
+      ) : null}
       {errors.root ? <p className={ERROR_CLASS}>{errors.root.message}</p> : null}
       <div>
         <Button
           type='submit'
-          disabled={isSubmitting}
+          disabled={isSubmitting || isImageUploading}
         >
           {submitLabel}
         </Button>
