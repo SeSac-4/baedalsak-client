@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
-import { OrderCard, STORE_ORDER_LIST_MOCK, type OrderDetail, type OrderStatus } from '@/entities/order';
+import { OrderCard, useStoreOrderList, type OrderDetail, type OrderStatus } from '@/entities/order';
 import { useMyStore } from '@/entities/store';
 import { OperationStatusCard } from '@/features/store/toggle-operation-status';
+import { getErrorMessage } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
+import { Spinner } from '@/shared/ui/spinner';
 import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
 import { AcceptOrderModal } from './accept-order-modal';
@@ -28,15 +30,6 @@ const EMPTY_MESSAGES: Record<BoardTab, string> = {
 };
 
 /**
- * 탭에 해당하는 주문만 고른다.
- * @param orders 가게 주문 목록
- * @param tab 선택한 탭
- * @returns 탭에 해당하는 주문
- */
-const getOrdersByTab = (orders: OrderDetail[], tab: BoardTab): OrderDetail[] =>
-  orders.filter((order) => TAB_STATUSES[tab].includes(order.status));
-
-/**
  * 탭 문자열이 BoardTab인지 확인한다.
  * @param value Tabs가 넘긴 값
  * @returns BoardTab 여부
@@ -44,17 +37,28 @@ const getOrdersByTab = (orders: OrderDetail[], tab: BoardTab): OrderDetail[] =>
 const isBoardTab = (value: string): value is BoardTab => value in TAB_STATUSES;
 
 /**
- * O-01 주문 관리(사장님 홈) 화면. 신규·진행 중·완료 탭, 주문 카드, 상단 운영 상태를 보여 준다. (목 데이터)
+ * O-01 주문 관리(사장님 홈) 화면. 탭별 가게 주문(GET /stores/{id}/orders?status=)·상단 운영 상태를 보여 준다.
+ * 신규 건수는 탭과 관계없이 신규(PAID) 목록의 전체 건수로 보여 준다. 새로고침은 지금 탭과 신규 건수를 다시 받는다.
  * @returns 주문 관리 페이지
  */
 export function OrderBoardPage(): ReactNode {
   const { data: store } = useMyStore();
+  const storeId = store?.id ?? 0;
   const [tab, setTab] = useState<BoardTab>('new');
   const [acceptTarget, setAcceptTarget] = useState<OrderDetail | null>(null);
-  const orders = getOrdersByTab(STORE_ORDER_LIST_MOCK, tab);
+  const { data, error, isPending, isFetching, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useStoreOrderList(storeId, TAB_STATUSES[tab]);
+  const { data: newOrders, refetch: refetchNewOrders } = useStoreOrderList(storeId, TAB_STATUSES.new);
+  const orders = data?.pages.flatMap((page) => page.content) ?? [];
+
+  /** 지금 탭과 신규 건수를 다시 받는다. */
+  const handleRefreshClick = (): void => {
+    void refetch();
+    void refetchNewOrders();
+  };
 
   const tabItems: TabItem[] = [
-    { value: 'new', label: '신규', count: getOrdersByTab(STORE_ORDER_LIST_MOCK, 'new').length },
+    { value: 'new', label: '신규', count: newOrders?.pages[0]?.totalElements ?? 0 },
     { value: 'progress', label: '진행 중' },
     { value: 'done', label: '완료' },
   ];
@@ -82,6 +86,8 @@ export function OrderBoardPage(): ReactNode {
             <Button
               variant='secondary'
               size='sm'
+              disabled={isFetching}
+              onClick={handleRefreshClick}
             >
               새로고침
             </Button>
@@ -96,7 +102,16 @@ export function OrderBoardPage(): ReactNode {
         className='mb-4'
       />
 
-      {orders.length > 0 ? (
+      {isPending ? (
+        <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>
+          <Spinner label='주문 불러오는 중' />
+          주문을 불러오고 있어요.
+        </div>
+      ) : null}
+
+      {error && !data ? <EmptyState message={getErrorMessage(error)} /> : null}
+
+      {data && orders.length > 0 ? (
         <ul className='grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3'>
           {orders.map((order) => (
             <li key={order.id}>
@@ -130,14 +145,29 @@ export function OrderBoardPage(): ReactNode {
             </li>
           ))}
         </ul>
-      ) : (
-        <EmptyState message={EMPTY_MESSAGES[tab]} />
-      )}
+      ) : null}
+
+      {hasNextPage ? (
+        <Button
+          variant='secondary'
+          className='mt-4 self-center'
+          disabled={isFetchingNextPage}
+          onClick={() => void fetchNextPage()}
+        >
+          {isFetchingNextPage ? '불러오는 중' : '더 보기'}
+        </Button>
+      ) : null}
+
+      {data && orders.length === 0 ? <EmptyState message={EMPTY_MESSAGES[tab]} /> : null}
 
       <AcceptOrderModal
         key={acceptTarget?.id}
         order={acceptTarget}
         onClose={() => setAcceptTarget(null)}
+        onAccepted={() => {
+          setAcceptTarget(null);
+          setTab('progress');
+        }}
       />
     </div>
   );
