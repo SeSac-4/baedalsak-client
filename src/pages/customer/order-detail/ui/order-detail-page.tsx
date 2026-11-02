@@ -76,14 +76,6 @@ export function OrderDetailPage(): ReactNode {
         {order.status === 'PENDING_PAYMENT' ? (
           <Button onClick={() => navigate(`/payment/${order.id}`)}>결제하기</Button>
         ) : null}
-        {order.paymentId ? (
-          <Link
-            to={`/payments/${order.paymentId}`}
-            className='inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-body font-medium text-fg transition hover:bg-surface-hover'
-          >
-            결제 상세 보기
-          </Link>
-        ) : null}
       </div>
     </div>
   );
