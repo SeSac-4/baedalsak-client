@@ -42,3 +42,12 @@ export interface OrderDetail extends OrderSummary {
   /** 배정된 라이더 이름 (배차 전이면 null) */
   riderName: string | null;
 }
+
+/** GET /stores/{storeId}/orders 응답 (사장님). 결제대기 주문은 서버가 항상 뺀다. page는 0부터 */
+export interface StoreOrderPage {
+  content: OrderDetail[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
