@@ -9,7 +9,7 @@ export interface OrderItem {
   quantity: number;
 }
 
-/** GET /orders 응답 항목 */
+/** GET /orders 응답 항목 (주문 목록 카드) */
 export interface OrderSummary {
   id: number;
   storeName: string;
@@ -20,17 +20,18 @@ export interface OrderSummary {
   createdAt: string;
 }
 
-/** 상태 변경 이력 (스텝퍼 시각 표시용, 서버 제공 가정) */
-export interface OrderStatusHistory {
-  status: OrderStatus;
-  /** ISO 8601 */
-  at: string;
+/** GET /orders 응답. page는 0부터 */
+export interface OrderPage {
+  content: OrderSummary[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
-/** GET /orders/{orderId} 응답 */
+/** GET /orders/{orderId}·POST /orders 응답. 결제 정보는 GET /payments/by-order, 배정·픽업·완료 시각은 배달 API로 따로 받는다 */
 export interface OrderDetail extends OrderSummary {
   storeId: number;
-  paymentId: number | null;
   deliveryAddress: string;
   storeRequest: string | null;
   riderRequest: string | null;
@@ -38,5 +39,6 @@ export interface OrderDetail extends OrderSummary {
   deliveryFee: number;
   /** ISO 8601, 수락 전이면 null */
   estimatedReadyAt: string | null;
-  statusHistory: OrderStatusHistory[];
+  /** 배정된 라이더 이름 (배차 전이면 null) */
+  riderName: string | null;
 }

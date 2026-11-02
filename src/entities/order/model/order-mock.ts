@@ -6,10 +6,7 @@ const ITEMS_MOCK: OrderItem[] = [
 ];
 
 /** 상태별 공통 필드 (싹싹김밥 성수점, 18,000원) */
-const BASE_ORDER_MOCK: Omit<
-  OrderDetail,
-  'id' | 'status' | 'createdAt' | 'paymentId' | 'estimatedReadyAt' | 'statusHistory'
-> = {
+const BASE_ORDER_MOCK: Omit<OrderDetail, 'id' | 'status' | 'createdAt' | 'estimatedReadyAt' | 'riderName'> = {
   storeId: 1,
   storeName: '싹싹김밥 성수점',
   items: ITEMS_MOCK,
@@ -28,63 +25,40 @@ export const ORDER_LIST_MOCK: OrderDetail[] = [
     id: 1005,
     status: 'PENDING_PAYMENT',
     createdAt: '2026-10-13T12:50:00+09:00',
-    paymentId: null,
     estimatedReadyAt: null,
-    statusHistory: [{ status: 'PENDING_PAYMENT', at: '2026-10-13T12:50:00+09:00' }],
+    riderName: null,
   },
   {
     ...BASE_ORDER_MOCK,
     id: 1004,
     status: 'PAID',
     createdAt: '2026-10-13T12:40:00+09:00',
-    paymentId: 504,
     estimatedReadyAt: null,
-    statusHistory: [
-      { status: 'PENDING_PAYMENT', at: '2026-10-13T12:40:00+09:00' },
-      { status: 'PAID', at: '2026-10-13T12:41:00+09:00' },
-    ],
+    riderName: null,
   },
   {
     ...BASE_ORDER_MOCK,
     id: 1003,
     status: 'COOKING',
     createdAt: '2026-10-13T12:30:00+09:00',
-    paymentId: 503,
     estimatedReadyAt: '2026-10-13T12:53:00+09:00',
-    statusHistory: [
-      { status: 'PENDING_PAYMENT', at: '2026-10-13T12:30:00+09:00' },
-      { status: 'PAID', at: '2026-10-13T12:31:00+09:00' },
-      { status: 'COOKING', at: '2026-10-13T12:33:00+09:00' },
-    ],
+    riderName: null,
   },
   {
     ...BASE_ORDER_MOCK,
     id: 1002,
     status: 'DELIVERING',
     createdAt: '2026-10-13T11:50:00+09:00',
-    paymentId: 502,
     estimatedReadyAt: '2026-10-13T12:10:00+09:00',
-    statusHistory: [
-      { status: 'PENDING_PAYMENT', at: '2026-10-13T11:50:00+09:00' },
-      { status: 'PAID', at: '2026-10-13T11:51:00+09:00' },
-      { status: 'COOKING', at: '2026-10-13T11:53:00+09:00' },
-      { status: 'DELIVERING', at: '2026-10-13T12:12:00+09:00' },
-    ],
+    riderName: null,
   },
   {
     ...BASE_ORDER_MOCK,
     id: 1001,
     status: 'DELIVERED',
     createdAt: '2026-10-12T18:20:00+09:00',
-    paymentId: 501,
     estimatedReadyAt: '2026-10-12T18:40:00+09:00',
-    statusHistory: [
-      { status: 'PENDING_PAYMENT', at: '2026-10-12T18:20:00+09:00' },
-      { status: 'PAID', at: '2026-10-12T18:21:00+09:00' },
-      { status: 'COOKING', at: '2026-10-12T18:22:00+09:00' },
-      { status: 'DELIVERING', at: '2026-10-12T18:42:00+09:00' },
-      { status: 'DELIVERED', at: '2026-10-12T18:58:00+09:00' },
-    ],
+    riderName: null,
   },
 ];
 
@@ -104,12 +78,8 @@ export const STORE_ORDER_LIST_MOCK: OrderDetail[] = [
     storeRequest: null,
     riderRequest: '공동현관 비밀번호 1234',
     createdAt: '2026-10-13T12:45:00+09:00',
-    paymentId: 506,
     estimatedReadyAt: null,
-    statusHistory: [
-      { status: 'PENDING_PAYMENT', at: '2026-10-13T12:44:00+09:00' },
-      { status: 'PAID', at: '2026-10-13T12:45:00+09:00' },
-    ],
+    riderName: null,
   },
   ...ORDER_LIST_MOCK.filter((order) => order.status !== 'PENDING_PAYMENT'),
 ];

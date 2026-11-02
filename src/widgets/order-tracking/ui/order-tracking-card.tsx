@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
 
 import { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, type Delivery } from '@/entities/delivery';
-import { ORDER_STATUS_FLOW, ORDER_STATUS_LABEL, formatOrderItems, type OrderDetail } from '@/entities/order';
+import {
+  ORDER_STATUS_FLOW,
+  ORDER_STATUS_LABEL,
+  formatOrderItems,
+  type OrderDetail,
+  type OrderStatus,
+} from '@/entities/order';
 import { getErrorMessage } from '@/shared/api';
 import { formatDateTime, formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
@@ -26,14 +32,30 @@ export interface OrderTrackingCardProps {
 const formatOptionalTime = (iso: string | null): string => (iso ? formatDateTime(iso) : '-');
 
 /**
- * 주문 상태 이력으로 스텝퍼 단계를 만든다.
+ * 단계에 보여 줄 시각을 고른다. 서버에 단계별 이력이 없어 아는 시각만 쓴다:
+ * 결제대기 = 주문 시각, 배달중 = 픽업 시각, 배달완료 = 완료 시각(배달 API). 결제완료·조리중은 시각 없음.
+ * @param status 단계
  * @param order 주문 상세
+ * @param delivery 배달 정보
+ * @returns ISO 시각 (모르면 null)
+ */
+const getStepTime = (status: OrderStatus, order: OrderDetail, delivery: Delivery | null | undefined): string | null => {
+  if (status === 'PENDING_PAYMENT') return order.createdAt;
+  if (status === 'DELIVERING') return delivery?.pickedUpAt ?? null;
+  if (status === 'DELIVERED') return delivery?.completedAt ?? null;
+  return null;
+};
+
+/**
+ * 스텝퍼 단계(라벨·시각)를 만든다.
+ * @param order 주문 상세
+ * @param delivery 배달 정보
  * @returns 단계별 라벨·시각
  */
-const getOrderSteps = (order: OrderDetail): Step[] =>
+const getOrderSteps = (order: OrderDetail, delivery: Delivery | null | undefined): Step[] =>
   ORDER_STATUS_FLOW.map((status) => {
-    const history = order.statusHistory.find((item) => item.status === status);
-    return { label: ORDER_STATUS_LABEL[status], time: history ? formatDateTime(history.at) : undefined };
+    const time = getStepTime(status, order, delivery);
+    return { label: ORDER_STATUS_LABEL[status], time: time ? formatDateTime(time) : undefined };
   });
 
 /**
@@ -114,7 +136,7 @@ export function OrderTrackingCard({ order, delivery, deliveryError }: OrderTrack
     <div className='flex flex-col gap-4'>
       <Card>
         <Stepper
-          steps={getOrderSteps(order)}
+          steps={getOrderSteps(order, delivery)}
           current={ORDER_STATUS_FLOW.indexOf(order.status)}
         />
       </Card>
