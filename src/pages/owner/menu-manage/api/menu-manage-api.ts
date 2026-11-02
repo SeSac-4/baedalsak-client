@@ -6,6 +6,8 @@ export interface MenuUpsertRequest {
   name: string;
   description: string | null;
   price: number;
+  /** 사진 키 (PUT은 전체 교체라 바꾸지 않으면 기존 키를 그대로, 사진 없음이면 null) */
+  imageKey: string | null;
 }
 
 /**

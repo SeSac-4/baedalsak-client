@@ -9,6 +9,7 @@ import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 
 import { MenuFormModal } from './menu-form-modal';
 import { MenuRemoveModal } from './menu-remove-modal';
@@ -57,6 +58,9 @@ export function MenuManagePage(): ReactNode {
         <DataTable>
           <thead>
             <tr>
+              <th>
+                <span className='sr-only'>사진</span>
+              </th>
               <th>메뉴</th>
               <th>설명</th>
               <th className='text-right'>가격</th>
@@ -71,6 +75,13 @@ export function MenuManagePage(): ReactNode {
               const isOnSale = menu.saleStatus === 'ON_SALE';
               return (
                 <tr key={menu.id}>
+                  <td className='w-14'>
+                    <Thumbnail
+                      src={menu.imageUrl}
+                      alt={menu.name}
+                      className='size-10'
+                    />
+                  </td>
                   <td className='font-medium whitespace-nowrap'>{menu.name}</td>
                   <td className='min-w-40 text-fg-muted'>{menu.description ?? '-'}</td>
                   <td className='text-right whitespace-nowrap'>{formatPrice(menu.price)}</td>

@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useId, type ReactNode } from 'react';
-import { useForm, type Path } from 'react-hook-form';
+import { useId, useState, type ReactNode } from 'react';
+import { Controller, useForm, type Path } from 'react-hook-form';
 
 import type { Menu } from '@/entities/menu';
+import { ImageUploadCard } from '@/features/store/upload-image';
 import { getErrorMessage, getFieldErrors } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -23,7 +24,7 @@ export interface MenuFormModalProps {
 
 const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
 const ERROR_CLASS = 'text-note text-warn';
-const MENU_FIELDS: readonly string[] = ['name', 'description', 'price'];
+const MENU_FIELDS: readonly string[] = ['name', 'description', 'price', 'imageKey'];
 
 /**
  * 서버 필드명이 폼 필드인지 확인한다.
@@ -42,14 +43,21 @@ export function MenuFormModal({ open, storeId, menu, onClose }: MenuFormModalPro
   const toast = useToast();
   const isEdit = menu !== null;
   const { mutateAsync: upsertMenu } = useUpsertMenu(storeId);
+  const [isImageUploading, setIsImageUploading] = useState<boolean>(false);
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<MenuFormValues>({
     resolver: zodResolver(menuSchema),
-    defaultValues: { name: menu?.name ?? '', description: menu?.description ?? '', price: menu?.price },
+    defaultValues: {
+      name: menu?.name ?? '',
+      description: menu?.description ?? '',
+      price: menu?.price,
+      imageKey: menu?.imageKey ?? null,
+    },
   });
 
   /**
@@ -60,7 +68,12 @@ export function MenuFormModal({ open, storeId, menu, onClose }: MenuFormModalPro
     try {
       await upsertMenu({
         menuId: menu?.id ?? null,
-        request: { name: values.name, description: values.description || null, price: values.price },
+        request: {
+          name: values.name,
+          description: values.description || null,
+          price: values.price,
+          imageKey: values.imageKey,
+        },
       });
       toast(isEdit ? '메뉴를 수정했어요.' : '메뉴를 등록했어요.');
       onClose();
@@ -92,7 +105,7 @@ export function MenuFormModal({ open, storeId, menu, onClose }: MenuFormModalPro
           <Button
             type='submit'
             form={formId}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isImageUploading}
           >
             {isEdit ? '저장' : '등록'}
           </Button>
@@ -135,6 +148,25 @@ export function MenuFormModal({ open, storeId, menu, onClose }: MenuFormModalPro
           />
           {errors.price ? <span className={ERROR_CLASS}>{errors.price.message}</span> : null}
         </label>
+        <div className={LABEL_CLASS}>
+          메뉴 사진
+          <Controller
+            control={control}
+            name='imageKey'
+            render={({ field }) => (
+              <ImageUploadCard
+                storeId={storeId}
+                target='MENU'
+                imageUrl={menu?.imageUrl ?? null}
+                value={field.value}
+                onChange={field.onChange}
+                onPendingChange={setIsImageUploading}
+                alt={menu?.name ?? '새 메뉴'}
+              />
+            )}
+          />
+          {errors.imageKey ? <span className={ERROR_CLASS}>{errors.imageKey.message}</span> : null}
+        </div>
         {errors.root ? <p className={ERROR_CLASS}>{errors.root.message}</p> : null}
       </form>
     </Modal>

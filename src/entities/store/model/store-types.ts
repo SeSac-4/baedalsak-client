@@ -25,6 +25,10 @@ export interface StoreSummary {
   /** 현재 영업 여부 (서버 계산 가정) */
   isOpenNow: boolean;
   todayHour: BusinessHour;
+  /** 가게 사진 주소 (CloudFront, 사진 없으면 null) */
+  imageUrl: string | null;
+  /** 가게 사진 S3 키 (수정 요청에 그대로 다시 보낸다, 사진 없으면 null) */
+  imageKey: string | null;
 }
 
 /** GET /stores/{storeId} · GET /stores/me 응답 */

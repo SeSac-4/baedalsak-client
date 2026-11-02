@@ -11,6 +11,7 @@ import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 import { CartSummaryCard } from '@/widgets/cart-summary';
 
 import { MenuListCard } from './menu-list-card';
@@ -78,6 +79,13 @@ export function StoreDetailPage(): ReactNode {
       <div className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'>
         <div className='flex flex-col gap-4'>
           <Card className='flex flex-col gap-3'>
+            {store.imageUrl ? (
+              <Thumbnail
+                src={store.imageUrl}
+                alt={store.name}
+                className='aspect-[21/9] w-full'
+              />
+            ) : null}
             <div className='flex flex-wrap items-center gap-2'>
               <h2 className='text-title font-bold text-fg'>{store.name}</h2>
               <Badge tone={store.isOpenNow ? 'ok' : 'muted'}>{store.isOpenNow ? '영업중' : '영업 종료'}</Badge>

@@ -15,6 +15,7 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Stepper } from '@/shared/ui/stepper';
 import { Tabs } from '@/shared/ui/tabs';
 import { Textarea } from '@/shared/ui/textarea';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 import { ToastProvider, useToast } from '@/shared/ui/toast';
 import { CartSummaryCard } from '@/widgets/cart-summary';
 
@@ -326,6 +327,32 @@ export function GalleryPage() {
               action={<Button size='sm'>가게 둘러보기</Button>}
             />
           </div>
+        </Section>
+
+        <Section
+          id='(thumbnail)'
+          title='Thumbnail (사진 · 사진 없음 · 불러오기 실패)'
+        >
+          <Thumbnail
+            src='/favicon.svg'
+            alt='예시 사진'
+            className='size-24'
+          />
+          <Thumbnail
+            src={null}
+            alt='사진 없음'
+            className='size-24'
+          />
+          <Thumbnail
+            src='/images/not-found.jpg'
+            alt='불러오기 실패'
+            className='size-24'
+          />
+          <Thumbnail
+            src={null}
+            alt='가게 카드 비율'
+            className='aspect-[16/9] w-60'
+          />
         </Section>
 
         <Section

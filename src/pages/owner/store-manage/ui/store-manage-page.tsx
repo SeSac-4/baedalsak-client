@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { useMyStore } from '@/entities/store';
 import { OperationStatusCard } from '@/features/store/toggle-operation-status';
+import { ImageUploadCard } from '@/features/store/upload-image';
 import { StoreForm, useUpdateStore, type StoreFormValues } from '@/features/store/upsert-store';
 import { getErrorCode, getErrorMessage } from '@/shared/api';
 import { Card } from '@/shared/ui/card';
@@ -52,6 +53,15 @@ export function StoreManagePage(): ReactNode {
           defaultValues={store}
           submitLabel='가게 정보 저장'
           onSubmit={handleStoreSubmit}
+          renderImageField={(field) => (
+            <ImageUploadCard
+              storeId={store.id}
+              target='STORE'
+              imageUrl={store.imageUrl}
+              alt={store.name}
+              {...field}
+            />
+          )}
         />
       </Card>
 
