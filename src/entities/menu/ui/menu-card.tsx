@@ -2,10 +2,11 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/format';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 
 import type { Menu } from '../model/menu-types';
 
-/** CMP-11 MenuItem — 메뉴명·설명·가격 + 우측 동작 슬롯(담기 등). 품절이면 흐리게. */
+/** CMP-11 MenuItem — 메뉴 사진·메뉴명·설명·가격 + 우측 동작 슬롯(담기 등). 품절이면 흐리게. */
 export interface MenuCardProps {
   menu: Menu;
   action?: ReactNode;
@@ -26,7 +27,12 @@ export function MenuCard({ menu, action, className }: MenuCardProps): ReactNode 
         className,
       )}
     >
-      <div className='min-w-0'>
+      <Thumbnail
+        src={menu.imageUrl}
+        alt={menu.name}
+        className='size-16 shrink-0'
+      />
+      <div className='min-w-0 flex-1'>
         <strong className='block text-body text-fg'>{menu.name}</strong>
         {menu.description ? <p className='text-note text-fg-muted'>{menu.description}</p> : null}
         <span className='text-body text-fg tabular-nums'>{formatPrice(menu.price)}</span>

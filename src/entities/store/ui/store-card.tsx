@@ -4,11 +4,12 @@ import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
+import { Thumbnail } from '@/shared/ui/thumbnail';
 
 import { formatBusinessHour } from '../lib/format-business-hour';
 import type { StoreSummary } from '../model/store-types';
 
-/** CMP-10 StoreCard — 이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
+/** CMP-10 StoreCard — 가게 사진·이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
 export interface StoreCardProps {
   store: StoreSummary;
   categoryName: string;
@@ -26,6 +27,11 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
       interactive
       className={cn('flex flex-col gap-1.5', !store.isOpenNow && 'opacity-60', className)}
     >
+      <Thumbnail
+        src={store.imageUrl}
+        alt={store.name}
+        className='mb-1 aspect-[16/9] w-full'
+      />
       <div className='flex items-start justify-between gap-2'>
         <strong className='text-base text-fg'>{store.name}</strong>
         <Badge tone={store.isOpenNow ? 'ok' : 'muted'}>{store.isOpenNow ? '영업중' : '영업 종료'}</Badge>
