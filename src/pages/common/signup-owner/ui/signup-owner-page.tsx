@@ -6,6 +6,8 @@ import { AuthLayout } from '@/widgets/auth-layout';
 
 import { SignupOwnerForm } from './signup-owner-form';
 
+/** 제목 위 '‹ 회원 유형 다시 고르기' (역할 선택으로) */
+const SIGNUP_ROLE_BACK = { to: '/signup', label: '회원 유형 다시 고르기' };
 /**
  * C-04 사장님 가입 화면. 가입하면 서버가 로그인 쿠키를 주므로 바로 가게 등록(`/owner/store/new`)으로 이동한다.
  * @returns 사장님 가입 페이지
@@ -24,6 +26,7 @@ export function SignupOwnerPage(): ReactNode {
   return (
     <AuthLayout
       title='사장님 회원가입'
+      back={SIGNUP_ROLE_BACK}
       footer={<SignupLoginLink />}
     >
       <SignupOwnerForm onSuccess={handleSignupSuccess} />

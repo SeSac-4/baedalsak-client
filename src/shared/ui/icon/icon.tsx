@@ -128,6 +128,53 @@ const ICON_PATHS = {
       <path d='M18 14v5H5V6h5' />
     </>
   ),
+  store: (
+    <>
+      <path d='M4 9l1.5-5h13L20 9' />
+      <path d='M4 9h16v1.5a2.7 2.7 0 0 1-5.3 0 2.7 2.7 0 0 1-5.4 0A2.7 2.7 0 0 1 4 10.5V9z' />
+      <path d='M5 13v7h14v-7M10 20v-4h4v4' />
+    </>
+  ),
+  walk: (
+    <>
+      <circle
+        cx='13'
+        cy='4'
+        r='2'
+      />
+      <path d='M9 21l2.5-6.5L14 17v4M9.5 10.5L12 8l2.5 2 2.5 2M12 8l-.5 6.5' />
+    </>
+  ),
+  bicycle: (
+    <>
+      <circle
+        cx='6'
+        cy='16'
+        r='3.5'
+      />
+      <circle
+        cx='18'
+        cy='16'
+        r='3.5'
+      />
+      <path d='M6 16l3.5-7h5L18 16M9.5 9L12 16H6M13 6h2.5' />
+    </>
+  ),
+  motorcycle: (
+    <>
+      <circle
+        cx='5.5'
+        cy='16'
+        r='3'
+      />
+      <circle
+        cx='18.5'
+        cy='16'
+        r='3'
+      />
+      <path d='M5.5 16h6l3-6h-4M14.5 10l4 6M15.5 7H19' />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof ICON_PATHS;

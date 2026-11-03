@@ -6,12 +6,13 @@ import {
   parseSignupError,
   signupCommonSchema,
   SignupCommonFields,
+  SignupSubmitButton,
   useSignup,
   type SignupCommonValues,
   type SignupResponse,
 } from '@/features/auth/signup';
 import { getErrorMessage } from '@/shared/api';
-import { Button } from '@/shared/ui/button';
+import { Notice } from '@/shared/ui/notice';
 import { useToast } from '@/shared/ui/toast';
 
 export interface SignupCustomerFormProps {
@@ -19,7 +20,6 @@ export interface SignupCustomerFormProps {
   onSuccess: (response: SignupResponse) => void;
 }
 
-const ERROR_CLASS = 'text-note text-warn';
 const CUSTOMER_FIELDS: readonly string[] = ['email', 'password', 'name', 'phone'];
 
 /**
@@ -78,28 +78,22 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
     <form
       noValidate
       onSubmit={handleSubmit(handleValidSubmit)}
-      className='flex flex-col gap-3'
+      className='flex flex-col gap-4'
     >
       <SignupCommonFields
+        idPrefix='customer'
         register={register}
         errors={errors}
       />
       {errors.root ? (
-        <p
+        <Notice
+          tone='warn'
           role='alert'
-          className={ERROR_CLASS}
         >
           {errors.root.message}
-        </p>
+        </Notice>
       ) : null}
-      <Button
-        type='submit'
-        size='lg'
-        block
-        disabled={isSubmitting}
-      >
-        가입하기
-      </Button>
+      <SignupSubmitButton isSubmitting={isSubmitting} />
     </form>
   );
 }

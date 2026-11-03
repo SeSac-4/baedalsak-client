@@ -5,14 +5,16 @@ import { useForm, type Path } from 'react-hook-form';
 import {
   parseSignupError,
   SignupCommonFields,
+  SignupSubmitButton,
   signupOwnerSchema,
   useSignup,
   type SignupOwnerValues,
   type SignupResponse,
 } from '@/features/auth/signup';
 import { getErrorMessage } from '@/shared/api';
-import { Button } from '@/shared/ui/button';
+import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
+import { Notice } from '@/shared/ui/notice';
 import { useToast } from '@/shared/ui/toast';
 
 export interface SignupOwnerFormProps {
@@ -20,9 +22,6 @@ export interface SignupOwnerFormProps {
   onSuccess: (response: SignupResponse) => void;
 }
 
-const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
-const ERROR_CLASS = 'text-note text-warn';
-const HINT_CLASS = 'text-note font-normal text-fg-muted';
 const OWNER_FIELDS: readonly string[] = ['email', 'password', 'name', 'phone', 'storeName'];
 
 /**
@@ -82,42 +81,37 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
     <form
       noValidate
       onSubmit={handleSubmit(handleValidSubmit)}
-      className='flex flex-col gap-3'
+      className='flex flex-col gap-4'
     >
       <SignupCommonFields
+        idPrefix='owner'
         register={register}
         errors={errors}
       />
-      <label className={LABEL_CLASS}>
-        가게 이름
+      <FormField
+        id='owner-store-name'
+        label='가게 이름'
+        hint='가입 후 가게 등록 화면에 기본값으로 채워져요.'
+        error={errors.storeName?.message}
+      >
         <Input
+          id='owner-store-name'
           autoComplete='organization'
           maxLength={100}
           aria-invalid={Boolean(errors.storeName)}
+          aria-describedby='owner-store-name-message'
           {...register('storeName')}
         />
-        {errors.storeName ? (
-          <span className={ERROR_CLASS}>{errors.storeName.message}</span>
-        ) : (
-          <span className={HINT_CLASS}>가입 후 가게 등록 화면에 기본값으로 채워져요.</span>
-        )}
-      </label>
+      </FormField>
       {errors.root ? (
-        <p
+        <Notice
+          tone='warn'
           role='alert'
-          className={ERROR_CLASS}
         >
           {errors.root.message}
-        </p>
+        </Notice>
       ) : null}
-      <Button
-        type='submit'
-        size='lg'
-        block
-        disabled={isSubmitting}
-      >
-        가입하기
-      </Button>
+      <SignupSubmitButton isSubmitting={isSubmitting} />
     </form>
   );
 }
