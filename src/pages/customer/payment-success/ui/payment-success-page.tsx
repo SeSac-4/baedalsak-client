@@ -14,7 +14,7 @@ import { PaymentResultCard } from './payment-result-card';
 const ORDER_ID_PARAM = 'order';
 const PAYMENT_FAIL_PATH = '/payment/fail';
 const MISSING_PAYMENT_MESSAGE = '결제 정보를 찾을 수 없어요.';
-const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 const PAYMENT_ALREADY_APPROVED = 'PAYMENT_ALREADY_APPROVED';
 const PAYMENT_AMOUNT_MISMATCH = 'PAYMENT_AMOUNT_MISMATCH';

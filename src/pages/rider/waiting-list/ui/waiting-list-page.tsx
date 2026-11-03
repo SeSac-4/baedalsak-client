@@ -39,6 +39,7 @@ export function WaitingListPage(): ReactNode {
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
       <PageHeader
+        className='mb-4'
         title='배차 대기 목록'
         badge={
           totalCount !== undefined ? <span className='text-note text-fg-muted tabular-nums'>{totalCount}건</span> : null

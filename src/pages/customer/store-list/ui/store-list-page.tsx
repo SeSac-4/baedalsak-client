@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router';
 import { isCategoryCode, useCategoryList, type Category, type CategoryCode } from '@/entities/category';
 import { StoreCard, useStoreList } from '@/entities/store';
 import { getErrorMessage } from '@/shared/api';
-import { Chip } from '@/shared/ui/chip';
+import { ChoiceButton } from '@/shared/ui/choice';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
@@ -49,22 +49,29 @@ export function StoreListPage(): ReactNode {
       </section>
 
       <section>
-        <PageHeader title='가게' />
-        <div className='mb-4 flex flex-wrap gap-2'>
-          <Chip
+        <PageHeader
+          className='mb-4'
+          title='가게'
+        />
+        <div
+          role='radiogroup'
+          aria-label='카테고리'
+          className='mb-4 flex flex-wrap gap-2'
+        >
+          <ChoiceButton
             selected={!category}
             onClick={() => handleCategoryClick()}
           >
             전체
-          </Chip>
+          </ChoiceButton>
           {categories?.map((item) => (
-            <Chip
+            <ChoiceButton
               key={item.code}
               selected={item.code === category}
               onClick={() => handleCategoryClick(item.code)}
             >
               {item.name}
-            </Chip>
+            </ChoiceButton>
           ))}
         </div>
 

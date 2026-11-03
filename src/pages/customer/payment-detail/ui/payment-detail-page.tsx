@@ -12,7 +12,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
 const PRIMARY_LINK_CLASS =
-  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-white transition hover:brightness-110';
+  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-role-on transition hover:brightness-110';
 const SECONDARY_LINK_CLASS =
   'inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-body font-medium text-fg transition hover:bg-surface-hover';
 const MISSING_PAYMENT_MESSAGE = '결제를 찾을 수 없어요.';
@@ -29,7 +29,7 @@ const renderNotice = (message: string): ReactNode => (
       action={
         <Link
           to='/payments'
-          className='text-note font-medium text-role hover:underline'
+          className='text-note font-medium text-role-ink hover:underline'
         >
           결제내역으로
         </Link>
@@ -70,6 +70,7 @@ export function PaymentDetailPage(): ReactNode {
         ‹ 결제내역
       </Link>
       <PageHeader
+        className='mb-4'
         title='결제 상세'
         badge={<Badge tone={PAYMENT_STATUS_TONE[payment.status]}>{PAYMENT_STATUS_LABEL[payment.status]}</Badge>}
       />

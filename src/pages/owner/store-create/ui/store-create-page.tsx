@@ -41,7 +41,10 @@ export function StoreCreatePage(): ReactNode {
 
   return (
     <div className='mx-auto flex max-w-[700px] flex-col gap-4 px-4 py-6'>
-      <PageHeader title='새 가게 등록' />
+      <PageHeader
+        className='mb-4'
+        title='새 가게 등록'
+      />
       <Card>
         <StoreForm
           submitLabel='가게 등록'

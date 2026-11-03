@@ -11,7 +11,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
-const LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * 결제 목록 화면 틀(제목·최신순 표시) 안에 내용을 그린다.
@@ -21,6 +21,7 @@ const LINK_CLASS = 'text-note font-medium text-role hover:underline';
 const renderPageLayout = (content: ReactNode): ReactNode => (
   <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
     <PageHeader
+      className='mb-4'
       title='결제내역'
       badge={<span className='text-note text-fg-muted'>최신순</span>}
     />

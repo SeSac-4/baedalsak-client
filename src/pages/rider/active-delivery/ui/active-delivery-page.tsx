@@ -21,7 +21,7 @@ import { useCompleteDelivery } from '../model/use-complete-delivery';
 import { usePickupDelivery } from '../model/use-pickup-delivery';
 
 const WAITING_LIST_PATH = '/rider';
-const LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * 전화번호를 tel: 링크 주소로 바꾼다. 숫자와 +만 남긴다.
@@ -43,7 +43,7 @@ const getActiveDeliveryItems = (delivery: RiderDelivery): KeyValueItem[] => [
     value: delivery.customerPhone ? (
       <a
         href={getTelHref(delivery.customerPhone)}
-        className='font-medium text-role tabular-nums hover:underline'
+        className='font-medium text-role-ink tabular-nums hover:underline'
       >
         {delivery.customerPhone}
       </a>
@@ -74,6 +74,7 @@ export function ActiveDeliveryPage(): ReactNode {
   return (
     <div className='mx-auto flex max-w-[640px] flex-col px-4 py-6'>
       <PageHeader
+        className='mb-4'
         title='진행 중 배달'
         actions={
           <Button

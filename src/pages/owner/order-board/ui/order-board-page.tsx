@@ -58,7 +58,7 @@ export function OrderBoardPage(): ReactNode {
   };
 
   const tabItems: TabItem[] = [
-    { value: 'new', label: '신규', count: newOrders?.pages[0]?.totalElements ?? 0 },
+    { value: 'new', label: '신규', count: newOrders?.pages[0]?.totalElements ?? 0, isEmphasized: true },
     { value: 'progress', label: '진행 중' },
     { value: 'done', label: '완료' },
   ];
@@ -74,6 +74,7 @@ export function OrderBoardPage(): ReactNode {
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
       <PageHeader
+        className='mb-4'
         title='주문 관리'
         actions={
           <>
@@ -99,6 +100,7 @@ export function OrderBoardPage(): ReactNode {
         items={tabItems}
         value={tab}
         onChange={handleTabChange}
+        label='주문 상태'
         className='mb-4'
       />
 

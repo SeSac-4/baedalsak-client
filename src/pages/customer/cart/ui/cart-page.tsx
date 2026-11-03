@@ -11,7 +11,7 @@ import { CartSummaryCard } from '@/widgets/cart-summary';
 
 import { useClearCart } from '../model/use-clear-cart';
 
-const STORE_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const STORE_LIST_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * U-03 장바구니 화면. 내 장바구니(GET /cart)의 항목 수량·삭제, 합계, 주문 불가 안내, 비우기를 보여 준다.
@@ -25,6 +25,7 @@ export function CartPage(): ReactNode {
   return (
     <div className='mx-auto flex max-w-[560px] flex-col px-4 py-6'>
       <PageHeader
+        className='mb-4'
         title='장바구니'
         actions={
           hasItems ? (
