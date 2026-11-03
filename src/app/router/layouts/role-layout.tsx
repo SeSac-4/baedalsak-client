@@ -5,6 +5,8 @@ import { getRoleHomePath, MEMBER_ROLE_LABEL, useMe, type MemberRole } from '@/en
 import { cn } from '@/shared/lib/cn';
 import { useDocumentRole } from '@/shared/lib/use-document-role';
 
+import { OwnerLayout } from './owner-layout';
+
 interface NavItem {
   to: string;
   label: string;
@@ -15,18 +17,12 @@ interface NavItem {
 const MY_PAGE_NAV: NavItem = { to: '/me', label: '내 정보' };
 
 /** 역할별 상단 메뉴 */
-const ROLE_NAV: Record<MemberRole, NavItem[]> = {
+const ROLE_NAV: Record<Exclude<MemberRole, 'OWNER'>, NavItem[]> = {
   CUSTOMER: [
     { to: '/', label: '가게', end: true },
     { to: '/orders', label: '주문내역' },
     { to: '/payments', label: '결제내역' },
     { to: '/cart', label: '장바구니' },
-    MY_PAGE_NAV,
-  ],
-  OWNER: [
-    { to: '/owner/orders', label: '주문 관리' },
-    { to: '/owner/menus', label: '메뉴 관리' },
-    { to: '/owner/store', label: '가게 관리' },
     MY_PAGE_NAV,
   ],
   RIDER: [{ to: '/rider', label: '배차 대기', end: true }, { to: '/rider/active', label: '진행 중 배달' }, MY_PAGE_NAV],
@@ -44,7 +40,7 @@ const getNavLinkClass = ({ isActive }: { isActive: boolean }): string =>
   );
 
 /**
- * 로그인 후 화면 공통 레이아웃. 역할 강조색(--rc)을 data-role로 지정하고(모달·토스트용으로 <html>에도) 역할별 메뉴(내 정보 포함)를 둔다.
+ * 로그인 후 화면 공통 레이아웃. 사장님은 OwnerLayout(새 디자인)을 쓴다. 역할 강조색(--rc)을 data-role로 지정하고(모달·토스트용으로 <html>에도) 역할별 메뉴(내 정보 포함)를 둔다.
  * AuthGuard 안쪽에서만 쓴다.
  * @returns 레이아웃 요소
  */
@@ -52,6 +48,14 @@ export function RoleLayout(): ReactNode {
   const { data: me } = useMe();
   useDocumentRole(me?.role);
   if (!me) return <Outlet />;
+
+  if (me.role === 'OWNER') {
+    return (
+      <div data-role={me.role}>
+        <OwnerLayout />
+      </div>
+    );
+  }
 
   return (
     <div

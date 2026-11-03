@@ -39,7 +39,7 @@ export function MenuManagePage(): ReactNode {
   };
 
   return (
-    <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
+    <div className='flex flex-col'>
       <PageHeader
         className='mb-4'
         title='메뉴 관리'

@@ -36,11 +36,7 @@ export function OwnerStoreGuard(): ReactNode {
   }
 
   if (!store) {
-    return (
-      <div className='mx-auto max-w-[1100px] px-4 py-6'>
-        <EmptyState message={getErrorMessage(error)} />
-      </div>
-    );
+    return <EmptyState message={getErrorMessage(error)} />;
   }
 
   return <Outlet />;
