@@ -1,6 +1,8 @@
 import { useEffect, useId, useState, type ChangeEvent, type ReactNode } from 'react';
 
-import { Button } from '@/shared/ui/button';
+import { cn } from '@/shared/lib/cn';
+import { Button, getButtonClassName } from '@/shared/ui/button';
+import { Icon } from '@/shared/ui/icon';
 import { Spinner } from '@/shared/ui/spinner';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
@@ -22,15 +24,21 @@ export interface ImageUploadCardProps {
   onPendingChange?: (isPending: boolean) => void;
   /** 사진 대체 텍스트 (예: 가게 이름) */
   alt: string;
+  /** 미리보기 비율 클래스 (기본 16:9 'aspect-video', 메뉴는 'aspect-square') */
+  aspectClassName?: string;
+  /** 아래 안내 문구 */
+  hint?: ReactNode;
   className?: string;
 }
 
-const ERROR_CLASS = 'text-note text-warn';
+const DEFAULT_HINT = 'JPG·PNG·WEBP, 5MB 이하.';
+const FOCUS_CLASS = 'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-role-ink';
 
 /**
- * 사진 선택·미리보기·삭제. 파일을 고르자마자 형식·크기를 확인하고 S3에 올린 뒤, 받은 imageKey를 폼 값으로 넘긴다.
+ * 사진 선택·미리보기·삭제. 사진이 없으면 점선 '사진 올리기' 상자, 있으면 미리보기와 '사진 변경'·'사진 삭제' 버튼을 보여 준다.
+ * 파일을 고르자마자 형식·크기를 확인하고 S3에 올린 뒤, 받은 imageKey를 폼 값으로 넘긴다.
  * 고른 파일은 올리는 동안에도 바로 미리 보여 주고, 실패하면 폼 값의 사진(직전 사진)으로 돌아간다.
- * @param props storeId·target(업로드 대상), imageUrl(저장된 사진), value·onChange(폼 값), onPendingChange, alt
+ * @param props storeId·target(업로드 대상), imageUrl(저장된 사진), value·onChange(폼 값), onPendingChange, alt, aspectClassName, hint
  * @returns 사진 업로드 요소
  */
 export function ImageUploadCard({
@@ -41,6 +49,8 @@ export function ImageUploadCard({
   onChange,
   onPendingChange,
   alt,
+  aspectClassName = 'aspect-video',
+  hint = DEFAULT_HINT,
   className,
 }: ImageUploadCardProps): ReactNode {
   const inputId = useId();
@@ -115,54 +125,83 @@ export function ImageUploadCard({
   };
 
   const displaySrc = getDisplaySrc();
+  const fileInput = (
+    <input
+      id={inputId}
+      type='file'
+      accept={IMAGE_CONTENT_TYPES.join(',')}
+      disabled={isPending}
+      onChange={(event) => void handleFileChange(event)}
+      className='sr-only'
+    />
+  );
 
   return (
-    <div className={className}>
-      <div className='flex items-center gap-3'>
-        <div className='relative'>
-          <Thumbnail
-            src={displaySrc}
-            alt={alt}
-            className='size-24'
-          />
-          {isPending ? (
-            <div className='absolute inset-0 flex items-center justify-center rounded-lg bg-surface/70'>
-              <Spinner label='사진 올리는 중' />
-            </div>
-          ) : null}
-        </div>
-        <div className='flex flex-col gap-2'>
-          <div className='flex flex-wrap gap-2'>
-            <label
-              htmlFor={inputId}
-              aria-disabled={isPending}
-              className='inline-flex h-7 cursor-pointer items-center rounded-lg border border-border bg-surface px-2.5 text-note font-medium text-fg transition hover:bg-surface-hover aria-disabled:pointer-events-none aria-disabled:opacity-40'
-            >
-              {displaySrc ? '사진 바꾸기' : '사진 선택'}
-            </label>
-            <input
-              id={inputId}
-              type='file'
-              accept={IMAGE_CONTENT_TYPES.join(',')}
-              disabled={isPending}
-              onChange={(event) => void handleFileChange(event)}
-              className='sr-only'
+    <div className={cn('flex flex-col gap-2', className)}>
+      {displaySrc ? (
+        <>
+          <div className='relative'>
+            <Thumbnail
+              src={displaySrc}
+              alt={alt}
+              className={cn('w-full border border-border', aspectClassName)}
             />
-            {displaySrc ? (
-              <Button
-                variant='ghost'
-                size='sm'
-                disabled={isPending}
-                onClick={handleRemoveClick}
-              >
-                사진 삭제
-              </Button>
+            {isPending ? (
+              <div className='absolute inset-0 flex items-center justify-center rounded-control bg-surface/70'>
+                <Spinner label='사진 올리는 중' />
+              </div>
             ) : null}
           </div>
-          <span className='text-note text-fg-subtle'>JPG·PNG·WEBP, 5MB 이하</span>
-        </div>
-      </div>
-      {errorMessage ? <p className={`${ERROR_CLASS} mt-2`}>{errorMessage}</p> : null}
+          <div className='grid grid-cols-2 gap-2'>
+            <label
+              aria-disabled={isPending}
+              className={cn(getButtonClassName({ variant: 'secondary' }), 'cursor-pointer', FOCUS_CLASS)}
+            >
+              {fileInput}
+              사진 변경
+            </label>
+            <Button
+              variant='danger-secondary'
+              disabled={isPending}
+              onClick={handleRemoveClick}
+            >
+              사진 삭제
+            </Button>
+          </div>
+        </>
+      ) : (
+        <label
+          aria-disabled={isPending}
+          className={cn(
+            'relative flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-[1.5px] border-dashed border-fg-disabled bg-canvas text-fg-muted transition hover:bg-surface-hover aria-disabled:pointer-events-none',
+            aspectClassName,
+            FOCUS_CLASS,
+          )}
+        >
+          {fileInput}
+          {isPending ? (
+            <Spinner label='사진 올리는 중' />
+          ) : (
+            <span className='flex size-11 items-center justify-center rounded-full bg-role-soft text-role-ink'>
+              <Icon
+                name='camera'
+                size={22}
+              />
+            </span>
+          )}
+          <span className='font-semibold text-fg'>사진 올리기</span>
+          <span className='text-note'>사진이 없으면 기본 그림이 보여요</span>
+        </label>
+      )}
+      <p className='text-note text-fg-muted'>{hint}</p>
+      {errorMessage ? (
+        <p
+          role='alert'
+          className='text-note text-warn'
+        >
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }
