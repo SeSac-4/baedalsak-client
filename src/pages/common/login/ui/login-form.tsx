@@ -5,7 +5,11 @@ import { useForm, type Path } from 'react-hook-form';
 
 import { getErrorMessage, getFieldErrors } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
+import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
+import { Notice } from '@/shared/ui/notice';
+import { PasswordInput } from '@/shared/ui/password-input';
+import { Spinner } from '@/shared/ui/spinner';
 import { useToast } from '@/shared/ui/toast';
 
 import type { LoginResponse } from '../api/login-api';
@@ -17,8 +21,6 @@ export interface LoginFormProps {
   onSuccess: (response: LoginResponse) => void;
 }
 
-const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
-const ERROR_CLASS = 'text-note text-warn';
 const INVALID_CREDENTIALS_MESSAGE = '이메일 또는 비밀번호를 확인하세요';
 const LOGIN_FIELDS: readonly string[] = ['email', 'password'];
 
@@ -91,38 +93,45 @@ export function LoginForm({ onSuccess }: LoginFormProps): ReactNode {
     <form
       noValidate
       onSubmit={handleSubmit(handleValidSubmit)}
-      className='flex flex-col gap-3'
+      className='flex flex-col gap-4'
     >
-      <label className={LABEL_CLASS}>
-        이메일
+      <FormField
+        id='login-email'
+        label='이메일'
+        error={errors.email?.message}
+      >
         <Input
+          id='login-email'
           type='email'
           autoComplete='username'
           inputMode='email'
           maxLength={255}
           aria-invalid={Boolean(errors.email)}
+          aria-describedby='login-email-message'
           {...register('email')}
         />
-        {errors.email ? <span className={ERROR_CLASS}>{errors.email.message}</span> : null}
-      </label>
-      <label className={LABEL_CLASS}>
-        비밀번호
-        <Input
-          type='password'
+      </FormField>
+      <FormField
+        id='login-password'
+        label='비밀번호'
+        error={errors.password?.message}
+      >
+        <PasswordInput
+          id='login-password'
           autoComplete='current-password'
           maxLength={50}
           aria-invalid={Boolean(errors.password)}
+          aria-describedby='login-password-message'
           {...register('password')}
         />
-        {errors.password ? <span className={ERROR_CLASS}>{errors.password.message}</span> : null}
-      </label>
+      </FormField>
       {errors.root ? (
-        <p
+        <Notice
+          tone='warn'
           role='alert'
-          className={ERROR_CLASS}
         >
           {errors.root.message}
-        </p>
+        </Notice>
       ) : null}
       <Button
         type='submit'
@@ -130,9 +139,18 @@ export function LoginForm({ onSuccess }: LoginFormProps): ReactNode {
         block
         disabled={isSubmitting}
       >
+        {isSubmitting ? (
+          <Spinner
+            size={14}
+            label='로그인 중'
+            className='border-current border-t-transparent'
+          />
+        ) : null}
         로그인
       </Button>
-      <p className='text-note text-fg-muted'>로그인하면 역할(고객·사장님·라이더)에 따라 첫 화면으로 이동해요.</p>
+      <p className='text-center text-note leading-[1.45] text-fg-muted'>
+        로그인하면 역할(고객·사장님·라이더)에 따라 첫 화면으로 이동해요.
+      </p>
     </form>
   );
 }

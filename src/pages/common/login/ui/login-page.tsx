@@ -28,12 +28,13 @@ export function LoginPage(): ReactNode {
   return (
     <AuthLayout
       title='로그인'
+      showLogo
       footer={
         <>
-          <span className='text-fg-muted'>아직 회원이 아니세요?</span>
+          <span>아직 회원이 아니세요?</span>
           <Link
             to={SIGNUP_PATH}
-            className='font-medium text-role-ink underline-offset-2 hover:underline'
+            className='rounded-control px-1 py-3 font-bold text-role underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
           >
             회원가입
           </Link>
