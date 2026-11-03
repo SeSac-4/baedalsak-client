@@ -10,6 +10,8 @@ export interface NavPillItem {
   count?: number;
   /** true면 하위 경로에서는 선택 표시를 하지 않는다 (홈 '/' 등) */
   end?: boolean;
+  /** true면 누를 수 없게 흐리게 보여 준다 (가게 등록 전 주문 관리 등) */
+  disabled?: boolean;
 }
 
 export interface NavPillsProps {
@@ -20,6 +22,9 @@ export interface NavPillsProps {
   orientation?: 'horizontal' | 'vertical';
   className?: string;
 }
+
+const PILL_CLASS =
+  'inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-note whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink';
 
 /**
  * 역할별 주요 메뉴. 지금 화면은 검은 알약으로 표시하고 aria-current=page를 붙인다.
@@ -34,27 +39,36 @@ export function NavPills({ items, label, orientation = 'horizontal', className }
       aria-label={label}
       className={cn('flex gap-1', isVertical ? 'flex-col' : 'overflow-x-auto', className)}
     >
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.end}
-          className={({ isActive }) =>
-            cn(
-              'inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-note whitespace-nowrap transition',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink',
-              isActive ? 'bg-fg font-semibold text-canvas' : 'text-fg-muted hover:bg-surface-hover hover:text-fg',
-            )
-          }
-        >
-          {item.label}
-          {item.count ? (
-            <span className='h-4.5 min-w-4.5 rounded-full bg-role px-1.25 text-center text-[11px] leading-4.5 font-bold text-role-on tabular-nums'>
-              {item.count}
-            </span>
-          ) : null}
-        </NavLink>
-      ))}
+      {items.map((item) =>
+        item.disabled ? (
+          <span
+            key={item.to}
+            aria-disabled
+            className={cn(PILL_CLASS, 'text-fg-disabled')}
+          >
+            {item.label}
+          </span>
+        ) : (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) =>
+              cn(
+                PILL_CLASS,
+                isActive ? 'bg-fg font-semibold text-canvas' : 'text-fg-muted hover:bg-surface-hover hover:text-fg',
+              )
+            }
+          >
+            {item.label}
+            {item.count ? (
+              <span className='h-4.5 min-w-4.5 rounded-full bg-role px-1.25 text-center text-[11px] leading-4.5 font-bold text-role-on tabular-nums'>
+                {item.count}
+              </span>
+            ) : null}
+          </NavLink>
+        ),
+      )}
     </nav>
   );
 }
