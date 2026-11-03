@@ -44,12 +44,12 @@ export function StoreManagePage(): ReactNode {
       <OperationStatusCard store={store} />
 
       <StorePhotoCard
-        key={store.id}
+        key={`photo-${store.id}`}
         store={store}
       />
 
       <StoreForm
-        key={store.id}
+        key={`info-${store.id}`}
         variant='edit'
         defaultValues={store}
         submitLabel='가게 정보 저장'
@@ -57,7 +57,7 @@ export function StoreManagePage(): ReactNode {
       />
 
       <BusinessHoursForm
-        key={store.id}
+        key={`hours-${store.id}`}
         storeId={store.id}
         hours={store.businessHours}
         today={store.todayHour.dayOfWeek}
