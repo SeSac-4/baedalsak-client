@@ -33,7 +33,7 @@ export function LoginPage(): ReactNode {
           <span className='text-fg-muted'>아직 회원이 아니세요?</span>
           <Link
             to={SIGNUP_PATH}
-            className='font-medium text-role underline-offset-2 hover:underline'
+            className='font-medium text-role-ink underline-offset-2 hover:underline'
           >
             회원가입
           </Link>

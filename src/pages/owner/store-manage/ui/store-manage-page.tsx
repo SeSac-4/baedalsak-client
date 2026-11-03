@@ -42,7 +42,10 @@ export function StoreManagePage(): ReactNode {
 
   return (
     <div className='mx-auto flex max-w-[720px] flex-col gap-4 px-4 py-6'>
-      <PageHeader title='가게 관리' />
+      <PageHeader
+        className='mb-4'
+        title='가게 관리'
+      />
 
       <OperationStatusCard store={store} />
 

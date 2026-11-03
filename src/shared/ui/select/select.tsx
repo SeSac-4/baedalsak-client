@@ -1,23 +1,30 @@
-import { forwardRef } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { Icon } from '@/shared/ui/icon';
+import { FIELD_CLASS } from '@/shared/ui/input';
 
-/** CMP-08 FormField(select) — 카테고리·운송수단 등 단일 선택. 네이티브 select 기반. */
-export type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+export type SelectProps = ComponentProps<'select'>;
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(({ className, children, ...props }, ref) => (
-  <select
-    ref={ref}
-    className={cn(
-      'h-9 w-full rounded-lg border border-border bg-surface px-3 text-body text-fg transition',
-      'focus-visible:border-role focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none',
-      'disabled:opacity-40',
-      'aria-[invalid=true]:border-warn aria-[invalid=true]:ring-warn/40',
-      className,
-    )}
-    {...props}
-  >
-    {children}
-  </select>
-));
-Select.displayName = 'Select';
+/**
+ * 단일 선택 목록 (네이티브 select). 오른쪽에 펼침 화살표를 그린다.
+ * @param props select 속성 (ref 포함), option은 children으로
+ * @returns 선택 요소
+ */
+export function Select({ className, children, ...props }: SelectProps): ReactNode {
+  return (
+    <div className='relative w-full'>
+      <select
+        className={cn(FIELD_CLASS, 'appearance-none pr-10 read-only:bg-surface', className)}
+        {...props}
+      >
+        {children}
+      </select>
+      <Icon
+        name='chevron-down'
+        size={18}
+        className='pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-fg-muted'
+      />
+    </div>
+  );
+}

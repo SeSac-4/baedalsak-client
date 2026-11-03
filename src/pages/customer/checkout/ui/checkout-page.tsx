@@ -55,7 +55,10 @@ export function CheckoutPage(): ReactNode {
       >
         ‹ 장바구니
       </Link>
-      <PageHeader title='주문하기' />
+      <PageHeader
+        className='mb-4'
+        title='주문하기'
+      />
       <CheckoutForm
         cart={cart}
         phone={me?.phone ?? ''}

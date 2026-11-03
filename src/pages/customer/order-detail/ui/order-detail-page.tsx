@@ -59,7 +59,7 @@ export function OrderDetailPage(): ReactNode {
           action={
             <Link
               to={ORDER_LIST_PATH}
-              className='text-note font-medium text-role hover:underline'
+              className='text-note font-medium text-role-ink hover:underline'
             >
               주문내역으로
             </Link>
@@ -78,6 +78,7 @@ export function OrderDetailPage(): ReactNode {
         ‹ 주문내역
       </Link>
       <PageHeader
+        className='mb-4'
         title='주문 상세'
         badge={<Badge tone={ORDER_STATUS_TONE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>}
         actions={

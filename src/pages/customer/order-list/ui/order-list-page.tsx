@@ -8,7 +8,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
-const STORE_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const STORE_LIST_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * U-08 주문 목록 화면. 내 주문(GET /orders)을 최신순 카드로 보여 주고, '더 보기'로 다음 페이지를 이어 받는다.
@@ -20,7 +20,10 @@ export function OrderListPage(): ReactNode {
 
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
-      <PageHeader title='주문내역' />
+      <PageHeader
+        className='mb-4'
+        title='주문내역'
+      />
 
       {isPending ? (
         <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>

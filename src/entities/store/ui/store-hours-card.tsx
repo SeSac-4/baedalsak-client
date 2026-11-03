@@ -30,7 +30,7 @@ export function StoreHoursCard({ hours, today, className }: StoreHoursCardProps)
             aria-current={isToday ? 'date' : undefined}
             className={cn(
               'flex flex-col gap-0.5 rounded-lg border px-1 py-1.5 text-note',
-              isToday ? 'border-role bg-role/10 font-semibold text-role' : 'border-border text-fg-muted',
+              isToday ? 'border-role bg-role-soft font-semibold text-role-ink' : 'border-border text-fg-muted',
             )}
           >
             <span>{DAY_LABELS[day]}</span>

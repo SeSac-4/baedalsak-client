@@ -13,7 +13,7 @@ export function SignupLoginLink(): ReactNode {
       <span className='text-fg-muted'>이미 계정이 있나요?</span>
       <Link
         to={LOGIN_PATH}
-        className='font-medium text-role underline-offset-2 hover:underline'
+        className='font-medium text-role-ink underline-offset-2 hover:underline'
       >
         로그인
       </Link>

@@ -20,7 +20,7 @@ export function AuthLayout({ title, children, footer }: AuthLayoutProps): ReactN
   return (
     <main className='mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center gap-5 px-4 py-10'>
       <header className='flex flex-col gap-1'>
-        <h1 className='text-[1.625rem] font-bold text-role'>배달싹</h1>
+        <h1 className='text-[1.625rem] font-bold text-role-ink'>배달싹</h1>
         <p className='text-fg-muted'>우리 동네 음식, 싹 모아 배달.</p>
       </header>
       <Card className='flex flex-col gap-4 p-5'>

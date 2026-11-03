@@ -9,7 +9,7 @@ import { Spinner } from '@/shared/ui/spinner';
 
 import { PaymentForm } from './payment-form';
 
-const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * U-05 결제 화면. 진입 시 결제 요청(POST /payments)을 만들고, 받은 금액·주문명으로 토스 결제위젯과 결제하기를 보여 준다.
@@ -29,7 +29,10 @@ export function PaymentPage(): ReactNode {
       >
         ‹ 주문 상세
       </Link>
-      <PageHeader title='결제하기' />
+      <PageHeader
+        className='mb-4'
+        title='결제하기'
+      />
 
       {paymentReady ? (
         <PaymentForm

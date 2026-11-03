@@ -50,7 +50,7 @@ export function OrderDetailPage(): ReactNode {
           action={
             <Link
               to='/owner/orders'
-              className='text-note font-medium text-role hover:underline'
+              className='text-note font-medium text-role-ink hover:underline'
             >
               주문 관리로
             </Link>
@@ -69,6 +69,7 @@ export function OrderDetailPage(): ReactNode {
         ‹ 주문 관리
       </Link>
       <PageHeader
+        className='mb-4'
         title={`주문 #${order.id}`}
         badge={<Badge tone={ORDER_STATUS_TONE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>}
         actions={

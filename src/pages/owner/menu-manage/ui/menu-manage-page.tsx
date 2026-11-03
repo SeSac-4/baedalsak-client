@@ -41,6 +41,7 @@ export function MenuManagePage(): ReactNode {
   return (
     <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
       <PageHeader
+        className='mb-4'
         title='메뉴 관리'
         actions={<Button onClick={() => handleFormOpen(null)}>메뉴 추가</Button>}
       />

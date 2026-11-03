@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router';
 
 import { getRoleHomePath, MEMBER_ROLE_LABEL, useMe, type MemberRole } from '@/entities/session';
 import { cn } from '@/shared/lib/cn';
+import { useDocumentRole } from '@/shared/lib/use-document-role';
 
 interface NavItem {
   to: string;
@@ -39,16 +40,17 @@ const ROLE_NAV: Record<MemberRole, NavItem[]> = {
 const getNavLinkClass = ({ isActive }: { isActive: boolean }): string =>
   cn(
     'rounded-lg px-2.5 py-1.5 text-body whitespace-nowrap transition hover:bg-surface-hover',
-    isActive ? 'font-bold text-role' : 'text-fg-muted',
+    isActive ? 'font-bold text-role-ink' : 'text-fg-muted',
   );
 
 /**
- * 로그인 후 화면 공통 레이아웃. 역할 강조색(--rc)을 data-role로 지정하고 역할별 메뉴(내 정보 포함)를 둔다.
+ * 로그인 후 화면 공통 레이아웃. 역할 강조색(--rc)을 data-role로 지정하고(모달·토스트용으로 <html>에도) 역할별 메뉴(내 정보 포함)를 둔다.
  * AuthGuard 안쪽에서만 쓴다.
  * @returns 레이아웃 요소
  */
 export function RoleLayout(): ReactNode {
   const { data: me } = useMe();
+  useDocumentRole(me?.role);
   if (!me) return <Outlet />;
 
   return (
@@ -62,7 +64,7 @@ export function RoleLayout(): ReactNode {
             to={getRoleHomePath(me.role)}
             className='flex items-baseline gap-1.5'
           >
-            <span className='text-[1.125rem] font-bold text-role'>배달싹</span>
+            <span className='text-[1.125rem] font-bold text-role-ink'>배달싹</span>
             <span className='text-note text-fg-muted'>{MEMBER_ROLE_LABEL[me.role]}</span>
           </NavLink>
           <nav

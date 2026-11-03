@@ -1,23 +1,21 @@
-import { forwardRef } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { FIELD_CLASS } from '@/shared/ui/input';
 
-/** CMP-08 FormField(textarea) — 요청사항 등 여러 줄 입력. */
-export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+export type TextareaProps = ComponentProps<'textarea'>;
 
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, rows = 3, ...props }, ref) => (
-  <textarea
-    ref={ref}
-    rows={rows}
-    className={cn(
-      'w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-body text-fg transition',
-      'placeholder:text-fg-subtle',
-      'focus-visible:border-role focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none',
-      'read-only:bg-surface-hover disabled:opacity-40',
-      'aria-[invalid=true]:border-warn aria-[invalid=true]:ring-warn/40',
-      className,
-    )}
-    {...props}
-  />
-));
-Textarea.displayName = 'Textarea';
+/**
+ * 여러 줄 입력칸 (요청사항·메뉴 설명 등). 세로로만 크기를 바꿀 수 있다.
+ * @param props textarea 속성 (ref 포함, rows 기본 3)
+ * @returns 여러 줄 입력 요소
+ */
+export function Textarea({ className, rows = 3, ...props }: TextareaProps): ReactNode {
+  return (
+    <textarea
+      rows={rows}
+      className={cn(FIELD_CLASS, 'h-auto resize-y py-3 leading-[1.55]', className)}
+      {...props}
+    />
+  );
+}

@@ -1,2 +1,2 @@
 export { ToastProvider, type ToastProviderProps } from './toast';
-export { useToast } from './toast-context';
+export { useToast, type ShowToast, type ToastTone } from './toast-context';

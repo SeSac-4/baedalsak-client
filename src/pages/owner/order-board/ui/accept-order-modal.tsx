@@ -4,7 +4,7 @@ import { formatOrderItems, type OrderDetail } from '@/entities/order';
 import { getErrorCode, getErrorMessage } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
-import { Chip } from '@/shared/ui/chip';
+import { ChoiceButton, ChoiceGroup } from '@/shared/ui/choice';
 import { Input } from '@/shared/ui/input';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
@@ -66,7 +66,7 @@ export function AcceptOrderModal({ order, onClose, onAccepted }: AcceptOrderModa
    * 칩을 고르면 직접 입력값을 비운다.
    * @param option 고른 분
    */
-  const handleChipClick = (option: number): void => {
+  const handleMinuteClick = (option: number): void => {
     setSelectedMinutes(option);
     setCustomText('');
   };
@@ -108,17 +108,17 @@ export function AcceptOrderModal({ order, onClose, onAccepted }: AcceptOrderModa
           </p>
           <fieldset className='flex flex-col gap-2'>
             <legend className='mb-2 text-note font-medium text-fg-muted'>조리 예상 시간</legend>
-            <div className='flex flex-wrap gap-2'>
+            <ChoiceGroup aria-label='조리 예상 시간'>
               {COOK_MINUTE_OPTIONS.map((option) => (
-                <Chip
+                <ChoiceButton
                   key={option}
                   selected={!customText && selectedMinutes === option}
-                  onClick={() => handleChipClick(option)}
+                  onClick={() => handleMinuteClick(option)}
                 >
                   {option}분
-                </Chip>
+                </ChoiceButton>
               ))}
-            </div>
+            </ChoiceGroup>
             <label className='flex items-center gap-2 text-note text-fg-muted'>
               직접 입력
               <Input

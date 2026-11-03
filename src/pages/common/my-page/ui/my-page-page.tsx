@@ -65,7 +65,10 @@ export function MyPage(): ReactNode {
 
   return (
     <div className='mx-auto flex max-w-[560px] flex-col gap-4 px-4 py-6'>
-      <PageHeader title='내 정보' />
+      <PageHeader
+        className='mb-4'
+        title='내 정보'
+      />
       <Card className='flex flex-col gap-3'>
         <KeyValueList items={getMemberItems(me)} />
         <p className='text-note text-fg-muted'>로그인은 만료되면 자동으로 연장돼요.</p>

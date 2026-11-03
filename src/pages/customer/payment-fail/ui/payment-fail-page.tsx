@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 const PRIMARY_LINK_CLASS =
-  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-white transition hover:brightness-110';
+  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-role-on transition hover:brightness-110';
 /** 토스가 failUrl에 붙여 주는 실패 사유 쿼리 이름 */
 const TOSS_FAIL_MESSAGE_PARAM = 'message';
 

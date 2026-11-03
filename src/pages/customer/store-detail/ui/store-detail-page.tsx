@@ -16,7 +16,7 @@ import { CartSummaryCard } from '@/widgets/cart-summary';
 
 import { MenuListCard } from './menu-list-card';
 
-const HOME_LINK_CLASS = 'text-note font-medium text-role hover:underline';
+const HOME_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
 /**
  * U-02 가게 상세·메뉴 화면. 가게 정보·요일별 영업시간·메뉴 목록(담기)과 내 장바구니를 보여 준다.
@@ -109,7 +109,10 @@ export function StoreDetailPage(): ReactNode {
           </Card>
 
           <section>
-            <PageHeader title='메뉴' />
+            <PageHeader
+              className='mb-4'
+              title='메뉴'
+            />
             <MenuListCard store={store} />
           </section>
 

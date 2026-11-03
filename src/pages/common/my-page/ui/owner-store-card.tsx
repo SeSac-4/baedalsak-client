@@ -10,7 +10,7 @@ import { Spinner } from '@/shared/ui/spinner';
 const STORE_NOT_FOUND = 'STORE_NOT_FOUND';
 const STORE_CREATE_PATH = '/owner/store/new';
 const STORE_MANAGE_PATH = '/owner/store';
-const LINK_CLASS = 'font-medium text-role underline-offset-2 hover:underline';
+const LINK_CLASS = 'font-medium text-role-ink underline-offset-2 hover:underline';
 
 /**
  * 사장님 내 가게 요약. 가게가 없으면(404 STORE_NOT_FOUND) 가게 등록 링크를 보여 준다.

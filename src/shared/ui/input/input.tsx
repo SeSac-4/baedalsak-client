@@ -1,25 +1,41 @@
-import { forwardRef } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-/**
- * CMP-08 FormField(입력) — 라벨/오류 레이아웃은 상위 폼이 조립하고,
- * 여기서는 제어 요소만 스타일링한다. 검증 오류는 aria-invalid="true"로 표시.
- */
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+import { FIELD_CLASS } from './field-class';
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => (
-  <input
-    ref={ref}
-    className={cn(
-      'h-9 w-full rounded-lg border border-border bg-surface px-3 text-body text-fg transition',
-      'placeholder:text-fg-subtle',
-      'focus-visible:border-role focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none',
-      'read-only:bg-surface-hover disabled:opacity-40',
-      'aria-[invalid=true]:border-warn aria-[invalid=true]:ring-warn/40',
-      className,
-    )}
-    {...props}
-  />
-));
-Input.displayName = 'Input';
+export interface InputProps extends ComponentProps<'input'> {
+  /** 입력칸 오른쪽 단위 (예: '원', '분') */
+  suffix?: ReactNode;
+}
+
+/**
+ * 한 줄 입력칸. 라벨·오류 문구는 폼이 조립하고, 검증 오류는 aria-invalid로 표시한다.
+ * @param props suffix(단위)와 input 속성 (ref 포함)
+ * @returns 입력 요소
+ */
+export function Input({ suffix, className, ...props }: InputProps): ReactNode {
+  if (suffix === undefined) {
+    return (
+      <input
+        className={cn(FIELD_CLASS, className)}
+        {...props}
+      />
+    );
+  }
+
+  return (
+    <div className='relative w-full'>
+      <input
+        className={cn(FIELD_CLASS, 'pr-9', className)}
+        {...props}
+      />
+      <span
+        aria-hidden
+        className='pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-fg-muted'
+      >
+        {suffix}
+      </span>
+    </div>
+  );
+}

@@ -7,7 +7,7 @@ import { Card } from '@/shared/ui/card';
 import { KeyValueList } from '@/shared/ui/key-value-list';
 
 const PRIMARY_LINK_CLASS =
-  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-white transition hover:brightness-110';
+  'inline-flex h-9 items-center rounded-lg bg-role px-4 text-body font-medium text-role-on transition hover:brightness-110';
 const SECONDARY_LINK_CLASS =
   'inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-body font-medium text-fg transition hover:bg-surface-hover';
 

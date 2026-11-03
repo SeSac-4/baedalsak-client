@@ -1,40 +1,22 @@
-import { forwardRef } from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-/** CMP-07 Button — primary(역할색 채움) · secondary(테두리) · size sm/md/lg · block */
-const button = cva(
-  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-role/50 disabled:pointer-events-none disabled:opacity-40',
-  {
-    variants: {
-      variant: {
-        primary: 'bg-role text-white hover:brightness-110',
-        secondary: 'border border-border bg-surface text-fg hover:bg-surface-hover',
-        ghost: 'text-fg hover:bg-surface-hover',
-        danger: 'bg-warn text-white hover:brightness-110',
-      },
-      size: {
-        sm: 'h-7 px-2.5 text-note', // 28px — 보조 동작에만
-        md: 'h-9 px-4 text-body', // 36px — 최소 터치 타겟
-        lg: 'h-11 px-5 text-body', // 44px — 모바일 주 CTA
-      },
-      block: { true: 'w-full', false: '' },
-    },
-    defaultVariants: { variant: 'primary', size: 'md', block: false },
-  },
-);
+import { buttonVariants, type ButtonVariantProps } from './button-variants';
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof button>;
+export interface ButtonProps extends ComponentProps<'button'>, ButtonVariantProps {}
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, block, type = 'button', ...props }, ref) => (
+/**
+ * 버튼을 렌더링한다. type 기본값은 'button' (폼 제출은 type='submit'을 직접 준다).
+ * @param props variant·size·block과 button 속성 (ref 포함)
+ * @returns 버튼 요소
+ */
+export function Button({ className, variant, size, block, type = 'button', ...props }: ButtonProps): ReactNode {
+  return (
     <button
-      ref={ref}
       type={type}
-      className={cn(button({ variant, size, block }), className)}
+      className={cn(buttonVariants({ variant, size, block }), className)}
       {...props}
     />
-  ),
-);
-Button.displayName = 'Button';
+  );
+}
