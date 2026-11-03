@@ -6,6 +6,8 @@ import { AuthLayout } from '@/widgets/auth-layout';
 
 import { SignupRiderForm } from './signup-rider-form';
 
+/** 제목 위 '‹ 회원 유형 다시 고르기' (역할 선택으로) */
+const SIGNUP_ROLE_BACK = { to: '/signup', label: '회원 유형 다시 고르기' };
 /**
  * C-05 라이더 가입 화면. 가입하면 서버가 로그인 쿠키를 주므로 바로 배달 대기 목록(`/rider`)으로 이동한다.
  * @returns 라이더 가입 페이지
@@ -24,6 +26,7 @@ export function SignupRiderPage(): ReactNode {
   return (
     <AuthLayout
       title='라이더 회원가입'
+      back={SIGNUP_ROLE_BACK}
       footer={<SignupLoginLink />}
     >
       <SignupRiderForm onSuccess={handleSignupSuccess} />

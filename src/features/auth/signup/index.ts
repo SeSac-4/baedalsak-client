@@ -14,3 +14,4 @@ export {
 export { useSignup } from './model/use-signup';
 export { SignupCommonFields, type SignupCommonFieldsProps } from './ui/signup-common-fields';
 export { SignupLoginLink } from './ui/signup-login-link';
+export { SignupSubmitButton, type SignupSubmitButtonProps } from './ui/signup-submit-button';
