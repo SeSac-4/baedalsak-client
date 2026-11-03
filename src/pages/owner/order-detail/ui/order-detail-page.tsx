@@ -44,7 +44,7 @@ export function OrderDetailPage(): ReactNode {
 
   if (!order) {
     return (
-      <div className='mx-auto max-w-[1100px] px-4 py-6'>
+      <div>
         <EmptyState
           message={error ? getErrorMessage(error) : '주문을 찾을 수 없어요.'}
           action={
@@ -61,7 +61,7 @@ export function OrderDetailPage(): ReactNode {
   }
 
   return (
-    <div className='mx-auto flex max-w-[1100px] flex-col gap-2 px-4 py-6'>
+    <div className='flex flex-col gap-2'>
       <Link
         to='/owner/orders'
         className='self-start text-note text-fg-muted hover:text-fg'

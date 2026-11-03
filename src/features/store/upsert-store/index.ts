@@ -1,5 +1,6 @@
 export type { StoreUpsertRequest } from './api/upsert-store-api';
+export { parseStoreRequest } from './lib/parse-store-request';
 export type { StoreFormValues } from './model/store-schema';
 export { useCreateStore } from './model/use-create-store';
 export { useUpdateStore } from './model/use-update-store';
-export { StoreForm, type StoreFormProps, type StoreImageField } from './ui/store-form';
+export { StoreForm, type StoreFormProps } from './ui/store-form';

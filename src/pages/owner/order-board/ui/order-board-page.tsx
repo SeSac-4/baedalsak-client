@@ -72,18 +72,13 @@ export function OrderBoardPage(): ReactNode {
   };
 
   return (
-    <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
+    <div className='flex flex-col'>
       <PageHeader
         className='mb-4'
         title='주문 관리'
         actions={
           <>
-            {store ? (
-              <OperationStatusCard
-                store={store}
-                compact
-              />
-            ) : null}
+            {store ? <OperationStatusCard store={store} /> : null}
             <Button
               variant='secondary'
               size='sm'
