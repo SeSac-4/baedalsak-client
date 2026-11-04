@@ -124,6 +124,10 @@ export function BusinessHoursForm({ storeId, hours, today }: BusinessHoursFormPr
                 key={day}
                 className='contents'
               >
+                <div
+                  aria-hidden
+                  className='col-span-4 border-t border-border'
+                />
                 <span className={cn('flex items-baseline gap-1 font-bold', isClosed ? 'text-fg-disabled' : 'text-fg')}>
                   {DAY_LABELS[day]}
                   {day === today ? <small className='text-note font-normal text-role-ink'>오늘</small> : null}
