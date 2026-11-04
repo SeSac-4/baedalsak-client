@@ -47,7 +47,7 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
     formState: { errors, isSubmitting },
   } = useForm<SignupOwnerValues>({
     resolver: zodResolver(signupOwnerSchema),
-    defaultValues: { email: '', password: '', name: '', phone: '', storeName: '' },
+    defaultValues: { email: '', password: '', passwordConfirm: '', name: '', phone: '', storeName: '' },
   });
 
   /**

@@ -3,6 +3,7 @@ export { getSignupDonePath } from './lib/get-signup-done-path';
 export { parseSignupError, type SignupFieldError } from './lib/parse-signup-error';
 export {
   signupCommonSchema,
+  signupCustomerSchema,
   signupOwnerSchema,
   signupRiderSchema,
   VEHICLE_TYPES,

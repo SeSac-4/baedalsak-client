@@ -4,7 +4,7 @@ import { useForm, type Path } from 'react-hook-form';
 
 import {
   parseSignupError,
-  signupCommonSchema,
+  signupCustomerSchema,
   SignupCommonFields,
   SignupSubmitButton,
   useSignup,
@@ -43,8 +43,8 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
     setError,
     formState: { errors, isSubmitting },
   } = useForm<SignupCommonValues>({
-    resolver: zodResolver(signupCommonSchema),
-    defaultValues: { email: '', password: '', name: '', phone: '' },
+    resolver: zodResolver(signupCustomerSchema),
+    defaultValues: { email: '', password: '', passwordConfirm: '', name: '', phone: '' },
   });
 
   /**
