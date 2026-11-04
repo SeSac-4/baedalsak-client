@@ -42,7 +42,7 @@ export const useAddToCart = (): UseAddToCartResult => {
     mutationFn: ({ request, replace }: AddToCartVariables) => addCartItem(request, replace),
     onSuccess: async (): Promise<void> => {
       setPendingReplace(null);
-      toast(ADDED_MESSAGE);
+      toast(ADDED_MESSAGE, 'success');
       await queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
     onError: (error: unknown, { request, replace }: AddToCartVariables): void => {
