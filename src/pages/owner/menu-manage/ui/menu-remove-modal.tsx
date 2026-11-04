@@ -30,17 +30,19 @@ export function MenuRemoveModal({ storeId, menu, onClose }: MenuRemoveModalProps
     <Modal
       open={menu !== null}
       onClose={onClose}
-      title='메뉴 삭제'
+      title={`'${menu?.name}' 메뉴를 삭제할까요?`}
       footer={
         <>
           <Button
             variant='secondary'
+            size='lg'
             onClick={onClose}
           >
             취소
           </Button>
           <Button
             variant='danger'
+            size='lg'
             disabled={isPending}
             onClick={handleRemoveClick}
           >
@@ -49,12 +51,7 @@ export function MenuRemoveModal({ storeId, menu, onClose }: MenuRemoveModalProps
         </>
       }
     >
-      <p>
-        <strong>{menu?.name}</strong> 메뉴를 삭제할까요?
-      </p>
-      <p className='mt-1 text-note text-fg-muted'>
-        삭제한 메뉴는 고객 화면에서 사라지고, 지난 주문 내역에는 그대로 남아요.
-      </p>
+      <p className='text-fg-muted'>삭제한 메뉴는 고객 화면에서 사라져요. 지난 주문 내역에는 그대로 남아요.</p>
     </Modal>
   );
 }
