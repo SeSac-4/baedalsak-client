@@ -8,6 +8,17 @@ const KST_FORMATTER = new Intl.DateTimeFormat('ko-KR', {
 });
 
 /**
+ * ISO 시각을 KST 'HH:mm'으로 표시한다.
+ * @param iso ISO 8601 시각
+ * @returns 예: 12:30
+ */
+export const formatTime = (iso: string): string => {
+  const parts = KST_FORMATTER.formatToParts(new Date(iso));
+  const get = (type: Intl.DateTimeFormatPartTypes): string => parts.find((part) => part.type === type)?.value ?? '';
+  return `${get('hour')}:${get('minute')}`;
+};
+
+/**
  * ISO 시각을 KST 'MM.DD HH:mm'으로 표시한다.
  * @param iso ISO 8601 시각
  * @returns 예: 10.13 12:30

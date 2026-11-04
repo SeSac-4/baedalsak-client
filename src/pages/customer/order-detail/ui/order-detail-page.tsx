@@ -10,7 +10,8 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
-import { OrderTrackingCard } from '@/widgets/order-tracking';
+
+import { OrderTrackingCard } from './order-tracking-card';
 
 const ORDER_LIST_PATH = '/orders';
 const SECONDARY_LINK_CLASS =

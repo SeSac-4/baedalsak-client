@@ -1,17 +1,18 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router';
 
-import { OrderCard, useStoreOrderList, type OrderDetail, type OrderStatus } from '@/entities/order';
+import { useStoreOrderList, type OrderDetail, type OrderStatus } from '@/entities/order';
 import { useMyStore } from '@/entities/store';
 import { OperationStatusCard } from '@/features/store/toggle-operation-status';
 import { getErrorMessage } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { IconButton } from '@/shared/ui/icon-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
 import { AcceptOrderModal } from './accept-order-modal';
+import { OrderBoardCard } from './order-board-card';
 
 type BoardTab = 'new' | 'progress' | 'done';
 
@@ -37,8 +38,8 @@ const EMPTY_MESSAGES: Record<BoardTab, string> = {
 const isBoardTab = (value: string): value is BoardTab => value in TAB_STATUSES;
 
 /**
- * O-01 주문 관리(사장님 홈) 화면. 탭별 가게 주문(GET /stores/{id}/orders?status=)·상단 운영 상태를 보여 준다.
- * 신규 건수는 탭과 관계없이 신규(PAID) 목록의 전체 건수로 보여 준다. 새로고침은 지금 탭과 신규 건수를 다시 받는다.
+ * O-01 주문 관리(사장님 홈) 화면. 운영 상태와 탭별 가게 주문(GET /stores/{id}/orders?status=)을 보여 준다.
+ * 탭의 개수는 고른 탭과 관계없이 각 목록의 전체 건수로 보여 주고, 새로고침은 세 목록을 모두 다시 받는다.
  * @returns 주문 관리 페이지
  */
 export function OrderBoardPage(): ReactNode {
@@ -46,21 +47,25 @@ export function OrderBoardPage(): ReactNode {
   const storeId = store?.id ?? 0;
   const [tab, setTab] = useState<BoardTab>('new');
   const [acceptTarget, setAcceptTarget] = useState<OrderDetail | null>(null);
-  const { data, error, isPending, isFetching, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useStoreOrderList(storeId, TAB_STATUSES[tab]);
-  const { data: newOrders, refetch: refetchNewOrders } = useStoreOrderList(storeId, TAB_STATUSES.new);
+  const newOrders = useStoreOrderList(storeId, TAB_STATUSES.new);
+  const progressOrders = useStoreOrderList(storeId, TAB_STATUSES.progress);
+  const doneOrders = useStoreOrderList(storeId, TAB_STATUSES.done);
+  const tabQueries = { new: newOrders, progress: progressOrders, done: doneOrders };
+  const { data, error, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } = tabQueries[tab];
   const orders = data?.pages.flatMap((page) => page.content) ?? [];
+  const isRefreshing = newOrders.isFetching || progressOrders.isFetching || doneOrders.isFetching;
 
-  /** 지금 탭과 신규 건수를 다시 받는다. */
+  /** 세 목록을 다시 받는다. */
   const handleRefreshClick = (): void => {
-    void refetch();
-    void refetchNewOrders();
+    void newOrders.refetch();
+    void progressOrders.refetch();
+    void doneOrders.refetch();
   };
 
   const tabItems: TabItem[] = [
-    { value: 'new', label: '신규', count: newOrders?.pages[0]?.totalElements ?? 0, isEmphasized: true },
-    { value: 'progress', label: '진행 중' },
-    { value: 'done', label: '완료' },
+    { value: 'new', label: '신규', count: newOrders.data?.pages[0]?.totalElements ?? 0, isEmphasized: true },
+    { value: 'progress', label: '진행 중', count: progressOrders.data?.pages[0]?.totalElements ?? 0 },
+    { value: 'done', label: '완료', count: doneOrders.data?.pages[0]?.totalElements ?? 0 },
   ];
 
   /**
@@ -72,31 +77,26 @@ export function OrderBoardPage(): ReactNode {
   };
 
   return (
-    <div className='flex flex-col'>
+    <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:gap-4'>
       <PageHeader
-        className='mb-4'
         title='주문 관리'
         actions={
-          <>
-            {store ? <OperationStatusCard store={store} /> : null}
-            <Button
-              variant='secondary'
-              size='sm'
-              disabled={isFetching}
-              onClick={handleRefreshClick}
-            >
-              새로고침
-            </Button>
-          </>
+          <IconButton
+            icon='refresh'
+            label='새로고침'
+            disabled={isRefreshing}
+            onClick={handleRefreshClick}
+          />
         }
       />
+
+      {store ? <OperationStatusCard store={store} /> : null}
 
       <Tabs
         items={tabItems}
         value={tab}
         onChange={handleTabChange}
         label='주문 상태'
-        className='mb-4'
       />
 
       {isPending ? (
@@ -109,35 +109,12 @@ export function OrderBoardPage(): ReactNode {
       {error && !data ? <EmptyState message={getErrorMessage(error)} /> : null}
 
       {data && orders.length > 0 ? (
-        <ul className='grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3'>
+        <ul className='grid grid-cols-1 items-start gap-3 tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:gap-3.5 desktop:gap-4'>
           {orders.map((order) => (
             <li key={order.id}>
-              <OrderCard
+              <OrderBoardCard
                 order={order}
-                title={`주문 #${order.id}`}
-                footer={
-                  <div className='flex flex-col gap-2'>
-                    <p className='text-note text-fg-muted'>
-                      요청: {order.storeRequest ?? '없음'} · {order.deliveryAddress}
-                    </p>
-                    <div className='flex gap-2'>
-                      {tab === 'new' ? (
-                        <Button
-                          size='sm'
-                          onClick={() => setAcceptTarget(order)}
-                        >
-                          수락
-                        </Button>
-                      ) : null}
-                      <Link
-                        to={`/owner/orders/${order.id}`}
-                        className='inline-flex h-7 items-center rounded-lg border border-border bg-surface px-2.5 text-note font-medium text-fg transition hover:bg-surface-hover'
-                      >
-                        상세 보기
-                      </Link>
-                    </div>
-                  </div>
-                }
+                onAcceptClick={setAcceptTarget}
               />
             </li>
           ))}
@@ -147,7 +124,7 @@ export function OrderBoardPage(): ReactNode {
       {hasNextPage ? (
         <Button
           variant='secondary'
-          className='mt-4 self-center'
+          className='self-center'
           disabled={isFetchingNextPage}
           onClick={() => void fetchNextPage()}
         >
@@ -155,17 +132,23 @@ export function OrderBoardPage(): ReactNode {
         </Button>
       ) : null}
 
-      {data && orders.length === 0 ? <EmptyState message={EMPTY_MESSAGES[tab]} /> : null}
+      {data && orders.length === 0 ? (
+        <EmptyState
+          icon='receipt'
+          message={EMPTY_MESSAGES[tab]}
+        />
+      ) : null}
 
-      <AcceptOrderModal
-        key={acceptTarget?.id}
-        order={acceptTarget}
-        onClose={() => setAcceptTarget(null)}
-        onAccepted={() => {
-          setAcceptTarget(null);
-          setTab('progress');
-        }}
-      />
+      {acceptTarget ? (
+        <AcceptOrderModal
+          order={acceptTarget}
+          onClose={() => setAcceptTarget(null)}
+          onAccepted={() => {
+            setAcceptTarget(null);
+            setTab('progress');
+          }}
+        />
+      ) : null}
     </div>
   );
 }
