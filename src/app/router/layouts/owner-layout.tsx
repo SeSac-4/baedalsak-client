@@ -1,17 +1,23 @@
 import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 
+import { useStoreOrderList, type OrderStatus } from '@/entities/order';
 import { useMyStore, type StoreDetail } from '@/entities/store';
 import { getErrorCode } from '@/shared/api';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 import { StatusPill } from '@/shared/ui/status-pill';
 
 const STORE_NOT_FOUND = 'STORE_NOT_FOUND';
+const NEW_ORDER_STATUSES: OrderStatus[] = ['PAID'];
 const MY_PAGE_NAV: NavPillItem = { to: '/me', label: '내 정보' };
 
-/** 가게가 있을 때 메뉴 */
-const STORE_NAV: NavPillItem[] = [
-  { to: '/owner/orders', label: '주문 관리' },
+/**
+ * 가게가 있을 때 메뉴를 만든다.
+ * @param newOrderCount - 주문 관리에 표시할 신규 주문 수
+ * @returns 메뉴 항목
+ */
+const getStoreNav = (newOrderCount: number): NavPillItem[] => [
+  { to: '/owner/orders', label: '주문 관리', count: newOrderCount },
   { to: '/owner/menus', label: '메뉴 관리' },
   { to: '/owner/store', label: '가게 관리', end: true },
   MY_PAGE_NAV,
@@ -50,18 +56,19 @@ const renderStoreStatus = (store: StoreDetail | undefined, isBeforeRegister: boo
 
 /**
  * 사장님 화면 레이아웃. 헤더에 로고와 가게 상태를 두고, 메뉴는 PC에서 왼쪽 사이드(200px), 태블릿·모바일에서 헤더 아래 가로 줄로 둔다.
- * 가게 등록 전(GET /stores/me 404)에는 주문·메뉴 관리를 막고 가게 등록 메뉴를 보여 준다.
+ * 가게 등록 전(GET /stores/me 404)에는 주문·메뉴 관리를 막고 가게 등록 메뉴를 보여 준다. 주문 관리에는 신규 주문 수를 표시한다.
  * @returns 레이아웃 요소
  */
 export function OwnerLayout(): ReactNode {
   const { data: store, error } = useMyStore();
   const isBeforeRegister = getErrorCode(error) === STORE_NOT_FOUND;
-  const navItems = isBeforeRegister ? BEFORE_REGISTER_NAV : STORE_NAV;
+  const { data: newOrders } = useStoreOrderList(store?.id ?? 0, NEW_ORDER_STATUSES);
+  const navItems = isBeforeRegister ? BEFORE_REGISTER_NAV : getStoreNav(newOrders?.pages[0]?.totalElements ?? 0);
 
   return (
     <div className='flex min-h-dvh flex-col'>
       <header className='sticky top-0 z-20 border-b border-border bg-surface'>
-        <div className='flex min-h-14 items-center gap-2.5 px-4 py-1.5 tablet:px-6 desktop:px-[max(40px,calc(50%-550px))] desktop:py-2'>
+        <div className='mx-auto flex min-h-14 w-full items-center gap-2.5 px-4 py-1.5 tablet:max-w-[760px] tablet:px-6 desktop:mx-0 desktop:max-w-none desktop:py-2'>
           <Link
             to={isBeforeRegister ? '/owner/store/new' : '/owner/orders'}
             className='flex min-h-11 shrink-0 items-center gap-1.5 rounded-control text-[18px] font-extrabold tracking-[-0.02em] text-role-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
@@ -79,7 +86,7 @@ export function OwnerLayout(): ReactNode {
         <NavPills
           label='사장님 메뉴'
           items={navItems}
-          className='px-3 pb-2 tablet:px-5 desktop:hidden'
+          className='px-3 pb-2 tablet:mx-auto tablet:max-w-[760px] tablet:px-5 desktop:hidden'
         />
       </header>
       <div className='flex flex-1'>
