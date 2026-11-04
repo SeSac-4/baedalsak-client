@@ -4,6 +4,7 @@ import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
+import { Icon } from '@/shared/ui/icon';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
 import { formatBusinessHour } from '../lib/format-business-hour';
@@ -25,21 +26,30 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
   return (
     <Card
       interactive
-      className={cn('flex flex-col gap-1.5', !store.isOpenNow && 'opacity-60', className)}
+      padding='none'
+      className={cn('flex gap-3 p-4', !store.isOpenNow && 'opacity-55', className)}
     >
       <Thumbnail
         src={store.imageUrl}
-        alt={store.name}
-        className='mb-1 aspect-[16/9] w-full'
+        alt={`${store.name} 가게 사진`}
+        className='size-21 flex-none border border-border'
       />
-      <div className='flex items-start justify-between gap-2'>
-        <strong className='text-base text-fg'>{store.name}</strong>
-        <Badge tone={store.isOpenNow ? 'ok' : 'muted'}>{store.isOpenNow ? '영업중' : '영업 종료'}</Badge>
+      <div className='flex min-w-0 flex-1 flex-col justify-center gap-0.5 leading-[1.45]'>
+        <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5'>
+          <strong className='min-w-0 font-bold wrap-break-word text-fg'>{store.name}</strong>
+          <Badge tone={store.isOpenNow ? 'ok' : 'muted'}>{store.isOpenNow ? '영업중' : '영업 종료'}</Badge>
+        </div>
+        <span className='text-note text-fg-muted'>
+          {categoryName} · 최소주문 {formatPrice(store.minOrderAmount)} · 배달비 {formatPrice(store.deliveryFee)}
+        </span>
+        <span className='flex items-center gap-1 text-note text-fg-muted'>
+          <Icon
+            name='clock'
+            size={14}
+          />
+          오늘 {formatBusinessHour(store.todayHour)}
+        </span>
       </div>
-      <span className='text-note text-fg-muted'>
-        {categoryName} · 최소주문 {formatPrice(store.minOrderAmount)} · 배달비 {formatPrice(store.deliveryFee)}
-      </span>
-      <span className='text-note text-fg-muted'>오늘 {formatBusinessHour(store.todayHour)}</span>
     </Card>
   );
 }
