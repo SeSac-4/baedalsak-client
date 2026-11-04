@@ -15,7 +15,7 @@ import { Card } from '@/shared/ui/card';
 import { KeyValueList, type KeyValueItem } from '@/shared/ui/key-value-list';
 import { Stepper, type Step } from '@/shared/ui/stepper';
 
-/** 주문 진행 단계 + 주문 정보 + 배달 정보. U-09 고객 주문 상세·O-03 사장님 주문 상세에서 사용. */
+/** 주문 진행 단계 + 주문 정보 + 배달 정보. U-09 고객 주문 상세에서 사용. */
 export interface OrderTrackingCardProps {
   order: OrderDetail;
   /** 배달 정보 (배달 생성 전이면 null, 불러오는 중·실패면 undefined) */
