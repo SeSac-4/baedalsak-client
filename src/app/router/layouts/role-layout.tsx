@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { NavLink, Outlet } from 'react-router';
 
-import { getRoleHomePath, MEMBER_ROLE_LABEL, useMe, type MemberRole } from '@/entities/session';
+import { getRoleHomePath, MEMBER_ROLE_LABEL, useMe } from '@/entities/session';
 import { cn } from '@/shared/lib/cn';
 import { useDocumentRole } from '@/shared/lib/use-document-role';
 
+import { CustomerLayout } from './customer-layout';
 import { OwnerLayout } from './owner-layout';
 
 interface NavItem {
@@ -14,19 +15,12 @@ interface NavItem {
   end?: boolean;
 }
 
-const MY_PAGE_NAV: NavItem = { to: '/me', label: '내 정보' };
-
-/** 역할별 상단 메뉴 */
-const ROLE_NAV: Record<Exclude<MemberRole, 'OWNER'>, NavItem[]> = {
-  CUSTOMER: [
-    { to: '/', label: '가게', end: true },
-    { to: '/orders', label: '주문내역' },
-    { to: '/payments', label: '결제내역' },
-    { to: '/cart', label: '장바구니' },
-    MY_PAGE_NAV,
-  ],
-  RIDER: [{ to: '/rider', label: '배차 대기', end: true }, { to: '/rider/active', label: '진행 중 배달' }, MY_PAGE_NAV],
-};
+/** 라이더 상단 메뉴 */
+const RIDER_NAV: NavItem[] = [
+  { to: '/rider', label: '배차 대기', end: true },
+  { to: '/rider/active', label: '진행 중 배달' },
+  { to: '/me', label: '내 정보' },
+];
 
 /**
  * 메뉴 링크 클래스를 구한다. 현재 화면이면 역할색으로 강조한다.
@@ -40,7 +34,7 @@ const getNavLinkClass = ({ isActive }: { isActive: boolean }): string =>
   );
 
 /**
- * 로그인 후 화면 공통 레이아웃. 사장님은 OwnerLayout(새 디자인)을 쓴다. 역할 강조색(--rc)을 data-role로 지정하고(모달·토스트용으로 <html>에도) 역할별 메뉴(내 정보 포함)를 둔다.
+ * 로그인 후 화면 공통 레이아웃. 사장님·고객은 각자의 레이아웃(새 디자인)을 쓴다. 역할 강조색(--rc)을 data-role로 지정하고(모달·토스트용으로 <html>에도) 라이더 메뉴(내 정보 포함)를 둔다.
  * AuthGuard 안쪽에서만 쓴다.
  * @returns 레이아웃 요소
  */
@@ -49,12 +43,8 @@ export function RoleLayout(): ReactNode {
   useDocumentRole(me?.role);
   if (!me) return <Outlet />;
 
-  if (me.role === 'OWNER') {
-    return (
-      <div data-role={me.role}>
-        <OwnerLayout />
-      </div>
-    );
+  if (me.role === 'OWNER' || me.role === 'CUSTOMER') {
+    return <div data-role={me.role}>{me.role === 'OWNER' ? <OwnerLayout /> : <CustomerLayout />}</div>;
   }
 
   return (
@@ -75,7 +65,7 @@ export function RoleLayout(): ReactNode {
             aria-label='주 메뉴'
             className='-mx-2.5 flex flex-1 gap-1 overflow-x-auto tablet:mx-0 tablet:justify-end'
           >
-            {ROLE_NAV[me.role].map((item) => (
+            {RIDER_NAV.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

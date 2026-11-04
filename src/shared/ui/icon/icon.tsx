@@ -3,6 +3,13 @@ import type { ComponentProps, ReactNode } from 'react';
 /** 디자인 시안의 선 아이콘 (24×24, stroke). 새 아이콘은 여기에 추가한다. */
 const ICON_PATHS = {
   close: <path d='M6 6l12 12M18 6L6 18' />,
+  grid: <path d='M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' />,
+  'rice-bowl': <path d='M3 12h18a9 9 0 0 1-18 0zM8 8c0-1 1-1.5 1-2.5M12 8c0-1 1-1.5 1-2.5M16 8c0-1 1-1.5 1-2.5' />,
+  skewer: <path d='M4 20L20 4M7 11l3-3 3 3-3 3zM11 7l3-3 3 3-3 3z' />,
+  chicken: <path d='M14 4a6 6 0 0 1 6 6c0 4-4 6-7 5l-3 3a2 2 0 1 1-3-3l3-3c-1-3 1-8 4-8z' />,
+  noodle: <path d='M3 11h18a9 9 0 0 1-18 0zM14 3l-2 8M19 4l-4 7' />,
+  pizza: <path d='M4 6c5-3 11-3 16 0L12 21zM9 10h.01M14 12h.01M12 15h.01' />,
+  cafe: <path d='M5 9h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5zM16 11h2a2 2 0 0 1 0 4h-2M9 3v3M12 3v3' />,
   refresh: (
     <>
       <path d='M20 11A8 8 0 1 0 18 17' />
