@@ -29,7 +29,7 @@ export function AuthLayout({ title, children, footer, showLogo = false, back }: 
         <header className='flex flex-col items-center gap-1'>
           {showLogo ? (
             <img
-              src='/logo.png'
+              src='/login-logo.png'
               alt=''
               className='mb-1 h-26 w-30 object-contain'
             />

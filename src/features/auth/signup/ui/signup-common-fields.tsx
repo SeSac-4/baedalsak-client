@@ -19,13 +19,14 @@ export interface SignupCommonFieldsProps {
 const PASSWORD_HINT = '8~50자, 영문 소문자와 숫자를 함께 넣어 주세요.';
 
 /**
- * 가입 공통 입력(이메일·비밀번호·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.
+ * 가입 공통 입력(이메일·비밀번호·비밀번호 확인·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.
  * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러)
  * @returns 공통 입력 요소
  */
 export function SignupCommonFields({ idPrefix, register, errors }: SignupCommonFieldsProps): ReactNode {
   const emailId = `${idPrefix}-email`;
   const passwordId = `${idPrefix}-password`;
+  const passwordConfirmId = `${idPrefix}-password-confirm`;
   const nameId = `${idPrefix}-name`;
   const phoneId = `${idPrefix}-phone`;
 
@@ -59,7 +60,21 @@ export function SignupCommonFields({ idPrefix, register, errors }: SignupCommonF
           maxLength={50}
           aria-invalid={Boolean(errors.password)}
           aria-describedby={`${passwordId}-message`}
-          {...register('password')}
+          {...register('password', { deps: 'passwordConfirm' })}
+        />
+      </FormField>
+      <FormField
+        id={passwordConfirmId}
+        label='비밀번호 확인'
+        error={errors.passwordConfirm?.message}
+      >
+        <PasswordInput
+          id={passwordConfirmId}
+          autoComplete='new-password'
+          maxLength={50}
+          aria-invalid={Boolean(errors.passwordConfirm)}
+          aria-describedby={`${passwordConfirmId}-message`}
+          {...register('passwordConfirm')}
         />
       </FormField>
       <FormField

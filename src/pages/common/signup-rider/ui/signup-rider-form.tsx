@@ -57,7 +57,7 @@ export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode 
     formState: { errors, isSubmitting },
   } = useForm<SignupRiderInput, unknown, SignupRiderValues>({
     resolver: zodResolver(signupRiderSchema),
-    defaultValues: { email: '', password: '', name: '', phone: '', vehicleType: '' },
+    defaultValues: { email: '', password: '', passwordConfirm: '', name: '', phone: '', vehicleType: '' },
   });
 
   /**

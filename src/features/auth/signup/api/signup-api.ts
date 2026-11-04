@@ -1,6 +1,7 @@
 import type { MemberRole } from '@/entities/session';
 import { apiClient } from '@/shared/api';
 
+import { parseSignupBody } from '../lib/parse-signup-body';
 import type { SignupCommonValues, SignupOwnerValues, SignupRiderValues } from '../model/signup-schema';
 
 /** 역할별 가입 경로. 역할은 경로로 정해져 본문에 role을 넣지 않는다 (API 명세 8.1.1~8.1.3) */
@@ -10,7 +11,7 @@ const SIGNUP_PATH: Record<MemberRole, string> = {
   RIDER: '/auth/signup/rider',
 };
 
-/** 가입 요청 (역할 + 역할별 본문) */
+/** 가입 요청 (역할 + 역할별 폼 값). 비밀번호 확인은 보내기 전에 뺀다 */
 export type SignupRequest =
   | { role: 'CUSTOMER'; body: SignupCommonValues }
   | { role: 'OWNER'; body: SignupOwnerValues }
@@ -29,6 +30,6 @@ export interface SignupResponse {
  * @returns 회원 ID·역할
  */
 export const signupMember = async ({ role, body }: SignupRequest): Promise<SignupResponse> => {
-  const { data } = await apiClient.post<SignupResponse>(SIGNUP_PATH[role], body);
+  const { data } = await apiClient.post<SignupResponse>(SIGNUP_PATH[role], parseSignupBody(body));
   return data;
 };
