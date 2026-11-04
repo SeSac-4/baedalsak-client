@@ -5,6 +5,7 @@ import { Controller, useForm, type Path } from 'react-hook-form';
 import { useCategoryList } from '@/entities/category';
 import { getErrorMessage, getFieldErrors } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
+import { formatAmount, parseAmount } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { ChoiceButton, ChoiceGroup } from '@/shared/ui/choice';
@@ -34,24 +35,6 @@ const CARD_TITLE_CLASS = 'font-bold text-fg';
  * @returns 폼 필드 여부
  */
 const isStoreField = (field: string): field is Path<StoreFormValues> => STORE_FIELDS.includes(field);
-
-/**
- * 금액을 입력칸 표시용 문자열로 바꾼다 (12000 → '12,000', 비어 있으면 '').
- * @param value - 금액 (비어 있으면 NaN)
- * @returns 쉼표를 넣은 금액 문자열
- */
-const formatAmount = (value: number | undefined): string =>
-  value === undefined || Number.isNaN(value) ? '' : value.toLocaleString('ko-KR');
-
-/**
- * 입력한 글자에서 숫자만 남겨 금액으로 바꾼다 (비어 있으면 NaN → 검증에서 걸린다).
- * @param text - 입력한 글자
- * @returns 금액
- */
-const parseAmount = (text: string): number => {
-  const digits = text.replace(/\D/g, '');
-  return digits === '' ? Number.NaN : Number(digits);
-};
 
 /**
  * 가게 이름·카테고리·주소·최소주문금액·배달비 입력 폼 (O-00 등록 · O-04 수정 공용).

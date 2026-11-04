@@ -24,8 +24,8 @@ export interface ImageUploadCardProps {
   onPendingChange?: (isPending: boolean) => void;
   /** 사진 대체 텍스트 (예: 가게 이름) */
   alt: string;
-  /** 미리보기 비율 클래스 (기본 16:9 'aspect-video', 메뉴는 'aspect-square') */
-  aspectClassName?: string;
+  /** wide: 16:9 큰 상자 (가게 사진) · compact: 96px 정사각형 상자와 옆 안내 (메뉴 사진) */
+  layout?: 'wide' | 'compact';
   /** 아래 안내 문구 */
   hint?: ReactNode;
   className?: string;
@@ -38,7 +38,7 @@ const FOCUS_CLASS = 'has-focus-visible:outline-2 has-focus-visible:outline-offse
  * 사진 선택·미리보기·삭제. 사진이 없으면 점선 '사진 올리기' 상자, 있으면 미리보기와 '사진 변경'·'사진 삭제' 버튼을 보여 준다.
  * 파일을 고르자마자 형식·크기를 확인하고 S3에 올린 뒤, 받은 imageKey를 폼 값으로 넘긴다.
  * 고른 파일은 올리는 동안에도 바로 미리 보여 주고, 실패하면 폼 값의 사진(직전 사진)으로 돌아간다.
- * @param props storeId·target(업로드 대상), imageUrl(저장된 사진), value·onChange(폼 값), onPendingChange, alt, aspectClassName, hint
+ * @param props storeId·target(업로드 대상), imageUrl(저장된 사진), value·onChange(폼 값), onPendingChange, alt, layout, hint
  * @returns 사진 업로드 요소
  */
 export function ImageUploadCard({
@@ -49,7 +49,7 @@ export function ImageUploadCard({
   onChange,
   onPendingChange,
   alt,
-  aspectClassName = 'aspect-video',
+  layout = 'wide',
   hint = DEFAULT_HINT,
   className,
 }: ImageUploadCardProps): ReactNode {
@@ -136,6 +136,88 @@ export function ImageUploadCard({
     />
   );
 
+  const errorAlert = errorMessage ? (
+    <p
+      role='alert'
+      className='text-note text-warn'
+    >
+      {errorMessage}
+    </p>
+  ) : null;
+  const pendingOverlay = isPending ? (
+    <div className='absolute inset-0 flex items-center justify-center rounded-control bg-surface/70'>
+      <Spinner label='사진 올리는 중' />
+    </div>
+  ) : null;
+
+  if (layout === 'compact') {
+    return (
+      <div className={cn('flex flex-col gap-2', className)}>
+        <div className='flex items-center gap-3.5'>
+          {displaySrc ? (
+            <div className='relative size-24 flex-none'>
+              <Thumbnail
+                src={displaySrc}
+                alt={alt}
+                className='size-full border border-border'
+              />
+              {pendingOverlay}
+            </div>
+          ) : (
+            <label
+              aria-disabled={isPending}
+              className={cn(
+                'flex size-24 flex-none cursor-pointer flex-col items-center justify-center gap-1 rounded-control border-[1.5px] border-dashed border-fg-disabled bg-canvas transition hover:bg-surface-hover aria-disabled:pointer-events-none',
+                FOCUS_CLASS,
+              )}
+            >
+              {fileInput}
+              {isPending ? (
+                <Spinner label='사진 올리는 중' />
+              ) : (
+                <span className='flex size-8.5 items-center justify-center rounded-full bg-role-soft text-role-ink'>
+                  <Icon
+                    name='camera'
+                    size={18}
+                  />
+                </span>
+              )}
+              <span className='text-note font-semibold text-fg'>사진 올리기</span>
+            </label>
+          )}
+          <div className='flex min-w-0 flex-1 flex-col gap-2'>
+            <p className='text-note leading-[1.45] text-fg-muted'>{hint}</p>
+            {displaySrc ? (
+              <div className='flex flex-wrap gap-1.5'>
+                <label
+                  aria-disabled={isPending}
+                  className={cn(
+                    getButtonClassName({ variant: 'secondary', size: 'sm' }),
+                    'flex-1 cursor-pointer whitespace-nowrap',
+                    FOCUS_CLASS,
+                  )}
+                >
+                  {fileInput}
+                  사진 변경
+                </label>
+                <Button
+                  size='sm'
+                  variant='danger-secondary'
+                  disabled={isPending}
+                  onClick={handleRemoveClick}
+                  className='flex-1 whitespace-nowrap'
+                >
+                  사진 삭제
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        {errorAlert}
+      </div>
+    );
+  }
+
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       {displaySrc ? (
@@ -144,13 +226,9 @@ export function ImageUploadCard({
             <Thumbnail
               src={displaySrc}
               alt={alt}
-              className={cn('w-full border border-border', aspectClassName)}
+              className='aspect-video w-full border border-border'
             />
-            {isPending ? (
-              <div className='absolute inset-0 flex items-center justify-center rounded-control bg-surface/70'>
-                <Spinner label='사진 올리는 중' />
-              </div>
-            ) : null}
+            {pendingOverlay}
           </div>
           <div className='grid grid-cols-2 gap-2'>
             <label
@@ -173,8 +251,7 @@ export function ImageUploadCard({
         <label
           aria-disabled={isPending}
           className={cn(
-            'relative flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-[1.5px] border-dashed border-fg-disabled bg-canvas text-fg-muted transition hover:bg-surface-hover aria-disabled:pointer-events-none',
-            aspectClassName,
+            'relative flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-[1.5px] border-dashed border-fg-disabled bg-canvas text-fg-muted transition hover:bg-surface-hover aria-disabled:pointer-events-none',
             FOCUS_CLASS,
           )}
         >
@@ -194,14 +271,7 @@ export function ImageUploadCard({
         </label>
       )}
       <p className='text-note text-fg-muted'>{hint}</p>
-      {errorMessage ? (
-        <p
-          role='alert'
-          className='text-note text-warn'
-        >
-          {errorMessage}
-        </p>
-      ) : null}
+      {errorAlert}
     </div>
   );
 }

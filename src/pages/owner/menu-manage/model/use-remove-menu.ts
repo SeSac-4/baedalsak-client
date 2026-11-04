@@ -20,7 +20,7 @@ export const useRemoveMenu = (storeId: number): UseMutationResult<void, unknown,
   return useMutation({
     mutationFn: (menuId: number) => removeMenu(storeId, menuId),
     onSuccess: async (): Promise<void> => {
-      toast(REMOVED_MESSAGE);
+      toast(REMOVED_MESSAGE, 'success');
       await queryClient.invalidateQueries({ queryKey: menuKeys.list(storeId) });
     },
     onError: (error: unknown): void => {

@@ -10,6 +10,8 @@ export interface FormFieldProps {
   hint?: ReactNode;
   /** 주황 오류 문구 */
   error?: ReactNode;
+  /** 라벨 줄 오른쪽 보조 표시 (예: 글자 수) */
+  aside?: ReactNode;
   /** 라디오 묶음처럼 label로 가리킬 수 없는 입력이면 true (라벨을 span으로, id는 `${id}-label`) */
   isGroup?: boolean;
   children: ReactNode;
@@ -18,29 +20,41 @@ export interface FormFieldProps {
 
 /**
  * 입력 항목 한 칸: 라벨(굵게) · 입력 · 안내 또는 오류 문구. 입력칸에는 aria-describedby={`${id}-message`}를 붙인다.
- * @param props label, id, hint, error, isGroup, children(입력), className
+ * @param props label, id, hint, error, aside, isGroup, children(입력), className
  * @returns 입력 항목 요소
  */
-export function FormField({ label, id, hint, error, isGroup = false, children, className }: FormFieldProps): ReactNode {
+export function FormField({
+  label,
+  id,
+  hint,
+  error,
+  aside,
+  isGroup = false,
+  children,
+  className,
+}: FormFieldProps): ReactNode {
   const message = error ?? hint;
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      {isGroup ? (
-        <span
-          id={`${id}-label`}
-          className='font-semibold text-fg'
-        >
-          {label}
-        </span>
-      ) : (
-        <label
-          htmlFor={id}
-          className='font-semibold text-fg'
-        >
-          {label}
-        </label>
-      )}
+      <div className='flex items-baseline justify-between gap-2'>
+        {isGroup ? (
+          <span
+            id={`${id}-label`}
+            className='font-semibold text-fg'
+          >
+            {label}
+          </span>
+        ) : (
+          <label
+            htmlFor={id}
+            className='font-semibold text-fg'
+          >
+            {label}
+          </label>
+        )}
+        {aside ? <span className='text-note text-fg-muted'>{aside}</span> : null}
+      </div>
       {children}
       {message ? (
         <p
