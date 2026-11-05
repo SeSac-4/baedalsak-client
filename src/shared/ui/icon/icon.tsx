@@ -142,6 +142,13 @@ const ICON_PATHS = {
       <path d='M5 13v7h14v-7M10 20v-4h4v4' />
     </>
   ),
+  home: (
+    <>
+      <path d='M4 11l8-7 8 7' />
+      <path d='M6 10v10h12V10' />
+    </>
+  ),
+  phone: <path d='M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2' />,
   walk: (
     <>
       <circle

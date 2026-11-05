@@ -51,6 +51,13 @@
   --muted-soft: #f1f3f5;
 
   --overlay: rgb(0 0 0 / 0.45);
+
+  /* 지도 그림 (실제 지도 연동 전 시안 그림): 도로 · 공원 · 강 */
+  --map-road: #ffffff;
+  --map-park: #d9ead5;
+  --map-park-ink: #4f6b4a;
+  --map-water: #d3e3f3;
+  --map-water-ink: #4a6585;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -96,6 +103,12 @@
     --muted-soft: #242830;
 
     --overlay: rgb(0 0 0 / 0.6);
+
+    --map-road: #2b2f36;
+    --map-park: #1f3324;
+    --map-park-ink: #8fb592;
+    --map-water: #1b2a3a;
+    --map-water-ink: #8aa6c4;
   }
 }
 
@@ -155,6 +168,11 @@
   --color-muted: var(--muted);
   --color-muted-soft: var(--muted-soft);
   --color-overlay: var(--overlay);
+  --color-map-road: var(--map-road);
+  --color-map-park: var(--map-park);
+  --color-map-park-ink: var(--map-park-ink);
+  --color-map-water: var(--map-water);
+  --color-map-water-ink: var(--map-water-ink);
 
   --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
 

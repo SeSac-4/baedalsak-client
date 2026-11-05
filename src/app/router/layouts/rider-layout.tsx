@@ -1,0 +1,65 @@
+import type { ReactNode } from 'react';
+import { Link, Outlet } from 'react-router';
+
+import { useRiderOnlineStore } from '@/entities/delivery';
+import type { MemberMe } from '@/entities/session';
+import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
+import { StatusPill } from '@/shared/ui/status-pill';
+
+/** 라이더 메뉴 */
+const RIDER_NAV: NavPillItem[] = [
+  { to: '/rider', label: '배차 대기', end: true },
+  { to: '/rider/active', label: '진행 중 배달' },
+  { to: '/me', label: '내 정보' },
+];
+
+export interface RiderLayoutProps {
+  me: MemberMe;
+}
+
+/**
+ * 라이더 화면 레이아웃. 헤더에 로고와 라이더 이름 · 운행 상태를 두고, 그 아래 메뉴를 가로로 둔다.
+ * 본문 폭과 여백은 페이지마다 정한다.
+ * @param props me(로그인한 라이더)
+ * @returns 레이아웃 요소
+ */
+export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
+  const isOnline = useRiderOnlineStore((state) => state.isOnline);
+
+  return (
+    <div className='flex min-h-dvh flex-col'>
+      <header className='sticky top-0 z-20 border-b border-border bg-surface'>
+        <div className='mx-auto flex min-h-14 w-full items-center gap-2.5 px-4 py-1.5 tablet:max-w-[760px] tablet:px-6 desktop:max-w-none desktop:px-[max(40px,calc(50%-550px))] desktop:py-2'>
+          <Link
+            to='/rider'
+            className='flex min-h-11 shrink-0 items-center gap-1.5 rounded-control text-[18px] font-extrabold tracking-[-0.02em] text-role-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
+          >
+            <img
+              src='/logo.png'
+              alt=''
+              className='size-7 object-contain'
+            />
+            배달싹
+          </Link>
+          <span className='flex-1' />
+          <StatusPill
+            dot={isOnline ? 'ok' : 'muted'}
+            className='min-w-0'
+          >
+            <span className='truncate'>
+              {me.name} · {isOnline ? '운행 중' : '쉬는 중'}
+            </span>
+          </StatusPill>
+        </div>
+        <NavPills
+          label='주요 메뉴'
+          items={RIDER_NAV}
+          className='px-3 pb-2 tablet:mx-auto tablet:max-w-[760px] tablet:px-5 desktop:max-w-none desktop:px-[calc(max(40px,calc(50%-550px))-4px)] desktop:pb-2.5'
+        />
+      </header>
+      <div className='flex-1'>
+        <Outlet />
+      </div>
+    </div>
+  );
+}
