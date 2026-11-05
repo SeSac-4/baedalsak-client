@@ -1,5 +1,7 @@
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 
+import type { ApiErrorResponse } from './api-types';
+
 const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const AUTH_LOGIN_PATH = '/auth/login';
@@ -24,6 +26,8 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 
 const authEventHandlers: Partial<AuthEventHandlers> = {};
 const refreshState: { promise: Promise<void> | null } = { promise: null };
+/** 콘솔에 이미 남긴 에러. 재시도·갱신 요청의 에러는 인터셉터를 여러 번 지나므로 한 번만 남긴다 */
+const loggedErrors = new WeakSet<object>();
 
 /** 공용 axios 인스턴스. AT·세션 ID는 HttpOnly 쿠키라 쿠키만 함께 보낸다 */
 export const apiClient = axios.create({
@@ -116,5 +120,23 @@ const addRequestedWithHeader = (config: InternalAxiosRequestConfig): InternalAxi
   return config;
 };
 
+/**
+ * 서버 응답이 있는 API 에러의 요청 번호(traceId)를 콘솔에 한 번만 남기고 에러를 그대로 던진다.
+ * 요청 본문이 함께 찍히지 않도록 error 객체는 통째로 찍지 않는다.
+ * @param error - 응답 에러
+ */
+const logTraceId = (error: unknown): never => {
+  if (axios.isAxiosError<Partial<ApiErrorResponse>>(error) && error.response && !loggedErrors.has(error)) {
+    loggedErrors.add(error);
+    const { config, response } = error;
+    const traceId: unknown = response.data?.traceId ?? response.headers['x-trace-id'];
+    console.error(
+      `[API 오류] ${config?.method?.toUpperCase()} ${config?.url} → ${response.status} traceId=${String(traceId ?? '-')}`,
+    );
+  }
+  throw error;
+};
+
 apiClient.interceptors.request.use(addRequestedWithHeader);
 apiClient.interceptors.response.use(undefined, handleResponseError);
+apiClient.interceptors.response.use(undefined, logTraceId);
