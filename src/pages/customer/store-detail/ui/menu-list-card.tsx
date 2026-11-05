@@ -3,11 +3,13 @@ import type { ReactNode } from 'react';
 import type { Cart } from '@/entities/cart';
 import { MenuCard, useMenuList, type Menu } from '@/entities/menu';
 import type { StoreDetail } from '@/entities/store';
-import { CartReplaceModal, useAddToCart } from '@/features/cart/add-to-cart';
 import { getErrorMessage } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Spinner } from '@/shared/ui/spinner';
+
+import { useAddToCart } from '../model/use-add-to-cart';
+import { CartReplaceModal } from './cart-replace-modal';
 
 export interface MenuListCardProps {
   store: StoreDetail;
