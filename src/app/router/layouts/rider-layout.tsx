@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 
-import { MEMBER_ROLE_LABEL, type MemberMe } from '@/entities/session';
+import { useRiderOnlineStore } from '@/entities/delivery';
+import type { MemberMe } from '@/entities/session';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 import { StatusPill } from '@/shared/ui/status-pill';
 
@@ -17,12 +18,14 @@ export interface RiderLayoutProps {
 }
 
 /**
- * 라이더 화면 레이아웃. 헤더에 로고와 라이더 이름을 두고, 그 아래 메뉴를 가로로 둔다.
+ * 라이더 화면 레이아웃. 헤더에 로고와 라이더 이름 · 운행 상태를 두고, 그 아래 메뉴를 가로로 둔다.
  * 본문 폭과 여백은 페이지마다 정한다.
  * @param props me(로그인한 라이더)
  * @returns 레이아웃 요소
  */
 export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
+  const isOnline = useRiderOnlineStore((state) => state.isOnline);
+
   return (
     <div className='flex min-h-dvh flex-col'>
       <header className='sticky top-0 z-20 border-b border-border bg-surface'>
@@ -39,9 +42,12 @@ export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
             배달싹
           </Link>
           <span className='flex-1' />
-          <StatusPill className='min-w-0'>
+          <StatusPill
+            dot={isOnline ? 'ok' : 'muted'}
+            className='min-w-0'
+          >
             <span className='truncate'>
-              {me.name} · {MEMBER_ROLE_LABEL[me.role]}
+              {me.name} · {isOnline ? '운행 중' : '쉬는 중'}
             </span>
           </StatusPill>
         </div>

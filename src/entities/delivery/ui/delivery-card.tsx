@@ -20,6 +20,10 @@ export interface DeliveryCardProps {
   delivery: WaitingDelivery | RiderDelivery;
   /** 목록 순번 (1부터). 없으면 숨김 */
   order?: number;
+  /** 선택된 카드면 역할색 테두리와 순번 채움으로 강조한다 (지도 핀과 함께 고를 때) */
+  selected?: boolean;
+  /** 카드 본문을 누르면 호출된다. 있으면 본문이 선택 버튼이 된다 */
+  onSelect?: () => void;
   /** 하단 동작 영역 (수락·픽업 완료·배달 완료 버튼 1개) */
   footer?: ReactNode;
   className?: string;
@@ -72,27 +76,36 @@ const renderReadyBadge = (estimatedReadyAt: string): ReactNode => {
 
 /**
  * 배달 카드를 렌더링한다.
- * @param props delivery(배차 대기 또는 진행 중 배달), order(순번), footer(하단 동작 영역)
+ * @param props delivery(배차 대기 또는 진행 중 배달), order(순번), selected(선택 여부), onSelect(본문 선택), footer(하단 동작 영역)
  * @returns 배달 카드 요소
  */
-export function DeliveryCard({ delivery, order, footer, className }: DeliveryCardProps): ReactNode {
+export function DeliveryCard({
+  delivery,
+  order,
+  selected = false,
+  onSelect,
+  footer,
+  className,
+}: DeliveryCardProps): ReactNode {
   const steps = getRouteSteps(delivery);
 
-  return (
-    <Card
-      padding='sm'
-      className={cn('flex flex-col gap-3.5', className)}
-    >
+  const body = (
+    <>
       <div className='flex items-center gap-2.5'>
         {order ? (
           <span
             aria-hidden
-            className='flex size-6.5 flex-none items-center justify-center rounded-full bg-role-soft text-note font-bold text-role-ink'
+            className={cn(
+              'flex size-6.5 flex-none items-center justify-center rounded-full text-note font-bold',
+              selected ? 'bg-role text-role-on' : 'bg-role-soft text-role-ink',
+            )}
           >
             {order}
           </span>
         ) : null}
-        <strong className='flex-1 text-title text-fg tabular-nums'>{formatPrice(delivery.deliveryFee)}</strong>
+        <strong className='flex-1 text-title whitespace-nowrap text-fg tabular-nums'>
+          {formatPrice(delivery.deliveryFee)}
+        </strong>
         {isRiderDelivery(delivery) ? (
           <Badge tone={DELIVERY_STATUS_TONE[delivery.status]}>{DELIVERY_STATUS_LABEL[delivery.status]}</Badge>
         ) : (
@@ -130,7 +143,27 @@ export function DeliveryCard({ delivery, order, footer, className }: DeliveryCar
           );
         })}
       </ol>
+    </>
+  );
 
+  return (
+    <Card
+      padding='sm'
+      highlighted={selected}
+      className={cn('flex flex-col gap-3.5', className)}
+    >
+      {onSelect ? (
+        <button
+          type='button'
+          aria-pressed={selected}
+          onClick={onSelect}
+          className='flex w-full cursor-pointer flex-col gap-3.5 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
+        >
+          {body}
+        </button>
+      ) : (
+        body
+      )}
       {footer ? <div>{footer}</div> : null}
     </Card>
   );
