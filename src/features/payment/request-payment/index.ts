@@ -1,8 +1,9 @@
 export { usePaymentReady } from './model/use-payment-ready';
 export {
-  useTossPaymentWidget,
+  useTossPayment,
+  type TossPaymentMethod,
   type TossPaymentRequest,
-  type TossPaymentWidgetState,
-  type TossPaymentWidgetStatus,
-} from './model/use-toss-payment-widget';
-export { TossPaymentCard, type TossPaymentCardProps } from './ui/toss-payment-card';
+  type TossPaymentState,
+  type TossPaymentStatus,
+} from './model/use-toss-payment';
+export { PaymentMethodCard, type PaymentMethodCardProps } from './ui/payment-method-card';

@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { useForm, type Path } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 
 import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
-import { TossPaymentCard, useTossPaymentWidget } from '@/features/payment/request-payment';
+import { PaymentMethodCard, useTossPayment, type TossPaymentMethod } from '@/features/payment/request-payment';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
@@ -76,8 +76,8 @@ const isUserCancelError = (error: unknown): boolean =>
   typeof error === 'object' && error !== null && 'code' in error && error.code === USER_CANCEL_CODE;
 
 /**
- * U-04 주문서·결제 폼. 배달 주소·동·요청사항과 토스 결제위젯(결제 방법·약관)을 보여 준다.
- * 결제하기를 누르면 주문(POST /orders)을 한 번 만들고, 응답의 결제창 값으로 토스 결제창을 연다.
+ * U-04 주문서·결제 폼. 배달 주소·동·요청사항과 결제 수단(신용·체크카드·토스페이)을 보여 준다.
+ * 결제하기를 누르면 주문(POST /orders)을 한 번 만들고, 응답의 결제창 값으로 고른 수단의 토스 결제창을 연다.
  * 결제창을 닫으면 주문서에 그대로 머문다. 장바구니는 결제 완료 때 서버가 비운다.
  * 장바구니 문제(빈 장바구니·영업 종료·품절·최소주문 미달)면 사유를 알리고 장바구니로 돌려보낸다.
  * 진행 중인 결제(409 PAYMENT_IN_PROGRESS)·결제 요청 실패(503)는 서버 메시지로 알리고 주문서에 머문다.
@@ -90,7 +90,9 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
   const toast = useToast();
   const queryClient = useQueryClient();
   const { mutateAsync: createOrder } = useCreateOrder();
-  const { status: widgetStatus, isAgreed, requestPayment } = useTossPaymentWidget(cart.totalAmount);
+  const { status: paymentStatus, requestPayment } = useTossPayment();
+  const [paymentMethod, setPaymentMethod] = useState<TossPaymentMethod>('CARD');
+  const [isAgreed, setIsAgreed] = useState<boolean>(false);
   const {
     register,
     handleSubmit,
@@ -101,7 +103,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
     defaultValues: { address: '', addressDetail: '', deliveryDong: '', storeRequest: '', riderRequest: '' },
   });
 
-  const isPayable = widgetStatus === 'ready' && isAgreed;
+  const isPayable = paymentStatus === 'ready' && isAgreed;
 
   /**
    * 만든 주문의 결제창 값으로 토스 결제창을 연다. 결제 결과는 토스가 successUrl·failUrl로 이동시켜 전달한다.
@@ -111,6 +113,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
   const openPaymentWindow = async ({ id: orderId, payment }: CreatedOrder): Promise<void> => {
     try {
       await requestPayment({
+        method: paymentMethod,
         amount: payment.amount,
         orderId: payment.tossOrderId,
         orderName: payment.orderName,
@@ -254,11 +257,16 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
             </Card>
 
             <section aria-label='결제 방법'>
-              <TossPaymentCard status={widgetStatus}>
-                <p className='mx-5 border-t border-border py-3 text-note text-fg-muted'>
-                  결제 방법과 약관 동의는 토스가 그리는 영역이에요. 테스트 환경이라 실제 출금은 없어요.
+              <PaymentMethodCard
+                status={paymentStatus}
+                method={paymentMethod}
+                onMethodChange={setPaymentMethod}
+                onAgreedChange={setIsAgreed}
+              >
+                <p className='border-t border-border pt-3 text-note text-fg-muted'>
+                  테스트 환경이라 실제 출금은 없어요.
                 </p>
-              </TossPaymentCard>
+              </PaymentMethodCard>
             </section>
 
             {errors.root ? (

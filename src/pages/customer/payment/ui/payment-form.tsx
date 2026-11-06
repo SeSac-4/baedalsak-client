@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 import type { PaymentReady } from '@/entities/payment';
-import { TossPaymentCard, useTossPaymentWidget } from '@/features/payment/request-payment';
+import { PaymentMethodCard, useTossPayment, type TossPaymentMethod } from '@/features/payment/request-payment';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
@@ -31,7 +31,7 @@ export interface PaymentFormProps {
 }
 
 /**
- * U-05 결제 폼. 토스 결제위젯과 주문명·결제 금액을 보여 주고, 결제하기를 누르면 토스 결제창을 띄운다.
+ * U-05 결제 폼. 결제 수단(신용·체크카드·토스페이)과 주문명·결제 금액을 보여 주고, 결제하기를 누르면 고른 수단의 토스 결제창을 띄운다.
  * 결제 결과는 토스가 successUrl(/payment/success)·failUrl(/payment/fail)로 이동시켜 전달한다.
  * @param props orderId(주문 ID), paymentReady(결제 요청 정보)
  * @returns 결제 폼 요소
@@ -39,7 +39,9 @@ export interface PaymentFormProps {
 export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactNode {
   const navigate = useNavigate();
   const toast = useToast();
-  const { status, isAgreed, requestPayment } = useTossPaymentWidget(paymentReady.amount);
+  const { status, requestPayment } = useTossPayment();
+  const [method, setMethod] = useState<TossPaymentMethod>('CARD');
+  const [isAgreed, setIsAgreed] = useState<boolean>(false);
   const isPayable = status === 'ready' && isAgreed;
 
   /**
@@ -49,6 +51,7 @@ export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactN
   const handlePayClick = async (): Promise<void> => {
     try {
       await requestPayment({
+        method,
         amount: paymentReady.amount,
         orderId: paymentReady.tossOrderId,
         orderName: paymentReady.orderName,
@@ -66,9 +69,11 @@ export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactN
 
   return (
     <div className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'>
-      <TossPaymentCard
+      <PaymentMethodCard
         status={status}
-        className='gap-2 p-5'
+        method={method}
+        onMethodChange={setMethod}
+        onAgreedChange={setIsAgreed}
       />
 
       <aside className='tablet:sticky tablet:top-4'>
