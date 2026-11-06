@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router';
 
 import { useCart } from '@/entities/cart';
 import { useCategoryList } from '@/entities/category';
-import { useStore } from '@/entities/store';
+import { getStoreDefaultImage, useStore } from '@/entities/store';
 import { getErrorMessage } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
@@ -78,6 +78,7 @@ export function StoreDetailPage(): ReactNode {
             <Card padding='none'>
               <Thumbnail
                 src={store.imageUrl}
+                fallbackSrc={getStoreDefaultImage(store.category)}
                 alt={`${store.name} 가게 대표 사진`}
                 placeholderLabel='가게 대표 사진'
                 className='h-45 w-full rounded-none border-b border-border'

@@ -8,6 +8,7 @@ import { Icon } from '@/shared/ui/icon';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
 import { formatBusinessHour } from '../lib/format-business-hour';
+import { getStoreDefaultImage } from '../lib/get-store-default-image';
 import type { StoreSummary } from '../model/store-types';
 
 /** CMP-10 StoreCard — 위쪽 가게 사진 + 이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
@@ -31,6 +32,7 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
     >
       <Thumbnail
         src={store.imageUrl}
+        fallbackSrc={getStoreDefaultImage(store.category)}
         alt={`${store.name} 가게 사진`}
         placeholderLabel='가게 사진'
         className='aspect-video w-full flex-none rounded-none border-b border-border'
