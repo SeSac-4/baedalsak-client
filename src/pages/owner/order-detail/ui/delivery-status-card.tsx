@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, type Delivery } from '@/entities/delivery';
+import {
+  DELIVERY_STATUS_LABEL,
+  DELIVERY_STATUS_TONE,
+  formatRemaining,
+  useDeliveryLocation,
+  type Delivery,
+  type RiderLocation,
+} from '@/entities/delivery';
 import type { OrderDetail } from '@/entities/order';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
@@ -22,12 +29,17 @@ interface DeliveryCopy {
 }
 
 /**
- * 배달 상태별 안내 문구를 고른다. 거리·남은 시간은 API가 없어 보여 주지 않는다.
+ * 배달 상태별 안내 문구를 고른다. 픽업 중에는 라이더 위치로 남은 거리·시간을 보여 준다.
  * @param delivery 배달 정보 (생성 전이면 null)
  * @param order 주문 상세
+ * @param location 라이더 위치 (픽업 중이 아니거나 아직 없으면 null)
  * @returns 큰 문구와 보조 문구
  */
-const getDeliveryCopy = (delivery: Delivery | null, order: OrderDetail): DeliveryCopy => {
+const getDeliveryCopy = (
+  delivery: Delivery | null,
+  order: OrderDetail,
+  location: RiderLocation | null,
+): DeliveryCopy => {
   if (!delivery) return { headline: '배차 준비 중이에요', description: '조리를 계속 진행해 주세요.' };
 
   switch (delivery.status) {
@@ -43,7 +55,9 @@ const getDeliveryCopy = (delivery: Delivery | null, order: OrderDetail): Deliver
     case 'PICKED_UP':
       return {
         headline: '음식이 고객에게 가고 있어요',
-        description: delivery.pickedUpAt ? `${formatTime(delivery.pickedUpAt)}에 픽업했어요.` : undefined,
+        description:
+          (location ? formatRemaining(location) : null) ??
+          (delivery.pickedUpAt ? `${formatTime(delivery.pickedUpAt)}에 픽업했어요.` : undefined),
       };
     case 'DELIVERED':
       return {
@@ -54,11 +68,15 @@ const getDeliveryCopy = (delivery: Delivery | null, order: OrderDetail): Deliver
 };
 
 /**
- * 배달 현황 카드 (O-03): 상태 안내, 배정 라이더, 배차·픽업·도착 시각. 지도는 픽업 후 OrderDeliveryMap 이 따로 보여 준다.
+ * 배달 현황 카드 (O-03): 상태 안내(픽업 중이면 남은 거리·시간), 배정 라이더, 배차·픽업·도착 시각.
+ * 지도는 픽업 후 OrderDeliveryMap 이 따로 보여 준다.
  * @param props order(주문 상세), delivery(배달 정보), deliveryError(배달 조회 에러)
  * @returns 배달 현황 카드 요소
  */
 export function DeliveryStatusCard({ order, delivery, deliveryError }: DeliveryStatusCardProps): ReactNode {
+  // 배달이 진행 중이면 상태·위치를 폴링한다 (픽업되면 지도가 뜨고, 완료되면 화면이 바뀐다). 지도와 같은 캐시
+  const { data: tracking } = useDeliveryLocation(order.id, Boolean(delivery) && delivery?.status !== 'DELIVERED');
+
   if (deliveryError || delivery === undefined) {
     return (
       <Card className='flex flex-col gap-1.5'>
@@ -70,7 +88,7 @@ export function DeliveryStatusCard({ order, delivery, deliveryError }: DeliveryS
     );
   }
 
-  const { headline, description } = getDeliveryCopy(delivery, order);
+  const { headline, description } = getDeliveryCopy(delivery, order, tracking?.location ?? null);
   const timeline: { label: string; time: string | null }[] = [
     { label: '배차', time: delivery?.assignedAt ?? null },
     { label: '픽업', time: delivery?.pickedUpAt ?? null },

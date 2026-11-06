@@ -17,4 +17,16 @@ export const deliveryKeys = {
    * @returns 쿼리 키
    */
   byOrder: (orderId: number) => [...deliveryKeys.all, 'by-order', orderId] as const,
+  /**
+   * 주문의 배달 경로 키를 만든다.
+   * @param orderId - 주문 ID
+   * @returns 쿼리 키
+   */
+  route: (orderId: number) => [...deliveryKeys.all, 'route', orderId] as const,
+  /**
+   * 주문의 라이더 위치 키를 만든다.
+   * @param orderId - 주문 ID
+   * @returns 쿼리 키
+   */
+  location: (orderId: number) => [...deliveryKeys.all, 'location', orderId] as const,
 };

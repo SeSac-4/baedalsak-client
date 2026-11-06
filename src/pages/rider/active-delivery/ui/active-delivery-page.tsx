@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
-import { DELIVERY_STATUS_LABEL, getReadyMinutesLeft, useActiveDelivery, type RiderDelivery } from '@/entities/delivery';
+import {
+  DELIVERY_STATUS_LABEL,
+  formatRemaining,
+  getReadyMinutesLeft,
+  useActiveDelivery,
+  useDeliveryLocation,
+  type RiderDelivery,
+  type RiderLocation,
+} from '@/entities/delivery';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatTime } from '@/shared/lib/format';
@@ -51,14 +59,16 @@ const getReadyDescription = (estimatedReadyAt: string): string => {
 
 /**
  * 상태별 안내 문구와 버튼 이름을 구한다. 배차 완료면 가게로, 픽업 완료면 배달지로 안내한다.
+ * 픽업 중이고 위치가 있으면 남은 거리·시간을 보여 준다 (도착해도 완료는 버튼을 눌러야 된다).
  * @param delivery 진행 중 배달
+ * @param location 라이더 위치 (픽업 중이 아니거나 아직 없으면 null)
  * @returns 제목·설명·버튼·버튼 안내 문구
  */
-const getActiveDeliveryCopy = (delivery: RiderDelivery): ActiveDeliveryCopy =>
+const getActiveDeliveryCopy = (delivery: RiderDelivery, location: RiderLocation | null): ActiveDeliveryCopy =>
   delivery.status === 'PICKED_UP'
     ? {
         headline: '배달지로 이동하세요',
-        description: '배달 주소와 요청사항을 확인해 주세요',
+        description: (location ? formatRemaining(location) : null) ?? '배달 주소와 요청사항을 확인해 주세요',
         cta: '배달 완료',
         hint: '배달지에 도착하면 눌러 주세요',
       }
@@ -102,6 +112,8 @@ export function ActiveDeliveryPage(): ReactNode {
   const { mutate: pickup, isPending: isPickingUp } = usePickupDelivery();
   const { mutate: complete, isPending: isCompleting } = useCompleteDelivery();
   const isSubmitting = isPickingUp || isCompleting;
+  // 픽업 중 남은 거리·시간 (지도와 같은 캐시라 요청은 한 번)
+  const { data: tracking } = useDeliveryLocation(delivery?.orderId ?? 0, delivery?.status === 'PICKED_UP');
 
   /**
    * 배달 주소를 클립보드에 복사한다.
@@ -125,7 +137,7 @@ export function ActiveDeliveryPage(): ReactNode {
     if (target.status === 'PICKED_UP') complete(target.deliveryId);
   };
 
-  const copy = delivery ? getActiveDeliveryCopy(delivery) : null;
+  const copy = delivery ? getActiveDeliveryCopy(delivery, tracking?.location ?? null) : null;
   const isPickedUp = delivery?.status === 'PICKED_UP';
 
   return (
@@ -173,6 +185,9 @@ export function ActiveDeliveryPage(): ReactNode {
               storeAddress={delivery.pickupAddress}
               deliveryAddress={delivery.deliveryAddress}
               status={delivery.status}
+              orderId={delivery.orderId}
+              pickupPoint={delivery.pickupPoint}
+              deliveryPoint={delivery.deliveryPoint}
             />
             <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:sticky desktop:top-30 desktop:gap-4'>
               <Card className='flex flex-col gap-4'>

@@ -1,1 +1,7 @@
-export { KakaoMap, type KakaoMapMarker, type KakaoMapMarkerTone, type KakaoMapProps } from './kakao-map';
+export {
+  KakaoMap,
+  type KakaoMapMarker,
+  type KakaoMapMarkerTone,
+  type KakaoMapPathStyle,
+  type KakaoMapProps,
+} from './kakao-map';

@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, type Delivery } from '@/entities/delivery';
+import {
+  DELIVERY_STATUS_LABEL,
+  DELIVERY_STATUS_TONE,
+  formatEta,
+  useDeliveryLocation,
+  type Delivery,
+  type RiderLocation,
+} from '@/entities/delivery';
 import {
   ORDER_STATUS_FLOW,
   ORDER_STATUS_LABEL,
@@ -89,20 +96,25 @@ const getOrderInfoItems = (order: OrderDetail): KeyValueItem[] => [
 ];
 
 /**
- * 배달 정보 목록을 만든다.
+ * 배달 정보 목록을 만든다. 픽업 중이고 라이더 위치가 있으면 도착 예상을 함께 보여 준다.
  * @param delivery 배달
+ * @param location 라이더 위치 (픽업 중이 아니거나 아직 없으면 null)
  * @returns 라벨·값 목록
  */
-const getDeliveryInfoItems = (delivery: Delivery): KeyValueItem[] => [
-  {
-    label: '배달 상태',
-    value: <Badge tone={DELIVERY_STATUS_TONE[delivery.status]}>{DELIVERY_STATUS_LABEL[delivery.status]}</Badge>,
-  },
-  { label: '배정 라이더', value: delivery.riderName ?? '배차 대기 중' },
-  { label: '배정', value: formatOptionalTime(delivery.assignedAt) },
-  { label: '픽업', value: formatOptionalTime(delivery.pickedUpAt) },
-  { label: '완료', value: formatOptionalTime(delivery.completedAt) },
-];
+const getDeliveryInfoItems = (delivery: Delivery, location: RiderLocation | null): KeyValueItem[] => {
+  const eta = delivery.status === 'PICKED_UP' && location ? formatEta(location) : null;
+  return [
+    {
+      label: '배달 상태',
+      value: <Badge tone={DELIVERY_STATUS_TONE[delivery.status]}>{DELIVERY_STATUS_LABEL[delivery.status]}</Badge>,
+    },
+    ...(eta ? [{ label: '도착 예상', value: <span className='font-bold text-fg tabular-nums'>{eta}</span> }] : []),
+    { label: '배정 라이더', value: delivery.riderName ?? '배차 대기 중' },
+    { label: '배정', value: formatOptionalTime(delivery.assignedAt) },
+    { label: '픽업', value: formatOptionalTime(delivery.pickedUpAt) },
+    { label: '완료', value: formatOptionalTime(delivery.completedAt) },
+  ];
+};
 
 /**
  * 배달 정보가 없을 때의 안내 문구를 고른다.
@@ -184,6 +196,9 @@ export function OrderTrackingCard({
   payment,
   paymentError,
 }: OrderTrackingCardProps): ReactNode {
+  // 배달이 진행 중이면 상태·위치를 폴링한다 (픽업되면 지도가 뜨고, 완료되면 화면이 바뀐다). 지도와 같은 캐시
+  const { data: tracking } = useDeliveryLocation(order.id, Boolean(delivery) && delivery?.status !== 'DELIVERED');
+
   if (!isOrderInFlow(order.status)) {
     return (
       <div className='grid gap-4 tablet:grid-cols-2 tablet:items-start'>
@@ -222,7 +237,7 @@ export function OrderTrackingCard({
         <Card className='flex flex-col gap-3'>
           <strong className='text-body text-fg'>배달 정보</strong>
           {delivery ? (
-            <KeyValueList items={getDeliveryInfoItems(delivery)} />
+            <KeyValueList items={getDeliveryInfoItems(delivery, tracking?.location ?? null)} />
           ) : (
             <p className='text-body text-fg-muted'>{getDeliveryPlaceholder(order, delivery, deliveryError)}</p>
           )}
