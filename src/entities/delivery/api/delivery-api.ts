@@ -1,6 +1,12 @@
 import { apiClient } from '@/shared/api';
 
-import type { Delivery, RiderDelivery, WaitingDeliveryPage } from '../model/delivery-types';
+import type {
+  Delivery,
+  DeliveryLocation,
+  DeliveryRoute,
+  RiderDelivery,
+  WaitingDeliveryPage,
+} from '../model/delivery-types';
 
 const HTTP_NO_CONTENT = 204;
 
@@ -31,5 +37,25 @@ export const getActiveDelivery = async (): Promise<RiderDelivery | null> => {
  */
 export const getDeliveryByOrder = async (orderId: number): Promise<Delivery | null> => {
   const { data, status } = await apiClient.get<Delivery>(`/deliveries/by-order/${orderId}`);
+  return status === HTTP_NO_CONTENT ? null : data;
+};
+
+/**
+ * 주문의 배달 경로(가게 → 배달지)를 조회한다. (고객·사장님·배정된 라이더)
+ * @param orderId - 주문 ID
+ * @returns 경로 (픽업 전이라 경로가 없으면 204 → null)
+ */
+export const getDeliveryRoute = async (orderId: number): Promise<DeliveryRoute | null> => {
+  const { data, status } = await apiClient.get<DeliveryRoute>(`/deliveries/by-order/${orderId}/route`);
+  return status === HTTP_NO_CONTENT ? null : data;
+};
+
+/**
+ * 주문의 배달 상태와 라이더 현재 위치를 조회한다. (고객·사장님·배정된 라이더)
+ * @param orderId - 주문 ID
+ * @returns 상태 + 위치 (배달 생성 전이면 204 → null)
+ */
+export const getDeliveryLocation = async (orderId: number): Promise<DeliveryLocation | null> => {
+  const { data, status } = await apiClient.get<DeliveryLocation>(`/deliveries/by-order/${orderId}/location`);
   return status === HTTP_NO_CONTENT ? null : data;
 };

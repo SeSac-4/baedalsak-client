@@ -52,6 +52,23 @@ declare namespace kakao.maps {
     setMap(map: Map | null): void;
   }
 
+  interface PolylineOptions {
+    path: LatLng[];
+    map?: Map;
+    strokeWeight?: number;
+    /** CSS 색 문자열 (#rrggbb 등) */
+    strokeColor?: string;
+    /** 0~1 */
+    strokeOpacity?: number;
+    strokeStyle?: 'solid' | 'shortdash' | 'dash' | 'longdash' | 'dot';
+    zIndex?: number;
+  }
+
+  class Polyline {
+    constructor(options: PolylineOptions);
+    setMap(map: Map | null): void;
+  }
+
   namespace services {
     enum Status {
       OK = 'OK',
