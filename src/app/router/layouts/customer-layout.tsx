@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 
-import { useCart } from '@/entities/cart';
+import { getCartItemCount, useCart } from '@/entities/cart';
 import { Icon } from '@/shared/ui/icon';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 
@@ -20,7 +20,7 @@ const CUSTOMER_NAV: NavPillItem[] = [
  */
 export function CustomerLayout(): ReactNode {
   const { data: cart } = useCart();
-  const cartCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  const cartCount = cart ? getCartItemCount(cart) : 0;
 
   return (
     <div className='flex min-h-dvh flex-col'>

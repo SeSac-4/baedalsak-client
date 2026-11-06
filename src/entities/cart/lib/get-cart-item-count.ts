@@ -1,4 +1,4 @@
-import type { Cart } from '@/entities/cart';
+import type { Cart } from '../model/cart-types';
 
 /**
  * 담긴 메뉴 개수를 구한다.
