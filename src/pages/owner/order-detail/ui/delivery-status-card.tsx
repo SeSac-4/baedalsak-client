@@ -54,7 +54,7 @@ const getDeliveryCopy = (delivery: Delivery | null, order: OrderDetail): Deliver
 };
 
 /**
- * 배달 현황 카드 (O-03): 상태 안내, 배정 라이더, 배차·픽업·도착 시각. 라이더 위치 API가 없어 지도는 두지 않는다.
+ * 배달 현황 카드 (O-03): 상태 안내, 배정 라이더, 배차·픽업·도착 시각. 지도는 픽업 후 OrderDeliveryMap 이 따로 보여 준다.
  * @param props order(주문 상세), delivery(배달 정보), deliveryError(배달 조회 에러)
  * @returns 배달 현황 카드 요소
  */

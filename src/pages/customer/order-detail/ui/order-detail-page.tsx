@@ -11,6 +11,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
+import { OrderDeliveryMap } from './order-delivery-map';
 import { OrderTrackingCard } from './order-tracking-card';
 
 const ORDER_LIST_PATH = '/orders';
@@ -98,6 +99,11 @@ export function OrderDetailPage(): ReactNode {
         order={order}
         delivery={delivery}
         deliveryError={deliveryError}
+      />
+
+      <OrderDeliveryMap
+        order={order}
+        delivery={delivery}
       />
 
       <div className='mt-2 flex flex-wrap gap-2'>

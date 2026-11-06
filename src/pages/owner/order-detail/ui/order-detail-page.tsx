@@ -21,6 +21,7 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Stepper, type Step } from '@/shared/ui/stepper';
 
 import { DeliveryStatusCard } from './delivery-status-card';
+import { OrderDeliveryMap } from './order-delivery-map';
 import { OrderInfoCard } from './order-info-card';
 
 /**
@@ -133,6 +134,10 @@ export function OrderDetailPage(): ReactNode {
               deliveryError={deliveryError}
             />
           )}
+          <OrderDeliveryMap
+            order={order}
+            delivery={delivery}
+          />
         </div>
         <OrderInfoCard order={order} />
       </div>
