@@ -572,7 +572,7 @@ export function GalleryPage(): ReactNode {
             name='CartSummaryCard · DeliveryCard'
             title='공용 컴포넌트를 쓰는 기존 위젯·엔티티 (화면 개편 전)'
           >
-            <div className='grid w-full grid-cols-[repeat(auto-fill,minmax(280px,1fr))] items-start gap-3'>
+            <div className='flex w-full flex-col gap-3'>
               <CartSummaryCard cart={SAMPLE_CART} />
               <CartSummaryCard cart={SAMPLE_CART_MIN_NOT_MET} />
               <CartSummaryCard cart={SAMPLE_CART_EMPTY} />
