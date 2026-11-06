@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 import { useDeliveryByOrder } from '@/entities/delivery';
-import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, useOrder } from '@/entities/order';
-import { usePaymentByOrder } from '@/entities/payment';
+import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, isOrderInFlow, useOrder } from '@/entities/order';
+import { usePaymentByOrder, type PaymentStatus } from '@/entities/payment';
 import { getErrorMessage } from '@/shared/api';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -17,16 +17,17 @@ import { OrderTrackingCard } from './order-tracking-card';
 const ORDER_LIST_PATH = '/orders';
 const SECONDARY_LINK_CLASS =
   'inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-body font-medium text-fg transition hover:bg-surface-hover';
+const PAID_PAYMENT_STATUSES: PaymentStatus[] = ['APPROVED', 'CANCEL_REQUESTED', 'CANCELED'];
 
 /**
  * U-09 주문 상세 화면. 주문(GET /orders/{id})·배달(GET /deliveries/by-order/{id})·결제(GET /payments/by-order/{id})를 합쳐 보여 준다.
- * 새로고침은 셋을 다시 받는다. 결제대기면 결제하기, 결제가 승인 완료면 결제 상세 링크를 보여 준다.
+ * 새로고침은 셋을 다시 받는다. 돈이 나간 결제면 결제 상세 링크를, 거절·취소 주문이면 환불 상태를 보여 준다.
+ * 결제대기·결제만료 주문은 서버가 404 로 응답해 주문을 찾을 수 없다고 안내한다.
  * @returns 주문 상세 페이지
  */
 export function OrderDetailPage(): ReactNode {
   const { orderId } = useParams<{ orderId: string }>();
   const orderIdNumber = Number(orderId);
-  const navigate = useNavigate();
   const { data: order, error, isPending, isFetching: isOrderFetching, refetch: refetchOrder } = useOrder(orderIdNumber);
   const {
     data: delivery,
@@ -34,7 +35,12 @@ export function OrderDetailPage(): ReactNode {
     isFetching: isDeliveryFetching,
     refetch: refetchDelivery,
   } = useDeliveryByOrder(orderIdNumber);
-  const { data: payment, isFetching: isPaymentFetching, refetch: refetchPayment } = usePaymentByOrder(orderIdNumber);
+  const {
+    data: payment,
+    error: paymentError,
+    isFetching: isPaymentFetching,
+    refetch: refetchPayment,
+  } = usePaymentByOrder(orderIdNumber);
   const isRefreshing = isOrderFetching || isDeliveryFetching || isPaymentFetching;
 
   /** 주문·배달·결제를 다시 받는다. */
@@ -99,18 +105,19 @@ export function OrderDetailPage(): ReactNode {
         order={order}
         delivery={delivery}
         deliveryError={deliveryError}
+        payment={payment}
+        paymentError={paymentError}
       />
 
-      <OrderDeliveryMap
-        order={order}
-        delivery={delivery}
-      />
+      {isOrderInFlow(order.status) ? (
+        <OrderDeliveryMap
+          order={order}
+          delivery={delivery}
+        />
+      ) : null}
 
       <div className='mt-2 flex flex-wrap gap-2'>
-        {order.status === 'PENDING_PAYMENT' ? (
-          <Button onClick={() => navigate(`/payment/${order.id}`)}>결제하기</Button>
-        ) : null}
-        {payment?.status === 'APPROVED' ? (
+        {payment && PAID_PAYMENT_STATUSES.includes(payment.status) ? (
           <Link
             to={`/payments/${payment.paymentId}`}
             className={SECONDARY_LINK_CLASS}

@@ -6,8 +6,8 @@ import {
   ORDER_STATUS_FLOW,
   ORDER_STATUS_LABEL,
   ORDER_STATUS_TONE,
+  isOrderInFlow,
   useOrder,
-  type OrderDetail,
   type OrderStatus,
 } from '@/entities/order';
 import { getErrorMessage } from '@/shared/api';
@@ -27,12 +27,10 @@ import { OrderInfoCard } from './order-info-card';
 /**
  * 단계에 보여 줄 시각을 고른다. 서버에 단계별 이력이 없어 아는 시각만 쓴다.
  * @param status 단계
- * @param order 주문 상세
  * @param delivery 배달 정보
  * @returns ISO 시각 (모르면 null)
  */
-const getStepTime = (status: OrderStatus, order: OrderDetail, delivery: Delivery | null | undefined): string | null => {
-  if (status === 'PENDING_PAYMENT') return order.createdAt;
+const getStepTime = (status: OrderStatus, delivery: Delivery | null | undefined): string | null => {
   if (status === 'DELIVERING') return delivery?.pickedUpAt ?? null;
   if (status === 'DELIVERED') return delivery?.completedAt ?? null;
   return null;
@@ -40,13 +38,12 @@ const getStepTime = (status: OrderStatus, order: OrderDetail, delivery: Delivery
 
 /**
  * 진행 단계(이름·시각)를 만든다.
- * @param order 주문 상세
  * @param delivery 배달 정보
  * @returns 단계 목록
  */
-const getOrderSteps = (order: OrderDetail, delivery: Delivery | null | undefined): Step[] =>
+const getOrderSteps = (delivery: Delivery | null | undefined): Step[] =>
   ORDER_STATUS_FLOW.map((status) => {
-    const time = getStepTime(status, order, delivery);
+    const time = getStepTime(status, delivery);
     return { label: ORDER_STATUS_LABEL[status], time: time ? formatTime(time) : undefined };
   });
 
@@ -121,23 +118,27 @@ export function OrderDetailPage(): ReactNode {
       </div>
       <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:grid desktop:grid-cols-[minmax(0,1fr)_340px] desktop:items-start desktop:gap-6'>
         <div className='flex min-w-0 flex-col gap-3 tablet:gap-3.5 desktop:gap-4'>
-          <Card className='px-2.5 py-4'>
-            <Stepper
-              steps={getOrderSteps(order, delivery)}
-              current={ORDER_STATUS_FLOW.indexOf(order.status)}
-            />
-          </Card>
-          {order.status === 'PAID' ? null : (
-            <DeliveryStatusCard
-              order={order}
-              delivery={delivery}
-              deliveryError={deliveryError}
-            />
-          )}
-          <OrderDeliveryMap
-            order={order}
-            delivery={delivery}
-          />
+          {isOrderInFlow(order.status) ? (
+            <>
+              <Card className='px-2.5 py-4'>
+                <Stepper
+                  steps={getOrderSteps(delivery)}
+                  current={ORDER_STATUS_FLOW.indexOf(order.status)}
+                />
+              </Card>
+              {order.status === 'PAID' ? null : (
+                <DeliveryStatusCard
+                  order={order}
+                  delivery={delivery}
+                  deliveryError={deliveryError}
+                />
+              )}
+              <OrderDeliveryMap
+                order={order}
+                delivery={delivery}
+              />
+            </>
+          ) : null}
         </div>
         <OrderInfoCard order={order} />
       </div>

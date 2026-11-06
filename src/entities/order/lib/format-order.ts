@@ -2,8 +2,8 @@ import type { BadgeTone } from '@/shared/ui/badge';
 
 import type { OrderItem, OrderStatus } from '../model/order-types';
 
-/** 주문 진행 순서 (스텝퍼 단계) */
-export const ORDER_STATUS_FLOW: OrderStatus[] = ['PENDING_PAYMENT', 'PAID', 'COOKING', 'DELIVERING', 'DELIVERED'];
+/** 주문 진행 순서 (스텝퍼 4단계) */
+export const ORDER_STATUS_FLOW: OrderStatus[] = ['PAID', 'COOKING', 'DELIVERING', 'DELIVERED'];
 
 /** 주문 상태 표시명 */
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
@@ -12,6 +12,9 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   COOKING: '조리중',
   DELIVERING: '배달중',
   DELIVERED: '배달완료',
+  PAYMENT_EXPIRED: '결제만료',
+  REJECTED: '주문거절',
+  CANCELED: '주문취소',
 };
 
 /** 주문 상태 배지 톤 (CMP-05) */
@@ -21,7 +24,17 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
   COOKING: 'ok',
   DELIVERING: 'info',
   DELIVERED: 'muted',
+  PAYMENT_EXPIRED: 'muted',
+  REJECTED: 'warn',
+  CANCELED: 'muted',
 };
+
+/**
+ * 진행 단계로 나타낼 수 있는 주문인지 확인한다. 거절·취소·결제 전 주문은 진행 단계가 없다.
+ * @param status 주문 상태
+ * @returns 진행 단계에 있으면 true
+ */
+export const isOrderInFlow = (status: OrderStatus): boolean => ORDER_STATUS_FLOW.includes(status);
 
 /**
  * 주문 항목을 '메뉴 수량' 요약 문자열로 바꾼다.

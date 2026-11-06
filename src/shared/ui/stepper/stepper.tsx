@@ -28,7 +28,7 @@ const getStepState = (index: number, current: number): StepState => {
 };
 
 /**
- * 진행 단계 표시 (주문 결제대기 → 배달완료 등). 번호 동그라미 · 이름 · 시각을 한 칸씩 같은 너비로 놓는다.
+ * 진행 단계 표시 (주문 결제완료 → 배달완료 등). 번호 동그라미 · 이름 · 시각을 한 칸씩 같은 너비로 놓는다.
  * @param props steps(단계 목록), current(현재 단계), className
  * @returns 단계 목록 요소
  */
