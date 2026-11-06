@@ -12,6 +12,7 @@ import { KeyValueList, type KeyValueItem } from '@/shared/ui/key-value-list';
 export interface OrderBoardCardProps {
   order: OrderDetail;
   onAcceptClick: (order: OrderDetail) => void;
+  onRejectClick: (order: OrderDetail) => void;
 }
 
 /**
@@ -34,11 +35,11 @@ const getInfoItems = (order: OrderDetail): KeyValueItem[] => {
 };
 
 /**
- * 주문 관리 카드: 주문 번호·상태·시각, 메뉴, 배달 주소·요청, 금액과 상세·수락. 수락은 신규(결제완료) 주문에만 보여 준다.
- * @param props order(주문), onAcceptClick(수락)
+ * 주문 관리 카드: 주문 번호·상태·시각, 메뉴, 배달 주소·요청, 금액과 상세·거절·수락. 거절·수락은 신규(결제완료) 주문에만 보여 준다.
+ * @param props order(주문), onAcceptClick(수락), onRejectClick(거절)
  * @returns 주문 카드 요소
  */
-export function OrderBoardCard({ order, onAcceptClick }: OrderBoardCardProps): ReactNode {
+export function OrderBoardCard({ order, onAcceptClick, onRejectClick }: OrderBoardCardProps): ReactNode {
   return (
     <Card
       padding='sm'
@@ -68,23 +69,37 @@ export function OrderBoardCard({ order, onAcceptClick }: OrderBoardCardProps): R
         items={getInfoItems(order)}
         className='border-t border-border pt-2.5'
       />
-      <div className='flex items-center gap-2'>
-        <span className='flex-1 text-title font-bold text-fg tabular-nums'>{formatPrice(order.totalAmount)}</span>
-        <Link
-          to={`/owner/orders/${order.id}`}
-          aria-label={`주문 ${order.id} 상세`}
-          className={cn(getButtonClassName({ variant: 'secondary' }), 'px-3.5')}
-        >
-          상세
-        </Link>
-        {order.status === 'PAID' ? (
-          <Button
-            aria-label={`주문 ${order.id} 수락`}
-            onClick={() => onAcceptClick(order)}
+      <div className='flex flex-wrap items-center justify-end gap-2'>
+        <span className='flex-1 text-title font-bold whitespace-nowrap text-fg tabular-nums'>
+          {formatPrice(order.totalAmount)}
+        </span>
+        <div className='flex items-center gap-2'>
+          <Link
+            to={`/owner/orders/${order.id}`}
+            aria-label={`주문 ${order.id} 상세`}
+            className={cn(getButtonClassName({ variant: 'secondary' }), 'px-3.5')}
           >
-            수락
-          </Button>
-        ) : null}
+            상세
+          </Link>
+          {order.status === 'PAID' ? (
+            <>
+              <Button
+                variant='danger-secondary'
+                aria-label={`주문 ${order.id} 거절`}
+                className='px-3.5'
+                onClick={() => onRejectClick(order)}
+              >
+                거절
+              </Button>
+              <Button
+                aria-label={`주문 ${order.id} 수락`}
+                onClick={() => onAcceptClick(order)}
+              >
+                수락
+              </Button>
+            </>
+          ) : null}
+        </div>
       </div>
     </Card>
   );

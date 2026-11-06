@@ -13,6 +13,7 @@ import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
 import { AcceptOrderModal } from './accept-order-modal';
 import { OrderBoardCard } from './order-board-card';
+import { RejectOrderModal } from './reject-order-modal';
 
 type BoardTab = 'new' | 'progress' | 'done';
 
@@ -47,6 +48,7 @@ export function OrderBoardPage(): ReactNode {
   const storeId = store?.id ?? 0;
   const [tab, setTab] = useState<BoardTab>('new');
   const [acceptTarget, setAcceptTarget] = useState<OrderDetail | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<OrderDetail | null>(null);
   const newOrders = useStoreOrderList(storeId, TAB_STATUSES.new);
   const progressOrders = useStoreOrderList(storeId, TAB_STATUSES.progress);
   const doneOrders = useStoreOrderList(storeId, TAB_STATUSES.done);
@@ -115,6 +117,7 @@ export function OrderBoardPage(): ReactNode {
               <OrderBoardCard
                 order={order}
                 onAcceptClick={setAcceptTarget}
+                onRejectClick={setRejectTarget}
               />
             </li>
           ))}
@@ -147,6 +150,13 @@ export function OrderBoardPage(): ReactNode {
             setAcceptTarget(null);
             setTab('progress');
           }}
+        />
+      ) : null}
+
+      {rejectTarget ? (
+        <RejectOrderModal
+          order={rejectTarget}
+          onClose={() => setRejectTarget(null)}
         />
       ) : null}
     </div>
