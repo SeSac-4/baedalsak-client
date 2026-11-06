@@ -2,16 +2,14 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/format';
-import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
-import { Icon } from '@/shared/ui/icon';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
-import { formatBusinessHour } from '../lib/format-business-hour';
+import { getStoreClosedNotice, getStoreClosingInfo } from '../lib/get-store-availability';
 import { getStoreDefaultImage } from '../lib/get-store-default-image';
 import type { StoreSummary } from '../model/store-types';
 
-/** CMP-10 StoreCard — 위쪽 가게 사진 + 이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
+/** CMP-10 StoreCard — 위쪽 가게 사진(주문 불가 안내) + 이름·카테고리·마감 시간 + 배달비·최소주문 두 칸. */
 export interface StoreCardProps {
   store: StoreSummary;
   categoryName: string;
@@ -19,45 +17,80 @@ export interface StoreCardProps {
 }
 
 /**
- * 가게 목록 항목 카드를 렌더링한다. 영업 종료 가게는 흐리게 표시한다.
+ * 가게 목록 항목 카드를 렌더링한다. 주문할 수 없는 가게는 사진만 덮어 이유를 보여 주고 글자는 읽히게 둔다.
  * @param props store(가게 요약), categoryName(카테고리 표시명)
  * @returns 가게 카드 요소
  */
 export function StoreCard({ store, categoryName, className }: StoreCardProps): ReactNode {
+  const closedNotice = getStoreClosedNotice(store);
+  const closingInfo = getStoreClosingInfo(store);
+  const isFree = store.deliveryFee === 0;
+  const valueColor = closedNotice ? 'text-fg-2' : 'text-fg';
+
   return (
     <Card
       interactive
       padding='none'
-      className={cn('flex h-full flex-col', !store.isOpenNow && 'opacity-55', className)}
+      className={cn('flex h-full flex-col', className)}
     >
-      <Thumbnail
-        src={store.imageUrl}
-        fallbackSrc={getStoreDefaultImage(store.category)}
-        alt={`${store.name} 가게 사진`}
-        placeholderLabel='가게 사진'
-        className='aspect-video w-full flex-none rounded-none border-b border-border'
-      />
-      <div className='flex min-w-0 flex-1 flex-col gap-1 p-4 leading-[1.45]'>
-        <div className='flex items-start justify-between gap-2'>
-          <strong className='min-w-0 text-[1rem] font-bold wrap-break-word text-fg'>{store.name}</strong>
-          <Badge
-            tone={store.isOpenNow ? 'ok' : 'muted'}
-            className='flex-none'
+      <div className='relative flex-none border-b border-border'>
+        <Thumbnail
+          src={store.imageUrl}
+          fallbackSrc={getStoreDefaultImage(store.category)}
+          alt={`${store.name} 가게 사진`}
+          placeholderLabel='가게 사진'
+          className='aspect-video w-full rounded-none'
+        />
+        {closedNotice ? (
+          <div className='absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-scrim px-4 text-center text-on-scrim'>
+            <strong className='text-[1.05rem] font-bold'>{closedNotice.title}</strong>
+            {closedNotice.description ? <span className='text-note opacity-90'>{closedNotice.description}</span> : null}
+          </div>
+        ) : null}
+      </div>
+      <div className='flex min-w-0 flex-1 flex-col gap-3 px-4 pt-3.5 pb-4'>
+        <div className='min-w-0'>
+          <strong
+            className={cn(
+              'block text-[1.0625rem] leading-[1.35] font-bold tracking-[-0.01em] wrap-break-word',
+              valueColor,
+            )}
           >
-            {store.isOpenNow ? '영업중' : '영업 종료'}
-          </Badge>
+            {store.name}
+          </strong>
+          <div className='mt-[3px] flex flex-wrap items-center gap-1.5 text-note text-fg-2'>
+            {categoryName ? <span>{categoryName}</span> : null}
+            {categoryName && closingInfo ? (
+              <span
+                aria-hidden='true'
+                className='size-[3px] rounded-full bg-fg-muted'
+              />
+            ) : null}
+            {closingInfo?.isClosingSoon ? (
+              <span className='font-semibold text-warn'>{closingInfo.closeTime} 곧 마감</span>
+            ) : null}
+            {closingInfo && !closingInfo.isClosingSoon ? <span>{closingInfo.closeTime}까지</span> : null}
+          </div>
         </div>
-        <span className='text-fg-muted'>
-          {categoryName} · 배달비 {formatPrice(store.deliveryFee)}
-        </span>
-        <span className='text-fg-muted'>최소주문 {formatPrice(store.minOrderAmount)}</span>
-        <span className='flex items-center gap-1 text-note text-fg-muted'>
-          <Icon
-            name='clock'
-            size={14}
-          />
-          오늘 {formatBusinessHour(store.todayHour)}
-        </span>
+        <dl className='mt-auto grid grid-cols-2 border-t border-border pt-3'>
+          <div>
+            <dt className='text-note text-fg-muted'>배달비</dt>
+            <dd
+              className={cn(
+                'mt-px text-[0.96875rem] font-bold tabular-nums',
+                isFree && !closedNotice ? 'text-role-ink' : valueColor,
+              )}
+            >
+              {isFree ? '무료' : formatPrice(store.deliveryFee)}
+            </dd>
+          </div>
+          <div className='border-l border-border pl-3.5'>
+            <dt className='text-note text-fg-muted'>최소주문</dt>
+            <dd className={cn('mt-px text-[0.96875rem] font-bold tabular-nums', valueColor)}>
+              {formatPrice(store.minOrderAmount)}
+            </dd>
+          </div>
+        </dl>
       </div>
     </Card>
   );
