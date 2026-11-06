@@ -12,7 +12,7 @@ import { CheckoutForm } from './checkout-form';
 const CART_PATH = '/cart';
 
 /**
- * U-04 주문서 화면. 내 장바구니(GET /cart)로 주문 요약을 보여 준다. 결제 방법은 다음 결제 화면에서 고른다.
+ * U-04 주문서·결제 화면. 내 장바구니(GET /cart)로 주문 요약을 보여 주고, 같은 화면에서 결제 방법을 고른다.
  * 장바구니가 비었거나 주문할 수 없으면(canOrder=false) 장바구니로 돌려보낸다. 연락처는 내 정보(GET /members/me)의 휴대폰 번호.
  * @returns 주문서 페이지
  */
