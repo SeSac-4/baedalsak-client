@@ -10,7 +10,7 @@ import { Thumbnail } from '@/shared/ui/thumbnail';
 import { formatBusinessHour } from '../lib/format-business-hour';
 import type { StoreSummary } from '../model/store-types';
 
-/** CMP-10 StoreCard — 가게 사진·이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
+/** CMP-10 StoreCard — 위쪽 가게 사진 + 이름·영업 배지·카테고리·최소주문·배달비·오늘 영업시간. */
 export interface StoreCardProps {
   store: StoreSummary;
   categoryName: string;
@@ -27,21 +27,28 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
     <Card
       interactive
       padding='none'
-      className={cn('flex gap-3 p-4', !store.isOpenNow && 'opacity-55', className)}
+      className={cn('flex h-full flex-col', !store.isOpenNow && 'opacity-55', className)}
     >
       <Thumbnail
         src={store.imageUrl}
         alt={`${store.name} 가게 사진`}
-        className='size-21 flex-none border border-border'
+        placeholderLabel='가게 사진'
+        className='aspect-video w-full flex-none rounded-none border-b border-border'
       />
-      <div className='flex min-w-0 flex-1 flex-col justify-center gap-0.5 leading-[1.45]'>
-        <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5'>
-          <strong className='min-w-0 font-bold wrap-break-word text-fg'>{store.name}</strong>
-          <Badge tone={store.isOpenNow ? 'ok' : 'muted'}>{store.isOpenNow ? '영업중' : '영업 종료'}</Badge>
+      <div className='flex min-w-0 flex-1 flex-col gap-1 p-4 leading-[1.45]'>
+        <div className='flex items-start justify-between gap-2'>
+          <strong className='min-w-0 text-[1rem] font-bold wrap-break-word text-fg'>{store.name}</strong>
+          <Badge
+            tone={store.isOpenNow ? 'ok' : 'muted'}
+            className='flex-none'
+          >
+            {store.isOpenNow ? '영업중' : '영업 종료'}
+          </Badge>
         </div>
-        <span className='text-note text-fg-muted'>
-          {categoryName} · 최소주문 {formatPrice(store.minOrderAmount)} · 배달비 {formatPrice(store.deliveryFee)}
+        <span className='text-fg-muted'>
+          {categoryName} · 배달비 {formatPrice(store.deliveryFee)}
         </span>
+        <span className='text-fg-muted'>최소주문 {formatPrice(store.minOrderAmount)}</span>
         <span className='flex items-center gap-1 text-note text-fg-muted'>
           <Icon
             name='clock'
