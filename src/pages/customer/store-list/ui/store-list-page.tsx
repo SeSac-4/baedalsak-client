@@ -210,12 +210,12 @@ export function StoreListPage(): ReactNode {
         {error ? <EmptyState message={getErrorMessage(error)} /> : null}
 
         {stores && stores.length > 0 ? (
-          <ul className='grid grid-cols-1 items-start gap-3 tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:gap-3.5 desktop:gap-4'>
+          <ul className='grid grid-cols-1 gap-3 tablet:grid-cols-2 tablet:gap-3.5 desktop:grid-cols-3 desktop:gap-4'>
             {stores.map((store) => (
               <li key={store.id}>
                 <Link
                   to={`/stores/${store.id}`}
-                  className='block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
+                  className='block h-full rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
                 >
                   <StoreCard
                     store={store}
