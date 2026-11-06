@@ -1,5 +1,5 @@
-/** 결제 상태: 결제 요청됨 → 승인완료 */
-export type PaymentStatus = 'REQUESTED' | 'APPROVED';
+/** 결제 상태: 결제 요청됨 → 승인완료 → 환불 처리 중 → 환불 완료. 승인 전에 결제 만료로 끝날 수 있다 */
+export type PaymentStatus = 'REQUESTED' | 'APPROVED' | 'CANCEL_REQUESTED' | 'CANCELED' | 'EXPIRED';
 
 /** POST /payments 응답. 토스 결제창 호출에 쓰는 결제 요청 정보 */
 export interface PaymentReady {
@@ -45,4 +45,10 @@ export interface PaymentDetail {
   receiptUrl: string | null;
   /** 카드사 승인번호 (카드 결제만 있음, 그 외·승인 전이면 null) */
   approvalNumber: string | null;
+  /** 취소 금액 (환불 처리 중·환불 완료일 때만 있음) */
+  cancelAmount: number | null;
+  /** 취소 사유 (환불 처리 중·환불 완료일 때만 있음) */
+  cancelReason: string | null;
+  /** ISO 8601, 환불 완료 시각 (환불 처리 중이면 null) */
+  canceledAt: string | null;
 }
