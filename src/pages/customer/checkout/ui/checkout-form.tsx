@@ -1,16 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { useForm, type Path } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
-import { cartKeys, type Cart } from '@/entities/cart';
+import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
+import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
+import { Notice } from '@/shared/ui/notice';
+import { PageHeader } from '@/shared/ui/page-header';
 import { useToast } from '@/shared/ui/toast';
+import { CartAmountCard } from '@/widgets/cart-summary';
 
 import type { CreateOrderRequest } from '../api/create-order-api';
 import { checkoutSchema, type CheckoutFormValues } from '../model/checkout-schema';
@@ -22,8 +26,9 @@ export interface CheckoutFormProps {
   phone: string;
 }
 
-const LABEL_CLASS = 'flex flex-col gap-1 text-note font-medium text-fg-muted';
-const ERROR_CLASS = 'text-note text-warn';
+const CARD_CLASS = 'flex flex-col gap-3 p-5';
+const CARD_TITLE_CLASS = 'font-bold text-fg';
+const COLUMN_CLASS = 'flex min-w-0 flex-col gap-3 tablet:gap-3.5 desktop:gap-4';
 const CART_PATH = '/cart';
 
 /** 장바구니를 다시 확인해야 하는 주문 실패 (사유를 알리고 장바구니로 돌려보낸다) */
@@ -61,6 +66,7 @@ const parseRequest = (values: CheckoutFormValues): CreateOrderRequest => ({
  * @returns 주문서 폼 요소
  */
 export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
+  const id = useId();
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -109,114 +115,174 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
     <form
       noValidate
       onSubmit={handleSubmit(handleValidSubmit)}
-      className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'
     >
-      <div className='flex flex-col gap-4'>
-        <Card className='flex flex-col gap-3'>
-          <strong className='text-body text-fg'>배달 주소</strong>
-          <div className='grid gap-3 tablet:grid-cols-2'>
-            <label className={`${LABEL_CLASS} tablet:col-span-2`}>
-              주소
-              <Input
-                placeholder='예: 서울 성동구 성수이로 113'
-                aria-invalid={Boolean(errors.address)}
-                {...register('address')}
-              />
-              {errors.address ? <span className={ERROR_CLASS}>{errors.address.message}</span> : null}
-            </label>
-            <label className={LABEL_CLASS}>
-              상세 주소
-              <Input
-                placeholder='예: 302호'
-                aria-invalid={Boolean(errors.addressDetail)}
-                {...register('addressDetail')}
-              />
-              {errors.addressDetail ? <span className={ERROR_CLASS}>{errors.addressDetail.message}</span> : null}
-            </label>
-            <label className={LABEL_CLASS}>
-              동
-              <Input
-                maxLength={50}
-                placeholder='예: 성수동2가'
-                aria-invalid={Boolean(errors.deliveryDong)}
-                {...register('deliveryDong')}
-              />
-              {errors.deliveryDong ? <span className={ERROR_CLASS}>{errors.deliveryDong.message}</span> : null}
-            </label>
-            <label className={LABEL_CLASS}>
-              연락처
-              <Input
-                name='phone'
-                value={phone}
-                readOnly
-              />
-            </label>
-          </div>
-          <p className='text-note text-fg-subtle'>동은 라이더 배차 목록에 배달지로 보여요.</p>
-        </Card>
+      <div className='mx-auto flex w-full flex-col gap-3 px-4 pt-1 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12'>
+        <div>
+          <Link
+            to={CART_PATH}
+            className='inline-flex min-h-11 items-center text-note text-fg-muted hover:text-fg'
+          >
+            ‹ 장바구니
+          </Link>
+          <PageHeader title='주문하기' />
+        </div>
 
-        <Card className='flex flex-col gap-3'>
-          <strong className='text-body text-fg'>요청사항</strong>
-          <div className='grid gap-3 tablet:grid-cols-2'>
-            <label className={LABEL_CLASS}>
-              가게 사장님께
-              <Input
-                maxLength={200}
-                placeholder='예: 김밥 썰어 주세요'
-                aria-invalid={Boolean(errors.storeRequest)}
-                {...register('storeRequest')}
-              />
-              {errors.storeRequest ? <span className={ERROR_CLASS}>{errors.storeRequest.message}</span> : null}
-            </label>
-            <label className={LABEL_CLASS}>
-              라이더님께
-              <Input
-                maxLength={200}
-                placeholder='예: 문 앞에 두고 벨 눌러 주세요'
-                aria-invalid={Boolean(errors.riderRequest)}
-                {...register('riderRequest')}
-              />
-              {errors.riderRequest ? <span className={ERROR_CLASS}>{errors.riderRequest.message}</span> : null}
-            </label>
+        <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:grid desktop:grid-cols-[minmax(0,1fr)_340px] desktop:items-start desktop:gap-6'>
+          <div className={COLUMN_CLASS}>
+            <Card
+              padding='none'
+              className={CARD_CLASS}
+            >
+              <h2 className={CARD_TITLE_CLASS}>배달 정보</h2>
+              <FormField
+                id={`${id}-address`}
+                label='주소'
+                error={errors.address?.message}
+              >
+                <Input
+                  id={`${id}-address`}
+                  placeholder='예: 서울 성동구 성수이로 113'
+                  aria-invalid={Boolean(errors.address)}
+                  aria-describedby={`${id}-address-message`}
+                  {...register('address')}
+                />
+              </FormField>
+              <div className='grid grid-cols-2 items-start gap-2'>
+                <FormField
+                  id={`${id}-detail`}
+                  label='상세 주소'
+                  error={errors.addressDetail?.message}
+                >
+                  <Input
+                    id={`${id}-detail`}
+                    placeholder='예: 302호'
+                    aria-invalid={Boolean(errors.addressDetail)}
+                    aria-describedby={`${id}-detail-message`}
+                    {...register('addressDetail')}
+                  />
+                </FormField>
+                <FormField
+                  id={`${id}-dong`}
+                  label='동'
+                  error={errors.deliveryDong?.message}
+                >
+                  <Input
+                    id={`${id}-dong`}
+                    maxLength={50}
+                    placeholder='예: 성수동2가'
+                    aria-invalid={Boolean(errors.deliveryDong)}
+                    aria-describedby={`${id}-dong-message`}
+                    {...register('deliveryDong')}
+                  />
+                </FormField>
+              </div>
+              <p className='text-note text-fg-muted'>동은 라이더 배차 목록에 배달지로 보여요.</p>
+              <div className='flex justify-between gap-3 border-t border-border pt-3'>
+                <span className='text-fg-muted'>연락처</span>
+                <span className='text-fg tabular-nums'>{phone}</span>
+              </div>
+            </Card>
+
+            <Card
+              padding='none'
+              className={CARD_CLASS}
+            >
+              <h2 className={CARD_TITLE_CLASS}>요청사항</h2>
+              <FormField
+                id={`${id}-store-request`}
+                label='가게 사장님께'
+                error={errors.storeRequest?.message}
+              >
+                <Input
+                  id={`${id}-store-request`}
+                  maxLength={200}
+                  placeholder='예: 김밥 썰어 주세요'
+                  aria-invalid={Boolean(errors.storeRequest)}
+                  aria-describedby={`${id}-store-request-message`}
+                  {...register('storeRequest')}
+                />
+              </FormField>
+              <FormField
+                id={`${id}-rider-request`}
+                label='라이더님께'
+                error={errors.riderRequest?.message}
+              >
+                <Input
+                  id={`${id}-rider-request`}
+                  maxLength={200}
+                  placeholder='예: 문 앞에 두고 벨 눌러 주세요'
+                  aria-invalid={Boolean(errors.riderRequest)}
+                  aria-describedby={`${id}-rider-request-message`}
+                  {...register('riderRequest')}
+                />
+              </FormField>
+            </Card>
+
+            {errors.root ? (
+              <Notice
+                tone='warn'
+                role='alert'
+              >
+                {errors.root.message}
+              </Notice>
+            ) : null}
           </div>
-        </Card>
-        {errors.root ? <p className={ERROR_CLASS}>{errors.root.message}</p> : null}
+
+          <div className={`${COLUMN_CLASS} desktop:sticky desktop:top-30`}>
+            <Card
+              padding='none'
+              className='p-5'
+            >
+              <div className='mb-2.5 flex items-center gap-2'>
+                <h2 className={`${CARD_TITLE_CLASS} min-w-0 flex-1 wrap-break-word`}>{cart.storeName}</h2>
+                <span className='flex-none text-note text-fg-muted'>메뉴 {getCartItemCount(cart)}개</span>
+              </div>
+              <ul className='flex flex-col gap-2 tabular-nums'>
+                {cart.items.map((item) => (
+                  <li
+                    key={item.menuId}
+                    className='flex gap-2'
+                  >
+                    <span className='min-w-0 flex-1 wrap-break-word text-fg'>{item.menuName}</span>
+                    <span className='flex-none text-fg-muted'>{item.quantity}개</span>
+                    <span className='min-w-19 flex-none text-right text-fg'>
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <CartAmountCard
+              cart={cart}
+              title='결제 금액'
+            />
+            <Button
+              type='submit'
+              size='lg'
+              block
+              disabled={isSubmitting}
+              className='hidden desktop:inline-flex'
+            >
+              {formatPrice(cart.totalAmount)} 결제하기
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <aside className='tablet:sticky tablet:top-4'>
-        <Card className='flex flex-col gap-2'>
-          <strong className='text-body text-fg'>{cart.storeName}</strong>
-          <ul className='flex flex-col gap-1 text-note tabular-nums'>
-            {cart.items.map((item) => (
-              <li
-                key={item.menuId}
-                className='flex justify-between gap-2'
-              >
-                <span className='text-fg'>
-                  {item.menuName} × {item.quantity}
-                </span>
-                <span className='text-fg'>{formatPrice(item.price * item.quantity)}</span>
-              </li>
-            ))}
-            <li className='flex justify-between gap-2'>
-              <span className='text-fg-muted'>배달비</span>
-              <span className='text-fg'>{formatPrice(cart.deliveryFee)}</span>
-            </li>
-          </ul>
-          <div className='flex justify-between border-t border-border pt-2 text-body font-bold tabular-nums'>
-            <span className='text-fg'>결제 금액</span>
-            <span className='text-fg'>{formatPrice(cart.totalAmount)}</span>
-          </div>
-          <Button
-            type='submit'
-            size='lg'
-            block
-            disabled={isSubmitting}
-          >
-            결제하기
-          </Button>
-        </Card>
-      </aside>
+      <div className='sticky bottom-0 z-10 flex items-center gap-3.5 border-t border-border bg-surface px-4 pt-3 pb-6 tablet:px-[calc(50%-356px)] desktop:hidden'>
+        <div className='flex flex-none flex-col leading-[1.3]'>
+          <span className='text-note text-fg-muted'>총 결제 금액</span>
+          <span className='text-title font-bold text-fg tabular-nums'>{formatPrice(cart.totalAmount)}</span>
+        </div>
+        <Button
+          type='submit'
+          size='lg'
+          block
+          disabled={isSubmitting}
+        >
+          결제하기
+        </Button>
+      </div>
     </form>
   );
 }

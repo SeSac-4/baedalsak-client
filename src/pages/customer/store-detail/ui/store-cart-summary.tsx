@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
-import type { Cart } from '@/entities/cart';
+import { getCartItemCount, type Cart } from '@/entities/cart';
 import { formatPrice } from '@/shared/lib/format';
 import { getButtonClassName } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
-
-import { getCartItemCount } from '../lib/get-cart-item-count';
 
 export interface StoreCartSummaryProps {
   cart: Cart;
