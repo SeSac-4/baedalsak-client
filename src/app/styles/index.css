@@ -34,9 +34,14 @@
   --border: #e4e7ec;
   --border-strong: #d0d5dd;
   --fg: #1a1d21;
+  --fg-2: #3d434b;
   --fg-muted: #5b636e;
   --fg-subtle: #8a909b;
   --fg-disabled: #c9ced6;
+
+  /* 사진 위 덮개와 그 위 글자 */
+  --scrim: rgb(15 17 20 / 0.62);
+  --on-scrim: #ffffff;
 
   /* 상태 톤: ok 초록 · warn 주황 · info 파랑 · muted 회색 (soft = 배지·안내 배경) */
   --ok: #15803d;
@@ -87,9 +92,11 @@
     --border: #2b2f36;
     --border-strong: #3a3f47;
     --fg: #e8eaed;
+    --fg-2: #c3c8cf;
     --fg-muted: #a1a7b0;
     --fg-subtle: #6b727c;
     --fg-disabled: #4a5059;
+    --scrim: rgb(10 11 13 / 0.7);
 
     --ok: #4ade80;
     --ok-soft: #14321f;
@@ -153,9 +160,12 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
   --color-fg-disabled: var(--fg-disabled);
+  --color-scrim: var(--scrim);
+  --color-on-scrim: var(--on-scrim);
 
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
