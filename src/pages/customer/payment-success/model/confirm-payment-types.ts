@@ -1,7 +1,7 @@
-/** POST /payments/confirm 요청. 토스 successUrl 쿼리 값을 그대로 전달한다 */
+/** POST /orders/{orderId}/payment/confirm 요청. 토스 successUrl 쿼리 값과 주문서가 붙여 둔 주문 ID */
 export interface ConfirmPaymentRequest {
+  /** DB 주문 ID (주문서가 successUrl에 붙여 둔 값) */
+  orderId: number;
   paymentKey: string;
-  /** 토스 orderId (= 결제 요청 API의 tossOrderId) */
-  orderId: string;
   amount: number;
 }

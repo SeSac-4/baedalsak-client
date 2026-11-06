@@ -10,42 +10,52 @@ import type { ConfirmPaymentRequest } from '../model/confirm-payment-types';
 import { useConfirmPayment } from '../model/use-confirm-payment';
 import { PaymentResultCard } from './payment-result-card';
 
-/** 결제 화면이 successUrl에 붙여 둔 주문 ID 쿼리 이름 (payment-form.tsx와 같은 값) */
+/** 주문서가 successUrl에 붙여 둔 주문 ID 쿼리 이름 (checkout-form.tsx·payment-form.tsx와 같은 값) */
 const ORDER_ID_PARAM = 'order';
 const PAYMENT_FAIL_PATH = '/payment/fail';
+/** 결제 실패 안내(U-07)가 사유로 보여 주는 쿼리 이름 (payment-fail-page.tsx와 같은 값) */
+const FAIL_MESSAGE_PARAM = 'message';
 const MISSING_PAYMENT_MESSAGE = '결제 정보를 찾을 수 없어요.';
 const ORDER_LIST_LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 
-const PAYMENT_ALREADY_APPROVED = 'PAYMENT_ALREADY_APPROVED';
-const PAYMENT_AMOUNT_MISMATCH = 'PAYMENT_AMOUNT_MISMATCH';
-const VALIDATION_FAILED = 'VALIDATION_FAILED';
-const PAYMENT_GATEWAY_ERROR = 'PAYMENT_GATEWAY_ERROR';
-/** 결제 실패 안내(U-07)로 보내는 승인 오류 (승인 API의 400 응답 코드) */
-const PAYMENT_FAIL_CODES: readonly string[] = [PAYMENT_AMOUNT_MISMATCH, VALIDATION_FAILED];
+/** 돈이 나가지 않고 끝난 결제 확인 오류 → 결제 실패 안내(U-07)에 서버 message를 사유로 보낸다 */
+const PAYMENT_FAIL_CODES: readonly string[] = [
+  'PAYMENT_CONFIRM_REJECTED',
+  'PAYMENT_AMOUNT_MISMATCH',
+  'STORE_CLOSED',
+  'MENU_NOT_ON_SALE',
+  'ORDER_INVALID_STATUS',
+  'PAYMENT_INVALID_STATUS',
+  'NOT_FOUND',
+  'PAYMENT_NOT_FOUND',
+  'VALIDATION_FAILED',
+];
+/** 결과를 모르는 오류 → 같은 paymentKey로 다시 시도 (서버 멱등) */
+const RETRY_CODES: readonly string[] = ['PAYMENT_GATEWAY_ERROR', 'PAYMENT_KEY_MISMATCH'];
 
 /**
- * 토스 successUrl 쿼리(paymentKey·orderId·amount)를 승인 요청으로 바꾼다.
- * @param searchParams 현재 주소의 쿼리
- * @returns 승인 요청, 값이 빠졌거나 금액이 올바르지 않으면 null
+ * 토스 successUrl 쿼리(paymentKey·amount)와 주문서가 붙여 둔 주문 ID를 결제 확인 요청으로 바꾼다.
+ * @param searchParams - 현재 주소의 쿼리
+ * @returns 결제 확인 요청, 값이 빠졌거나 숫자가 올바르지 않으면 null
  */
 const parseConfirmRequest = (searchParams: URLSearchParams): ConfirmPaymentRequest | null => {
+  const orderId = Number(searchParams.get(ORDER_ID_PARAM));
   const paymentKey = searchParams.get('paymentKey');
-  const orderId = searchParams.get('orderId');
   const amount = Number(searchParams.get('amount'));
-  if (!paymentKey || !orderId || !Number.isInteger(amount) || amount <= 0) return null;
+  if (!paymentKey || !Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(amount) || amount <= 0) {
+    return null;
+  }
 
-  return { paymentKey, orderId, amount };
+  return { orderId, paymentKey, amount };
 };
 
 /**
- * 결제 화면이 successUrl에 붙여 둔 주문 ID를 읽는다.
- * @param searchParams 현재 주소의 쿼리
- * @returns 주문 ID, 없거나 숫자가 아니면 null
+ * 결제 실패 안내 경로를 만든다. 사유가 있으면 쿼리로 붙인다.
+ * @param message - 실패 사유 (서버 message)
+ * @returns 결제 실패 안내 경로
  */
-const parseOrderId = (searchParams: URLSearchParams): number | null => {
-  const orderId = Number(searchParams.get(ORDER_ID_PARAM));
-  return Number.isInteger(orderId) && orderId > 0 ? orderId : null;
-};
+const formatFailPath = (message: string): string =>
+  `${PAYMENT_FAIL_PATH}?${new URLSearchParams({ [FAIL_MESSAGE_PARAM]: message }).toString()}`;
 
 /**
  * 주문내역 링크를 그린다.
@@ -61,16 +71,16 @@ const renderOrderListLink = (): ReactNode => (
 );
 
 /**
- * U-06 결제 승인 화면. 토스 successUrl 쿼리로 결제를 승인하고 승인 결과를 보여 준다.
- * 이미 승인된 결제(PAYMENT_ALREADY_APPROVED)는 주문 상세로, 승인할 수 없는 요청(PAYMENT_AMOUNT_MISMATCH·VALIDATION_FAILED)은 결제 실패 안내로 보낸다.
- * 토스 승인 실패(PAYMENT_GATEWAY_ERROR)는 재시도 버튼으로 같은 승인을 다시 요청한다.
- * @returns 결제 승인 페이지
+ * U-06 결제 승인 처리 화면. 토스 successUrl 쿼리로 주문의 결제를 확인(POST /orders/{orderId}/payment/confirm)하고 결과를 보여 준다.
+ * 응답 시점에 주문은 이미 결제완료라, 주문 상세로 바로 갈 수 있다.
+ * 확정 실패·금액 불일치·마감·품절·결제만료 주문 등 돈이 나가지 않은 오류는 결제 실패 안내(U-07)로 보내고,
+ * 결과를 모르는 오류(502 PAYMENT_GATEWAY_ERROR·409 PAYMENT_KEY_MISMATCH)는 다시 시도 버튼으로 같은 요청을 보낸다.
+ * @returns 결제 승인 처리 페이지
  */
 export function PaymentSuccessPage(): ReactNode {
   const [searchParams] = useSearchParams();
   const confirmRequest = parseConfirmRequest(searchParams);
-  const orderId = parseOrderId(searchParams);
-  const { data: payment, error, isPending, isFetching, refetch } = useConfirmPayment(confirmRequest);
+  const { data: order, error, isPending, isFetching, refetch } = useConfirmPayment(confirmRequest);
 
   if (!confirmRequest) {
     return (
@@ -83,7 +93,7 @@ export function PaymentSuccessPage(): ReactNode {
     );
   }
 
-  if (payment) return <PaymentResultCard payment={payment} />;
+  if (order) return <PaymentResultCard order={order} />;
 
   if (isPending || isFetching) {
     return (
@@ -96,19 +106,10 @@ export function PaymentSuccessPage(): ReactNode {
 
   const errorCode = getErrorCode(error);
 
-  if (errorCode === PAYMENT_ALREADY_APPROVED && orderId !== null) {
-    return (
-      <Navigate
-        to={`/orders/${orderId}`}
-        replace
-      />
-    );
-  }
-
   if (errorCode !== null && PAYMENT_FAIL_CODES.includes(errorCode)) {
     return (
       <Navigate
-        to={PAYMENT_FAIL_PATH}
+        to={formatFailPath(getErrorMessage(error))}
         replace
       />
     );
@@ -119,7 +120,7 @@ export function PaymentSuccessPage(): ReactNode {
       <EmptyState
         message={getErrorMessage(error)}
         action={
-          errorCode === PAYMENT_GATEWAY_ERROR ? (
+          errorCode === null || RETRY_CODES.includes(errorCode) ? (
             <Button onClick={() => void refetch()}>다시 시도</Button>
           ) : (
             renderOrderListLink()

@@ -5,6 +5,7 @@ import { useForm, type Path } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 
 import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
+import { TossPaymentCard, useTossPaymentWidget } from '@/features/payment/request-payment';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
@@ -16,7 +17,7 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { useToast } from '@/shared/ui/toast';
 import { CartAmountCard } from '@/widgets/cart-summary';
 
-import type { CreateOrderRequest } from '../api/create-order-api';
+import type { CreatedOrder, CreateOrderRequest } from '../api/create-order-api';
 import { checkoutSchema, type CheckoutFormValues } from '../model/checkout-schema';
 import { useCreateOrder } from '../model/use-create-order';
 
@@ -30,6 +31,13 @@ const CARD_CLASS = 'flex flex-col gap-3 p-5';
 const CARD_TITLE_CLASS = 'font-bold text-fg';
 const COLUMN_CLASS = 'flex min-w-0 flex-col gap-3 tablet:gap-3.5 desktop:gap-4';
 const CART_PATH = '/cart';
+const PAYMENT_SUCCESS_PATH = '/payment/success';
+const PAYMENT_FAIL_PATH = '/payment/fail';
+/** 결제 완료 화면이 결제 확인(POST /orders/{orderId}/payment/confirm)에 쓸 주문 ID 쿼리 이름 (payment-success-page.tsx와 같은 값) */
+const ORDER_ID_PARAM = 'order';
+const PAYMENT_REQUEST_ERROR_MESSAGE = '결제창을 열지 못했어요. 다시 시도해 주세요.';
+/** PC에서 구매자가 토스 결제창을 닫으면 failUrl 대신 이 코드의 오류로 끝난다 */
+const USER_CANCEL_CODE = 'USER_CANCEL';
 
 /** 장바구니를 다시 확인해야 하는 주문 실패 (사유를 알리고 장바구니로 돌려보낸다) */
 const CART_ERROR_CODES: readonly string[] = [
@@ -60,8 +68,19 @@ const parseRequest = (values: CheckoutFormValues): CreateOrderRequest => ({
 });
 
 /**
- * U-04 주문서 폼. 배달 주소·동·요청사항을 받아 주문(POST /orders)을 만들고, 받은 주문 ID로 결제 화면에 간다.
+ * 구매자가 토스 결제창을 닫아 생긴 오류인지 확인한다.
+ * @param error - 결제창 요청 오류
+ * @returns 결제창 닫기 여부
+ */
+const isUserCancelError = (error: unknown): boolean =>
+  typeof error === 'object' && error !== null && 'code' in error && error.code === USER_CANCEL_CODE;
+
+/**
+ * U-04 주문서·결제 폼. 배달 주소·동·요청사항과 토스 결제위젯(결제 방법·약관)을 보여 준다.
+ * 결제하기를 누르면 주문(POST /orders)을 한 번 만들고, 응답의 결제창 값으로 토스 결제창을 연다.
+ * 결제창을 닫으면 주문서에 그대로 머문다. 장바구니는 결제 완료 때 서버가 비운다.
  * 장바구니 문제(빈 장바구니·영업 종료·품절·최소주문 미달)면 사유를 알리고 장바구니로 돌려보낸다.
+ * 진행 중인 결제(409 PAYMENT_IN_PROGRESS)·결제 요청 실패(503)는 서버 메시지로 알리고 주문서에 머문다.
  * @param props cart(주문할 장바구니), phone(연락처)
  * @returns 주문서 폼 요소
  */
@@ -71,6 +90,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
   const toast = useToast();
   const queryClient = useQueryClient();
   const { mutateAsync: createOrder } = useCreateOrder();
+  const { status: widgetStatus, isAgreed, requestPayment } = useTossPaymentWidget(cart.totalAmount);
   const {
     register,
     handleSubmit,
@@ -81,22 +101,37 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
     defaultValues: { address: '', addressDetail: '', deliveryDong: '', storeRequest: '', riderRequest: '' },
   });
 
+  const isPayable = widgetStatus === 'ready' && isAgreed;
+
   /**
-   * 장바구니 캐시를 낡은 것으로 표시한다. 지금 보고 있는 주문서가 다시 조회해 장바구니로 튕기지 않도록 다음 진입 때 받는다.
+   * 만든 주문의 결제창 값으로 토스 결제창을 연다. 결제 결과는 토스가 successUrl·failUrl로 이동시켜 전달한다.
+   * 결제창을 닫으면 주문서에 머물고, 결제창을 열지 못하면 토스트로 알린다.
+   * @param order - 만든 주문 (id, 결제창 값)
    */
-  const setCartStale = async (): Promise<void> => {
-    await queryClient.invalidateQueries({ queryKey: cartKeys.all, refetchType: 'none' });
+  const openPaymentWindow = async ({ id: orderId, payment }: CreatedOrder): Promise<void> => {
+    try {
+      await requestPayment({
+        amount: payment.amount,
+        orderId: payment.tossOrderId,
+        orderName: payment.orderName,
+        successUrl: `${window.location.origin}${PAYMENT_SUCCESS_PATH}?${ORDER_ID_PARAM}=${orderId}`,
+        failUrl: `${window.location.origin}${PAYMENT_FAIL_PATH}`,
+      });
+    } catch (error: unknown) {
+      if (isUserCancelError(error)) return;
+      toast(error instanceof Error && error.message ? error.message : PAYMENT_REQUEST_ERROR_MESSAGE);
+    }
   };
 
   /**
-   * 주문을 만들고 결제 화면으로 간다. 실패하면 에러 종류에 맞게 안내한다.
+   * 주문을 만들고 토스 결제창을 연다. 주문 생성이 실패하면 에러 종류에 맞게 안내한다.
    * @param values - 검증을 통과한 폼 값
    */
   const handleValidSubmit = async (values: CheckoutFormValues): Promise<void> => {
+    if (!isPayable) return;
     try {
       const order = await createOrder(parseRequest(values));
-      navigate(`/payment/${order.id}`);
-      await setCartStale();
+      await openPaymentWindow(order);
     } catch (error: unknown) {
       const fieldErrors = getFieldErrors(error);
       if (fieldErrors.length > 0) {
@@ -218,6 +253,14 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
               </FormField>
             </Card>
 
+            <section aria-label='결제 방법'>
+              <TossPaymentCard status={widgetStatus}>
+                <p className='mx-5 border-t border-border py-3 text-note text-fg-muted'>
+                  결제 방법과 약관 동의는 토스가 그리는 영역이에요. 테스트 환경이라 실제 출금은 없어요.
+                </p>
+              </TossPaymentCard>
+            </section>
+
             {errors.root ? (
               <Notice
                 tone='warn'
@@ -260,7 +303,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
               type='submit'
               size='lg'
               block
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isPayable}
               className='hidden desktop:inline-flex'
             >
               {formatPrice(cart.totalAmount)} 결제하기
@@ -278,7 +321,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
           type='submit'
           size='lg'
           block
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isPayable}
         >
           결제하기
         </Button>

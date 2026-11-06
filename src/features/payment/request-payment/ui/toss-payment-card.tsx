@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '@/shared/lib/cn';
 import { Card } from '@/shared/ui/card';
 import { Spinner } from '@/shared/ui/spinner';
 
@@ -12,16 +13,24 @@ import {
 export interface TossPaymentCardProps {
   /** 결제위젯 렌더링 상태 */
   status: TossPaymentWidgetStatus;
+  /** 카드 위치·여백 조정 */
+  className?: string;
+  /** 위젯 아래에 붙일 안내 */
+  children?: ReactNode;
 }
 
 /**
- * U-05 토스 결제위젯 카드. 결제 UI와 약관 UI가 그려질 자리와 불러오는 중·오류 안내를 보여 준다. (테스트 환경)
- * @param props status(결제위젯 렌더링 상태)
+ * 토스 결제위젯 카드. 결제 UI와 약관 UI가 그려질 자리와 불러오는 중·오류 안내를 보여 준다. (테스트 환경)
+ * 위젯 안쪽은 토스가 iframe으로 그려서 모양을 바꿀 수 없고, 바깥 카드 모서리만 잘라 둥글게 보이게 한다.
+ * @param props status(결제위젯 렌더링 상태), className(카드 클래스), children(위젯 아래 안내)
  * @returns 결제위젯 카드 요소
  */
-export function TossPaymentCard({ status }: TossPaymentCardProps): ReactNode {
+export function TossPaymentCard({ status, className, children }: TossPaymentCardProps): ReactNode {
   return (
-    <Card className='flex flex-col gap-2'>
+    <Card
+      padding='none'
+      className={cn('flex flex-col', className)}
+    >
       {status === 'loading' ? (
         <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>
           <Spinner label='결제 수단 불러오는 중' />
@@ -33,6 +42,7 @@ export function TossPaymentCard({ status }: TossPaymentCardProps): ReactNode {
       ) : null}
       <div id={PAYMENT_METHOD_SELECTOR.slice(1)} />
       <div id={AGREEMENT_SELECTOR.slice(1)} />
+      {children}
     </Card>
   );
 }
