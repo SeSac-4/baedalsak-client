@@ -14,10 +14,10 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 import { useToast } from '@/shared/ui/toast';
+import { DeliveryMap } from '@/widgets/delivery-map';
 
 import { useCompleteDelivery } from '../model/use-complete-delivery';
 import { usePickupDelivery } from '../model/use-pickup-delivery';
-import { RouteMap } from './route-map';
 
 const WAITING_LIST_PATH = '/rider';
 const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
@@ -93,7 +93,7 @@ const renderStepIcon = (icon: IconName, isCurrent: boolean): ReactNode => (
 /**
  * R-02 진행 중 배달 화면. 맡은 배달의 픽업지·배달지·요청사항·고객 연락처를 보여 주고,
  * 상태에 따라 픽업 완료 또는 배달 완료 버튼 하나만 보여 준다. 상태 갱신은 새로고침 버튼으로만 한다.
- * 지도는 실시간 위치 연동 전까지 시안의 그림(RouteMap)으로 둔다. PC는 지도 | 배달 정보(340px) 2열.
+ * 지도(DeliveryMap)는 카카오맵에 가게·배달지를 표시한다. PC는 지도 | 배달 정보(340px) 2열.
  * @returns 진행 중 배달 페이지
  */
 export function ActiveDeliveryPage(): ReactNode {
@@ -169,7 +169,11 @@ export function ActiveDeliveryPage(): ReactNode {
       {delivery && copy ? (
         <>
           <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:grid desktop:grid-cols-[minmax(0,1fr)_340px] desktop:items-start desktop:gap-6'>
-            <RouteMap status={delivery.status} />
+            <DeliveryMap
+              storeAddress={delivery.pickupAddress}
+              deliveryAddress={delivery.deliveryAddress}
+              status={delivery.status}
+            />
             <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:sticky desktop:top-30 desktop:gap-4'>
               <Card className='flex flex-col gap-4'>
                 <div>

@@ -95,6 +95,7 @@ export function WaitingListPage(): ReactNode {
               <PickupMap
                 deliveries={deliveries}
                 selectedIndex={selectedIndex}
+                onSelect={setSelectedIndex}
               />
               <p className='text-note text-fg-muted'>
                 오래된 요청부터 보여요. 수락하면 상세 주소와 고객 연락처가 열려요.

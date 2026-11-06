@@ -31,6 +31,7 @@ import { Thumbnail } from '@/shared/ui/thumbnail';
 import { ToastProvider } from '@/shared/ui/toast';
 import { CartSummaryCard } from '@/widgets/cart-summary';
 
+import { GalleryDeliveryMapDemo } from './gallery-delivery-map-demo';
 import { GallerySection } from './gallery-section';
 import { GalleryToastDemo } from './gallery-toast-demo';
 
@@ -566,6 +567,13 @@ export function GalleryPage(): ReactNode {
                 </tr>
               </tbody>
             </DataTable>
+          </GallerySection>
+
+          <GallerySection
+            name='DeliveryMap'
+            title='배달 지도 (라이더·고객·사장님 공통). 상태·주소를 바꿔 보기'
+          >
+            <GalleryDeliveryMapDemo />
           </GallerySection>
 
           <GallerySection
