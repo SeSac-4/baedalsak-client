@@ -2,13 +2,11 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 import type { PaymentReady } from '@/entities/payment';
+import { TossPaymentCard, useTossPaymentWidget } from '@/features/payment/request-payment';
 import { formatPrice } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { useToast } from '@/shared/ui/toast';
-
-import { useTossPaymentWidget } from '../model/use-toss-payment-widget';
-import { TossPaymentCard } from './toss-payment-card';
 
 const PAYMENT_REQUEST_ERROR_MESSAGE = '결제창을 열지 못했어요. 다시 시도해 주세요.';
 /** PC에서 구매자가 토스 결제창을 닫으면 failUrl 대신 이 코드의 오류로 끝난다 */
@@ -51,6 +49,7 @@ export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactN
   const handlePayClick = async (): Promise<void> => {
     try {
       await requestPayment({
+        amount: paymentReady.amount,
         orderId: paymentReady.tossOrderId,
         orderName: paymentReady.orderName,
         successUrl: `${window.location.origin}/payment/success?${ORDER_ID_PARAM}=${orderId}`,
@@ -67,7 +66,10 @@ export function PaymentForm({ orderId, paymentReady }: PaymentFormProps): ReactN
 
   return (
     <div className='grid gap-4 tablet:grid-cols-[1fr_300px] tablet:items-start'>
-      <TossPaymentCard status={status} />
+      <TossPaymentCard
+        status={status}
+        className='gap-2 p-5'
+      />
 
       <aside className='tablet:sticky tablet:top-4'>
         <Card className='flex flex-col gap-2'>

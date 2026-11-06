@@ -21,7 +21,9 @@ export type TossPaymentWidgetStatus = 'loading' | 'ready' | 'error';
 
 /** 토스 결제창 요청 정보. 결과는 successUrl·failUrl로 페이지를 이동해 받는다 */
 export interface TossPaymentRequest {
-  /** 결제 요청 API가 준 tossOrderId */
+  /** 서버가 정한 결제 금액. 위젯에 그린 금액과 다르면 결제창을 열기 전에 맞춘다 */
+  amount: number;
+  /** 서버가 준 tossOrderId */
   orderId: string;
   orderName: string;
   successUrl: string;
@@ -64,8 +66,8 @@ const destroyWidgets = async (rendered: RenderedWidgets): Promise<void> => {
 
 /**
  * 토스 결제위젯(결제 UI·약관 UI)을 그리고 렌더링 상태·약관 동의 여부·결제창 호출 함수를 돌려준다. 비회원(ANONYMOUS)으로 초기화한다.
- * 화면을 벗어나면 위젯을 지운다.
- * @param amount 결제 금액 (원)
+ * 화면을 벗어나면 위젯을 지운다. 주문서(U-04)와 결제 화면(U-05)이 함께 쓴다.
+ * @param amount 위젯에 처음 그릴 결제 금액 (원)
  * @returns 렌더링 상태, 약관 동의 여부, 결제창 호출 함수
  */
 export const useTossPaymentWidget = (amount: number): TossPaymentWidgetState => {
@@ -74,11 +76,12 @@ export const useTossPaymentWidget = (amount: number): TossPaymentWidgetState => 
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
 
   /**
-   * 렌더링된 결제위젯으로 토스 결제창을 띄운다.
+   * 렌더링된 결제위젯으로 토스 결제창을 띄운다. 결제 금액을 서버 값으로 맞춘 뒤 요청한다.
    * @param request 결제창 요청 정보
    */
-  const requestPayment = async (request: TossPaymentRequest): Promise<void> => {
+  const requestPayment = async ({ amount: value, ...request }: TossPaymentRequest): Promise<void> => {
     if (!widgets) return;
+    await widgets.setAmount({ currency: 'KRW', value });
     await widgets.requestPayment(request);
   };
 
