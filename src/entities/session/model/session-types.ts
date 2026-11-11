@@ -11,6 +11,8 @@ export interface MemberMe {
   name: string;
   phone: string;
   role: MemberRole;
+  /** 휴대폰 문자 인증 여부. 인증한 번호로만 주문·배달 알림 문자가 간다 */
+  phoneVerified: boolean;
   /** 사장님만: 가입 때 입력한 가게 이름 (가게 등록 화면 기본값) */
   storeNameAtSignup?: string;
   /** 라이더만: 운송수단 */

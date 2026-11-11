@@ -8,6 +8,23 @@ export {
   emailSchema,
   passwordConfirmSchema,
   passwordSchema,
+  phoneSchema,
   PASSWORD_HINT,
   PASSWORD_MISMATCH_MESSAGE,
 } from './model/credential-schema';
+export {
+  confirmMyPhoneCode,
+  confirmPhoneCode,
+  requestMyPhoneCode,
+  requestPhoneCode,
+  type PhoneCodeConfirmResponse,
+} from './api/phone-verification-api';
+export { PHONE_CODE_VALID_HINT, PHONE_VERIFICATION_HINT } from './config/phone-verification';
+export {
+  PHONE_CODE_RESEND_SECONDS,
+  usePhoneCodeVerifier,
+  type PhoneCodeVerifier,
+  type PhoneCodeVerifierOptions,
+} from './model/use-phone-code-verifier';
+export { PhoneCodeField, type PhoneCodeFieldProps } from './ui/phone-code-field';
+export { PhoneCodeRequestButton, type PhoneCodeRequestButtonProps } from './ui/phone-code-request-button';

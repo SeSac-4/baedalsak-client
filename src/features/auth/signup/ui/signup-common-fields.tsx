@@ -1,12 +1,13 @@
-import type { ReactNode } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
-import { PASSWORD_HINT } from '@/entities/session';
+import { PASSWORD_HINT, PHONE_VERIFICATION_HINT, PhoneCodeField, PhoneCodeRequestButton } from '@/entities/session';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
 import { PasswordInput } from '@/shared/ui/password-input';
 
 import type { SignupCommonValues } from '../model/signup-schema';
+import type { SignupPhoneVerification } from '../model/use-signup-phone-verification';
 
 export interface SignupCommonFieldsProps {
   /** 입력칸 id 앞부분 (예: 'customer' → customer-email) */
@@ -15,14 +16,22 @@ export interface SignupCommonFieldsProps {
   register: UseFormRegister<SignupCommonValues>;
   /** 가입 폼의 필드 에러 */
   errors: FieldErrors<SignupCommonValues>;
+  /** 휴대폰 인증 상태 (useSignupPhoneVerification) */
+  phoneVerification: SignupPhoneVerification;
 }
 
 /**
  * 가입 공통 입력(이메일·비밀번호·비밀번호 확인·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.
- * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러)
+ * 휴대폰 번호 옆 [인증번호 받기] → 인증번호 입력·[확인] → 인증됨. 인증은 선택이다.
+ * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러), phoneVerification(휴대폰 인증 상태)
  * @returns 공통 입력 요소
  */
-export function SignupCommonFields({ idPrefix, register, errors }: SignupCommonFieldsProps): ReactNode {
+export function SignupCommonFields({
+  idPrefix,
+  register,
+  errors,
+  phoneVerification,
+}: SignupCommonFieldsProps): ReactNode {
   const emailId = `${idPrefix}-email`;
   const passwordId = `${idPrefix}-password`;
   const passwordConfirmId = `${idPrefix}-password-confirm`;
@@ -93,20 +102,34 @@ export function SignupCommonFields({ idPrefix, register, errors }: SignupCommonF
       <FormField
         id={phoneId}
         label='휴대폰 번호'
+        hint={PHONE_VERIFICATION_HINT}
         error={errors.phone?.message}
       >
-        <Input
-          id={phoneId}
-          type='tel'
-          autoComplete='tel'
-          inputMode='tel'
-          placeholder='010-0000-0000'
-          maxLength={13}
-          aria-invalid={Boolean(errors.phone)}
-          aria-describedby={`${phoneId}-message`}
-          {...register('phone')}
-        />
+        <div className='flex gap-2'>
+          <Input
+            id={phoneId}
+            type='tel'
+            autoComplete='tel'
+            inputMode='tel'
+            placeholder='010-0000-0000'
+            maxLength={13}
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={`${phoneId}-message`}
+            {...register('phone', {
+              onChange: (event: ChangeEvent<HTMLInputElement>) =>
+                phoneVerification.handlePhoneChange(event.target.value),
+            })}
+          />
+          <PhoneCodeRequestButton
+            verifier={phoneVerification.verifier}
+            isVerified={phoneVerification.isVerified}
+          />
+        </div>
       </FormField>
+      <PhoneCodeField
+        verifier={phoneVerification.verifier}
+        idPrefix={idPrefix}
+      />
     </>
   );
 }

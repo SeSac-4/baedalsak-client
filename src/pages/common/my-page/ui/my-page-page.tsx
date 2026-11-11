@@ -12,19 +12,28 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
 import { useLogout } from '../model/use-logout';
+import { MyPhoneVerification } from './my-phone-verification';
 import { OwnerStoreCard } from './owner-store-card';
 
 const LOGIN_PATH = '/login';
 
 /**
- * 내 정보를 라벨·값 목록으로 바꾼다. 라이더는 운송수단을 더한다.
+ * 내 정보를 라벨·값 목록으로 바꾼다. 휴대폰 번호 칸에는 인증 상태·인증 버튼을 함께 두고, 라이더는 운송수단을 더한다.
  * @param me - 내 정보
  * @returns 라벨·값 목록
  */
 const getMemberItems = (me: MemberMe): KeyValueItem[] => [
   { label: '이메일', value: me.email },
   { label: '이름', value: me.name },
-  { label: '휴대폰 번호', value: me.phone },
+  {
+    label: '휴대폰 번호',
+    value: (
+      <MyPhoneVerification
+        phone={me.phone}
+        phoneVerified={me.phoneVerified}
+      />
+    ),
+  },
   { label: '회원 유형', value: MEMBER_ROLE_LABEL[me.role] },
   ...(me.vehicleType ? [{ label: '운송수단', value: VEHICLE_TYPE_LABEL[me.vehicleType] }] : []),
 ];
