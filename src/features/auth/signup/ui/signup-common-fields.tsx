@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
+import { PASSWORD_HINT } from '@/entities/session';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
 import { PasswordInput } from '@/shared/ui/password-input';
@@ -15,8 +16,6 @@ export interface SignupCommonFieldsProps {
   /** 가입 폼의 필드 에러 */
   errors: FieldErrors<SignupCommonValues>;
 }
-
-const PASSWORD_HINT = '8~50자, 영문 소문자와 숫자를 함께 넣어 주세요.';
 
 /**
  * 가입 공통 입력(이메일·비밀번호·비밀번호 확인·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.

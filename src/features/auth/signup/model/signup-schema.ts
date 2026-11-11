@@ -1,30 +1,23 @@
 import { z } from 'zod';
 
-import type { VehicleType } from '@/entities/session';
+import {
+  emailSchema,
+  passwordConfirmSchema,
+  passwordSchema,
+  PASSWORD_MISMATCH_MESSAGE,
+  type VehicleType,
+} from '@/entities/session';
 
 /** 라이더 운송수단 선택지 (화면 표시 순서) */
 export const VEHICLE_TYPES = ['WALK', 'BICYCLE', 'MOTORCYCLE'] as const satisfies readonly VehicleType[];
 
-const PASSWORD_MESSAGE = '비밀번호는 8~50자, 영문 소문자와 숫자를 1개 이상 넣어 주세요.';
-const LOWERCASE_PATTERN = /[a-z]/;
-const DIGIT_PATTERN = /\d/;
 const PHONE_PATTERN = /^010-?\d{4}-?\d{4}$/;
 
 /** 가입 공통 필드 검증. 비밀번호 확인은 화면에서만 쓰고 서버로 보내지 않는다 (서버 규칙: 이메일 255자 이하, 비밀번호 8~50자·영문 소문자·숫자 포함, 휴대폰 010 형식) */
 export const signupCommonSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, '이메일을 입력해 주세요.')
-    .max(255, '이메일은 255자 이하로 입력해 주세요.')
-    .pipe(z.email('이메일 형식이 올바르지 않아요.')),
-  password: z
-    .string()
-    .min(8, PASSWORD_MESSAGE)
-    .max(50, PASSWORD_MESSAGE)
-    .regex(LOWERCASE_PATTERN, PASSWORD_MESSAGE)
-    .regex(DIGIT_PATTERN, PASSWORD_MESSAGE),
-  passwordConfirm: z.string().min(1, '비밀번호를 한 번 더 입력해 주세요.'),
+  email: emailSchema,
+  password: passwordSchema,
+  passwordConfirm: passwordConfirmSchema,
   name: z.string().trim().min(1, '이름을 입력해 주세요.').max(50, '이름은 50자 이하로 입력해 주세요.'),
   phone: z
     .string()
@@ -42,7 +35,7 @@ export const signupCommonSchema = z.object({
 const isPasswordConfirmed = ({ password, passwordConfirm }: { password: string; passwordConfirm: string }): boolean =>
   password === passwordConfirm;
 
-const PASSWORD_MISMATCH = { path: ['passwordConfirm'], message: '비밀번호가 일치하지 않아요.' };
+const PASSWORD_MISMATCH = { path: ['passwordConfirm'], message: PASSWORD_MISMATCH_MESSAGE };
 
 /** 고객 가입 폼 검증 (공통 + 비밀번호 일치) */
 export const signupCustomerSchema = signupCommonSchema.refine(isPasswordConfirmed, PASSWORD_MISMATCH);
