@@ -4,6 +4,7 @@ import {
   emailSchema,
   passwordConfirmSchema,
   passwordSchema,
+  phoneSchema,
   PASSWORD_MISMATCH_MESSAGE,
   type VehicleType,
 } from '@/entities/session';
@@ -11,19 +12,13 @@ import {
 /** 라이더 운송수단 선택지 (화면 표시 순서) */
 export const VEHICLE_TYPES = ['WALK', 'BICYCLE', 'MOTORCYCLE'] as const satisfies readonly VehicleType[];
 
-const PHONE_PATTERN = /^010-?\d{4}-?\d{4}$/;
-
 /** 가입 공통 필드 검증. 비밀번호 확인은 화면에서만 쓰고 서버로 보내지 않는다 (서버 규칙: 이메일 255자 이하, 비밀번호 8~50자·영문 소문자·숫자 포함, 휴대폰 010 형식) */
 export const signupCommonSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   passwordConfirm: passwordConfirmSchema,
   name: z.string().trim().min(1, '이름을 입력해 주세요.').max(50, '이름은 50자 이하로 입력해 주세요.'),
-  phone: z
-    .string()
-    .trim()
-    .min(1, '휴대폰 번호를 입력해 주세요.')
-    .regex(PHONE_PATTERN, '010-0000-0000 형식으로 입력해 주세요.'),
+  phone: phoneSchema,
 });
 
 /**

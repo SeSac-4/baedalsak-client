@@ -9,6 +9,7 @@ import {
   SignupSubmitButton,
   signupRiderSchema,
   useSignup,
+  useSignupPhoneVerification,
   VEHICLE_TYPES,
   type SignupResponse,
   type SignupRiderInput,
@@ -49,6 +50,7 @@ const isRiderField = (field: string): field is Path<SignupRiderInput> => RIDER_F
 export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode {
   const toast = useToast();
   const { mutateAsync: signup } = useSignup();
+  const phoneVerification = useSignupPhoneVerification();
   const {
     register,
     control,
@@ -61,7 +63,7 @@ export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode 
   });
 
   /**
-   * 가입 실패를 필드 에러 또는 토스트로 보여 준다.
+   * 가입 실패를 필드 에러 또는 토스트로 보여 준다. 휴대폰 인증 표 오류는 인증을 풀고 인증 칸에 안내한다.
    * @param error - 가입 요청 에러
    */
   const handleSignupError = (error: unknown): void => {
@@ -71,17 +73,19 @@ export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode 
       return;
     }
     fieldErrors.forEach(({ field, message }) => {
+      if (phoneVerification.handleSignupFieldError(field, message)) return;
       setError(isRiderField(field) ? field : 'root', { message });
     });
   };
 
   /**
-   * 가입하고, 성공하면 상위로 결과를 넘긴다.
+   * 가입하고, 성공하면 상위로 결과를 넘긴다. 휴대폰을 인증했으면 표를 함께 보낸다.
    * @param values - 검증을 통과한 폼 값
    */
   const handleValidSubmit = async (values: SignupRiderValues): Promise<void> => {
+    if (!phoneVerification.validateRequired()) return;
     try {
-      onSuccess(await signup({ role: 'RIDER', body: values }));
+      onSuccess(await signup({ role: 'RIDER', body: values, phoneVerificationToken: phoneVerification.token }));
     } catch (error: unknown) {
       handleSignupError(error);
     }
@@ -97,6 +101,7 @@ export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode 
         idPrefix='rider'
         register={register}
         errors={errors}
+        phoneVerification={phoneVerification}
       />
       <FormField
         id={VEHICLE_FIELD_ID}
