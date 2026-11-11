@@ -6,9 +6,10 @@ export const storeKeys = {
   /**
    * 가게 목록 키를 만든다.
    * @param category - 카테고리 코드 (전체면 undefined)
+   * @param q - 가게 이름 검색어 (없으면 undefined)
    * @returns 쿼리 키
    */
-  list: (category?: CategoryCode) => [...storeKeys.all, 'list', category ?? 'ALL'] as const,
+  list: (category?: CategoryCode, q?: string) => [...storeKeys.all, 'list', category ?? 'ALL', q ?? ''] as const,
   /**
    * 가게 목록 통계 키를 만든다. storeKeys.all 아래라 가게 등록·수정 때 함께 갱신된다.
    * @returns 쿼리 키

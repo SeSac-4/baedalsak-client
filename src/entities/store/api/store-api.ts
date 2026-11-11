@@ -4,13 +4,15 @@ import { apiClient } from '@/shared/api';
 import type { StoreDetail, StoreListSummary, StorePage } from '../model/store-types';
 
 /**
- * 가게 목록 한 페이지를 등록순으로 조회한다. 카테고리를 생략하면 전체, 커서를 생략하면 첫 페이지.
+ * 가게 목록 한 페이지를 등록순으로 조회한다. 카테고리·검색어를 생략하면 전체, 커서를 생략하면 첫 페이지.
+ * 검색어가 비어 있으면 파라미터에서 뺀다.
  * @param category - 카테고리 코드
+ * @param q - 가게 이름 검색어 (부분 일치, 최대 50자)
  * @param cursor - 이전 응답의 nextCursor
  * @returns 가게 목록 페이지
  */
-export const getStoreList = async (category?: CategoryCode, cursor?: string): Promise<StorePage> => {
-  const { data } = await apiClient.get<StorePage>('/stores', { params: { category, cursor } });
+export const getStoreList = async (category?: CategoryCode, q?: string, cursor?: string): Promise<StorePage> => {
+  const { data } = await apiClient.get<StorePage>('/stores', { params: { category, q: q || undefined, cursor } });
   return data;
 };
 
