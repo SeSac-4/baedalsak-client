@@ -7,20 +7,18 @@ import { DeliveryMap } from '@/widgets/delivery-map';
 
 export interface OrderDeliveryMapProps {
   order: OrderDetail;
-  /** 배달 정보 (배달 생성 전이면 null, 불러오는 중·실패면 undefined) */
-  delivery: Delivery | null | undefined;
+  /** 배정 이후(ASSIGNED·PICKED_UP·DELIVERED) 배달 */
+  delivery: Delivery;
 }
 
 /**
- * 고객 주문 상세의 배달 지도. 픽업 후(PICKED_UP)에만 가게·배달지와 경로선·라이더 위치(2초 갱신)를 보여 준다. 가게 주소는 가게 상세에서 가져온다.
+ * 고객 주문 상세의 배달 지도. 배정 후 가게·배달지를, 픽업 중에는 경로선·라이더 위치(2초 갱신)를 함께 보여 준다.
+ * 가게 주소는 가게 상세에서 가져온다 (서버 좌표가 없을 때만 쓴다).
  * @param props order(주문 상세), delivery(배달 정보)
- * @returns 지도 요소 (픽업 전·완료 후면 null)
+ * @returns 지도 요소
  */
 export function OrderDeliveryMap({ order, delivery }: OrderDeliveryMapProps): ReactNode {
-  const isPickedUp = delivery?.status === 'PICKED_UP';
-  const { data: store } = useStore(isPickedUp ? order.storeId : 0);
-
-  if (!isPickedUp) return null;
+  const { data: store } = useStore(delivery.pickupPoint ? 0 : order.storeId);
 
   return (
     <DeliveryMap
@@ -30,6 +28,7 @@ export function OrderDeliveryMap({ order, delivery }: OrderDeliveryMapProps): Re
       orderId={order.id}
       pickupPoint={delivery.pickupPoint}
       deliveryPoint={delivery.deliveryPoint}
+      className='h-55 tablet:h-75 desktop:h-75'
     />
   );
 }
