@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
-import { useForm, type Path } from 'react-hook-form';
+import { Controller, useForm, type Path } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 
 import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
 import { PaymentMethodCard, useTossPayment, type TossPaymentMethod } from '@/features/payment/request-payment';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
 import { formatPrice } from '@/shared/lib/format';
+import { AddressSearchInput } from '@/shared/ui/address-search-input';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { FormField } from '@/shared/ui/form-field';
@@ -99,6 +100,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
   const [isAgreed, setIsAgreed] = useState<boolean>(false);
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -183,12 +185,22 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
                 label='주소'
                 error={errors.address?.message}
               >
-                <Input
-                  id={`${id}-address`}
-                  placeholder='예: 서울 성동구 성수이로 113'
-                  aria-invalid={Boolean(errors.address)}
-                  aria-describedby={`${id}-address-message`}
-                  {...register('address')}
+                <Controller
+                  control={control}
+                  name='address'
+                  render={({ field }) => (
+                    <AddressSearchInput
+                      ref={field.ref}
+                      id={`${id}-address`}
+                      name={field.name}
+                      placeholder='주소를 검색해 주세요'
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      aria-invalid={Boolean(errors.address)}
+                      aria-describedby={`${id}-address-message`}
+                    />
+                  )}
                 />
               </FormField>
               <div className='grid grid-cols-2 items-start gap-2'>

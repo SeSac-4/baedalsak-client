@@ -5,7 +5,7 @@ const DELIVERY_ADDRESS_MAX = 255;
 /** 주문서 폼 검증 (서버 규칙: deliveryAddress 255자 · deliveryDong 50자 필수, 요청사항 200자) */
 export const checkoutSchema = z
   .object({
-    address: z.string().trim().min(1, '배달 주소를 입력해 주세요.'),
+    address: z.string().trim().min(1, '배달 주소를 검색해 주세요.'),
     addressDetail: z.string().trim(),
     deliveryDong: z.string().trim().min(1, '배달지 동을 입력해 주세요.').max(50, '동은 50자 이하로 입력해 주세요.'),
     storeRequest: z.string().trim().max(200, '가게 요청사항은 200자 이하로 입력해 주세요.'),

@@ -6,6 +6,7 @@ import { useCategoryList } from '@/entities/category';
 import { getErrorMessage, getFieldErrors } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
 import { formatAmount, parseAmount } from '@/shared/lib/format';
+import { AddressSearchInput } from '@/shared/ui/address-search-input';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { ChoiceButton, ChoiceGroup } from '@/shared/ui/choice';
@@ -161,12 +162,22 @@ export function StoreForm({ variant, defaultValues, submitLabel, onSubmit, notic
         hint={isCreate ? '라이더가 픽업하러 오는 주소예요.' : undefined}
         error={errors.address?.message}
       >
-        <Input
-          id={`${id}-address`}
-          maxLength={255}
-          aria-invalid={Boolean(errors.address)}
-          aria-describedby={`${id}-address-message`}
-          {...register('address')}
+        <Controller
+          control={control}
+          name='address'
+          render={({ field }) => (
+            <AddressSearchInput
+              ref={field.ref}
+              id={`${id}-address`}
+              name={field.name}
+              placeholder='주소를 검색해 주세요'
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              aria-invalid={Boolean(errors.address)}
+              aria-describedby={`${id}-address-message`}
+            />
+          )}
         />
       </FormField>
     </>
