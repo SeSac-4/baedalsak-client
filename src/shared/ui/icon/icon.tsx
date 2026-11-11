@@ -17,6 +17,16 @@ const ICON_PATHS = {
     </>
   ),
   check: <path d='M5 12.5l4.5 4.5L19 7.5' />,
+  search: (
+    <>
+      <circle
+        cx='11'
+        cy='11'
+        r='7'
+      />
+      <path d='M20 20l-4-4' />
+    </>
+  ),
   alert: (
     <>
       <circle
