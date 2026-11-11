@@ -9,6 +9,7 @@ export const PASSWORD_MISMATCH_MESSAGE = '비밀번호가 일치하지 않아요
 const PASSWORD_MESSAGE = '비밀번호는 8~50자, 영문 소문자와 숫자를 1개 이상 넣어 주세요.';
 const LOWERCASE_PATTERN = /[a-z]/;
 const DIGIT_PATTERN = /\d/;
+const PHONE_PATTERN = /^010-?\d{4}-?\d{4}$/;
 
 /** 이메일 검증 (서버 규칙: 이메일 형식·255자 이하). 로그인·가입·비밀번호 찾기 공용 */
 export const emailSchema = z
@@ -28,3 +29,10 @@ export const passwordSchema = z
 
 /** 비밀번호 확인 칸 검증 (빈 값만 막고, 일치 여부는 각 폼 스키마의 refine에서 본다). 화면에서만 쓰고 서버로 보내지 않는다 */
 export const passwordConfirmSchema = z.string().min(1, '비밀번호를 한 번 더 입력해 주세요.');
+
+/** 휴대폰 번호 검증 (서버 규칙: 010 형식, 하이픈은 있어도 없어도 됨). 가입·휴대폰 인증 공용 */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, '휴대폰 번호를 입력해 주세요.')
+  .regex(PHONE_PATTERN, '010-0000-0000 형식으로 입력해 주세요.');
