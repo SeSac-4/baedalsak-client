@@ -1,11 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { useEffect, useEffectEvent, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { isCategoryCode, useCategoryList, type Category, type CategoryCode } from '@/entities/category';
 import { StoreCard, storeKeys, useStoreList, useStoreListSummary } from '@/entities/store';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
+import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
 import { useIntersection } from '@/shared/lib/use-intersection';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -15,8 +16,10 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
 import { PromoBanner } from './promo-banner';
+import { StoreSearchInput } from './store-search-input';
 
 const CATEGORY_PARAM = 'category';
+const KEYWORD_PARAM = 'q';
 /** PC에서 전체 가게 목록을 고른 상태 (쿼리가 없으면 카테고리 타일을 보여 준다) */
 const ALL_STORES_PARAM = 'ALL';
 const ALL_STORES_LABEL = '전체 가게';
@@ -52,40 +55,117 @@ const formatStoreCount = (count: number): string => (count > 0 ? `가게 ${count
 
 /**
  * U-01 가게 목록(홈) 화면. PC는 카테고리 타일에서 고르면 그 가게 목록으로 들어가고, 태블릿·모바일은 칩과 목록을 바로 보여 준다.
- * 고른 카테고리는 URL(?category=)에 둔다.
+ * 고른 카테고리(?category=)와 가게 이름 검색어(?q=)는 URL에 둔다. 검색어는 입력이 300ms 멈추면 반영하고, 검색 중이면 PC도 목록을 보여 준다.
  * @returns 가게 목록 페이지
  */
 export function StoreListPage(): ReactNode {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get(CATEGORY_PARAM);
   const category = isCategoryCode(categoryParam) ? categoryParam : undefined;
-  const hasPicked = category !== undefined || categoryParam === ALL_STORES_PARAM;
+  const keywordParam = searchParams.get(KEYWORD_PARAM) ?? '';
+  const keyword = keywordParam.trim();
+  const isSearching = keyword !== '';
+  const hasPicked = category !== undefined || categoryParam === ALL_STORES_PARAM || isSearching;
+
+  const [keywordInput, setKeywordInput] = useState<string>(keywordParam);
+  const debouncedKeyword = useDebouncedValue(keywordInput.trim());
+  const [prevKeywordParam, setPrevKeywordParam] = useState<string>(keywordParam);
+  // 뒤로가기·'카테고리 전체'처럼 입력 밖에서 URL 검색어가 바뀌면 검색창도 맞춘다
+  if (keywordParam !== prevKeywordParam) {
+    setPrevKeywordParam(keywordParam);
+    if (keywordParam !== debouncedKeyword) setKeywordInput(keywordParam);
+  }
 
   const { data: categories } = useCategoryList();
   const queryClient = useQueryClient();
   const { data: summary, refetch: refetchSummary } = useStoreListSummary();
-  const { data, error, isPending, isFetching, hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } =
-    useStoreList(category);
+  const {
+    data,
+    error,
+    isPending,
+    isFetching,
+    isPlaceholderData,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    fetchNextPage,
+  } = useStoreList(category, keyword || undefined);
   const stores = data?.pages.flatMap((page) => page.content);
   const listCount = (category ? summary?.categoryCounts[category] : summary?.totalCount) ?? 0;
   // 다음 페이지가 실패하면 감지를 멈춘다 (계속 보이는 감지 요소가 요청을 반복하지 않게). 목록 아래 '다시 시도'로 다시 받는다.
   const loadMoreRef = useIntersection(() => void fetchNextPage(), {
-    enabled: hasNextPage && !isFetchingNextPage && !isFetchNextPageError,
+    enabled: hasNextPage && !isFetchingNextPage && !isFetchNextPageError && !isPlaceholderData,
     rootMargin: PREFETCH_MARGIN,
   });
   const listTitle = category ? getCategoryName(categories, category) : ALL_STORES_LABEL;
 
   /**
-   * 카테고리를 URL 쿼리로 고른다. 쿼리가 없으면 PC에서 타일을 보여 준다.
-   * @param value - 쿼리 값 (없으면 쿼리 제거)
+   * PC 제목 아래 설명을 고른다. 검색 결과는 전체 개수를 주지 않아 개수 없이 보여 준다.
+   * @returns 설명 문구
+   */
+  const getListDescription = (): string => {
+    if (isSearching) return `'${keyword}' 검색 결과`;
+    return hasPicked ? `가게 ${listCount}곳` : '카테고리를 고르면 그 가게들이 나와요.';
+  };
+
+  /**
+   * 검색어를 URL 쿼리에 반영한다. 방문 기록은 쌓지 않고, 카테고리 쿼리는 그대로 둔다.
+   * @param value - 앞뒤 공백을 뺀 검색어 (빈 문자열이면 쿼리 제거)
+   */
+  const setKeywordParam = (value: string): void => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value) next.set(KEYWORD_PARAM, value);
+        else next.delete(KEYWORD_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  /**
+   * 입력이 멈춘 검색어를 URL에 반영한다. 이미 같으면(예: 뒤로가기로 맞춘 값) 그대로 둔다.
+   * @param value - 디바운스된 검색어
+   */
+  const syncKeywordParam = useEffectEvent((value: string): void => {
+    if (value !== keyword) setKeywordParam(value);
+  });
+
+  useEffect(() => {
+    syncKeywordParam(debouncedKeyword);
+  }, [debouncedKeyword]);
+
+  /**
+   * 카테고리를 URL 쿼리로 고른다. 검색어는 유지한다.
+   * @param value - 쿼리 값 (없으면 카테고리 쿼리 제거)
    */
   const handleCategoryChange = (value?: string): void => {
-    setSearchParams(value ? { [CATEGORY_PARAM]: value } : {});
+    setSearchParams({
+      ...(value ? { [CATEGORY_PARAM]: value } : {}),
+      ...(isSearching ? { [KEYWORD_PARAM]: keyword } : {}),
+    });
+  };
+
+  /** PC에서 카테고리 타일 화면으로 돌아간다. 검색어도 함께 지운다. */
+  const handleHomeClick = (): void => {
+    setSearchParams({});
+  };
+
+  /** 엔터를 누르면 기다리지 않고 바로 검색한다. */
+  const handleSearchSubmit = (): void => {
+    setKeywordParam(keywordInput.trim());
+  };
+
+  /** 검색어를 지우고 바로 반영한다. */
+  const handleSearchClear = (): void => {
+    setKeywordInput('');
+    setKeywordParam('');
   };
 
   /** 가게 목록을 첫 페이지부터 다시 받고, 통계도 다시 받는다. */
   const handleRefreshClick = (): void => {
-    void queryClient.resetQueries({ queryKey: storeKeys.list(category) });
+    void queryClient.resetQueries({ queryKey: storeKeys.list(category, keyword || undefined) });
     void refetchSummary();
   };
 
@@ -150,7 +230,7 @@ export function StoreListPage(): ReactNode {
         {hasPicked ? (
           <button
             type='button'
-            onClick={() => handleCategoryChange()}
+            onClick={handleHomeClick}
             className='hidden min-h-9 text-note text-fg-muted hover:text-fg desktop:block'
           >
             ‹ 카테고리 전체
@@ -163,11 +243,7 @@ export function StoreListPage(): ReactNode {
               <span className='hidden desktop:inline'>{hasPicked ? listTitle : HOME_TITLE}</span>
             </>
           }
-          description={
-            <span className='hidden desktop:inline'>
-              {hasPicked ? `가게 ${listCount}곳` : '카테고리를 고르면 그 가게들이 나와요.'}
-            </span>
-          }
+          description={<span className='hidden desktop:inline'>{getListDescription()}</span>}
           actions={
             <IconButton
               icon='refresh'
@@ -178,6 +254,13 @@ export function StoreListPage(): ReactNode {
           }
         />
       </div>
+
+      <StoreSearchInput
+        value={keywordInput}
+        onChange={setKeywordInput}
+        onSubmit={handleSearchSubmit}
+        onClear={handleSearchClear}
+      />
 
       {hasPicked ? null : (
         <ul
@@ -256,7 +339,14 @@ export function StoreListPage(): ReactNode {
           </div>
         ) : null}
 
-        {stores && stores.length === 0 ? (
+        {stores && stores.length === 0 && isSearching ? (
+          <EmptyState
+            message={`${category ? `${listTitle}에서 ` : ''}'${keyword}'에 맞는 가게가 없어요`}
+            description='다른 이름으로 찾아보세요.'
+          />
+        ) : null}
+
+        {stores && stores.length === 0 && !isSearching ? (
           <EmptyState
             message={`아직 ${listTitle} 가게가 없어요`}
             description='다른 카테고리를 골라 보세요.'
