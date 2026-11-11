@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import type { ReactNode } from 'react';
 import { useForm, type Path } from 'react-hook-form';
+import { Link } from 'react-router';
 
 import { getErrorMessage, getFieldErrors } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
@@ -23,6 +24,7 @@ export interface LoginFormProps {
 
 const INVALID_CREDENTIALS_MESSAGE = '이메일 또는 비밀번호를 확인하세요';
 const LOGIN_FIELDS: readonly string[] = ['email', 'password'];
+const PASSWORD_RESET_PATH = '/password-reset';
 
 /**
  * 서버 필드명이 폼 필드인지 확인한다.
@@ -115,6 +117,14 @@ export function LoginForm({ onSuccess }: LoginFormProps): ReactNode {
         id='login-password'
         label='비밀번호'
         error={errors.password?.message}
+        aside={
+          <Link
+            to={PASSWORD_RESET_PATH}
+            className='-my-3 inline-flex min-h-11 items-center rounded-control px-1 text-fg-muted underline-offset-2 hover:text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
+          >
+            비밀번호를 잊으셨나요?
+          </Link>
+        }
       >
         <PasswordInput
           id='login-password'

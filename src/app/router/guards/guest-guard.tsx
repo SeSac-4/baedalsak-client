@@ -6,7 +6,7 @@ import { getRoleHomePath, useMe } from '@/entities/session';
 import { RoutePending } from './route-pending';
 
 /**
- * 비로그인 화면(로그인·회원가입) 가드. 이미 로그인했으면 역할 홈으로 보낸다.
+ * 비로그인 화면(로그인·회원가입·비밀번호 찾기) 가드. 이미 로그인했으면 역할 홈으로 보낸다.
  * 내 정보 확인이 실패(503 등)하면 비로그인으로 보고 화면을 그대로 보여 준다.
  * @returns 하위 라우트 또는 이동 요소
  */
