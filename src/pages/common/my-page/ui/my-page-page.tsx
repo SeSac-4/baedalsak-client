@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 import { MEMBER_ROLE_LABEL, useMe, VEHICLE_TYPE_LABEL, type MemberMe } from '@/entities/session';
@@ -11,9 +11,11 @@ import { KeyValueList, type KeyValueItem } from '@/shared/ui/key-value-list';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
+import { WITHDRAW_CONTACT_NOTICE, WITHDRAWABLE_ROLE } from '../config/withdraw';
 import { useLogout } from '../model/use-logout';
 import { MyPhoneVerification } from './my-phone-verification';
 import { OwnerStoreCard } from './owner-store-card';
+import { WithdrawModal } from './withdraw-modal';
 
 const LOGIN_PATH = '/login';
 
@@ -51,13 +53,14 @@ const getInitial = (name: string): string => name.trim().charAt(0);
 
 /**
  * C-06 내 정보 화면. 프로필 머리(이니셜·이름·역할 배지) 아래 이메일·이름·휴대폰·역할을 보여 주고, 사장님은 내 가게 요약을 함께 보여 준다.
- * 로그아웃하면 캐시를 비우고 로그인 화면으로 간다.
+ * 로그아웃하면 캐시를 비우고 로그인 화면으로 간다. 맨 아래 회원 탈퇴는 고객에게만 보이고, 사장님·라이더는 문의 안내만 보여 준다.
  * @returns 내 정보 페이지
  */
 export function MyPage(): ReactNode {
   const navigate = useNavigate();
   const { data: me, error, isPending } = useMe();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState<boolean>(false);
 
   /** 로그아웃하고 결과와 관계없이 로그인 화면으로 간다 */
   const handleLogoutClick = (): void => {
@@ -124,6 +127,24 @@ export function MyPage(): ReactNode {
       >
         로그아웃
       </Button>
+      {me.role === WITHDRAWABLE_ROLE ? (
+        <>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => setIsWithdrawOpen(true)}
+            className='self-center text-fg-subtle'
+          >
+            회원 탈퇴
+          </Button>
+          <WithdrawModal
+            open={isWithdrawOpen}
+            onClose={() => setIsWithdrawOpen(false)}
+          />
+        </>
+      ) : (
+        <p className='text-center text-note text-fg-subtle'>{WITHDRAW_CONTACT_NOTICE}</p>
+      )}
     </div>
   );
 }
