@@ -1,10 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { isCategoryCode, useCategoryList, type Category, type CategoryCode } from '@/entities/category';
-import { StoreCard, useStoreList, type StoreSummary } from '@/entities/store';
+import { StoreCard, storeKeys, useStoreList, useStoreListSummary } from '@/entities/store';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
+import { useIntersection } from '@/shared/lib/use-intersection';
+import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { Icon, type IconName } from '@/shared/ui/icon';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -18,6 +21,8 @@ const CATEGORY_PARAM = 'category';
 const ALL_STORES_PARAM = 'ALL';
 const ALL_STORES_LABEL = '전체 가게';
 const HOME_TITLE = '오늘은 뭐 먹을까요?';
+/** 목록 끝에 닿기 이만큼 전에 다음 페이지를 미리 받는다 */
+const PREFETCH_MARGIN = '200px';
 
 /** 카테고리별 타일 아이콘 */
 const CATEGORY_ICON: Record<CategoryCode, IconName> = {
@@ -46,14 +51,6 @@ const getCategoryName = (categories: Category[] | undefined, code: CategoryCode)
 const formatStoreCount = (count: number): string => (count > 0 ? `가게 ${count}곳` : '준비 중');
 
 /**
- * 가장 낮은 배달비를 구한다.
- * @param stores - 가게 목록
- * @returns 가장 낮은 배달비 (가게가 없으면 null)
- */
-const getMinDeliveryFee = (stores: StoreSummary[]): number | null =>
-  stores.length > 0 ? Math.min(...stores.map((store) => store.deliveryFee)) : null;
-
-/**
  * U-01 가게 목록(홈) 화면. PC는 카테고리 타일에서 고르면 그 가게 목록으로 들어가고, 태블릿·모바일은 칩과 목록을 바로 보여 준다.
  * 고른 카테고리는 URL(?category=)에 둔다.
  * @returns 가게 목록 페이지
@@ -65,8 +62,17 @@ export function StoreListPage(): ReactNode {
   const hasPicked = category !== undefined || categoryParam === ALL_STORES_PARAM;
 
   const { data: categories } = useCategoryList();
-  const { data: allStores, refetch: refetchAllStores } = useStoreList();
-  const { data: stores, error, isPending, isFetching, refetch } = useStoreList(category);
+  const queryClient = useQueryClient();
+  const { data: summary, refetch: refetchSummary } = useStoreListSummary();
+  const { data, error, isPending, isFetching, hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } =
+    useStoreList(category);
+  const stores = data?.pages.flatMap((page) => page.content);
+  const listCount = (category ? summary?.categoryCounts[category] : summary?.totalCount) ?? 0;
+  // 다음 페이지가 실패하면 감지를 멈춘다 (계속 보이는 감지 요소가 요청을 반복하지 않게). 목록 아래 '다시 시도'로 다시 받는다.
+  const loadMoreRef = useIntersection(() => void fetchNextPage(), {
+    enabled: hasNextPage && !isFetchingNextPage && !isFetchNextPageError,
+    rootMargin: PREFETCH_MARGIN,
+  });
   const listTitle = category ? getCategoryName(categories, category) : ALL_STORES_LABEL;
 
   /**
@@ -77,10 +83,10 @@ export function StoreListPage(): ReactNode {
     setSearchParams(value ? { [CATEGORY_PARAM]: value } : {});
   };
 
-  /** 가게 목록을 다시 받는다. */
+  /** 가게 목록을 첫 페이지부터 다시 받고, 통계도 다시 받는다. */
   const handleRefreshClick = (): void => {
-    void refetch();
-    void refetchAllStores();
+    void queryClient.resetQueries({ queryKey: storeKeys.list(category) });
+    void refetchSummary();
   };
 
   /**
@@ -136,8 +142,8 @@ export function StoreListPage(): ReactNode {
   return (
     <div className='mx-auto flex w-full flex-col gap-3 px-4 pt-4 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12'>
       <PromoBanner
-        openCount={allStores?.filter((store) => store.isOpenNow).length ?? 0}
-        minDeliveryFee={getMinDeliveryFee(allStores ?? [])}
+        openCount={summary?.openCount ?? 0}
+        minDeliveryFee={summary?.minDeliveryFee ?? null}
       />
 
       <div>
@@ -159,7 +165,7 @@ export function StoreListPage(): ReactNode {
           }
           description={
             <span className='hidden desktop:inline'>
-              {hasPicked ? `가게 ${stores?.length ?? 0}곳` : '카테고리를 고르면 그 가게들이 나와요.'}
+              {hasPicked ? `가게 ${listCount}곳` : '카테고리를 고르면 그 가게들이 나와요.'}
             </span>
           }
           actions={
@@ -178,14 +184,9 @@ export function StoreListPage(): ReactNode {
           aria-label='카테고리'
           className='hidden grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 desktop:grid'
         >
-          {renderTile(ALL_STORES_LABEL, 'grid', allStores?.length ?? 0, ALL_STORES_PARAM)}
+          {renderTile(ALL_STORES_LABEL, 'grid', summary?.totalCount ?? 0, ALL_STORES_PARAM)}
           {categories?.map((item) =>
-            renderTile(
-              item.name,
-              CATEGORY_ICON[item.code],
-              allStores?.filter((store) => store.category === item.code).length ?? 0,
-              item.code,
-            ),
+            renderTile(item.name, CATEGORY_ICON[item.code], summary?.categoryCounts[item.code] ?? 0, item.code),
           )}
         </ul>
       )}
@@ -207,7 +208,7 @@ export function StoreListPage(): ReactNode {
           </div>
         ) : null}
 
-        {error ? <EmptyState message={getErrorMessage(error)} /> : null}
+        {error && !isFetchNextPageError ? <EmptyState message={getErrorMessage(error)} /> : null}
 
         {stores && stores.length > 0 ? (
           <ul className='grid grid-cols-1 gap-3 tablet:grid-cols-2 tablet:gap-3.5 desktop:grid-cols-3 desktop:gap-4'>
@@ -225,6 +226,34 @@ export function StoreListPage(): ReactNode {
               </li>
             ))}
           </ul>
+        ) : null}
+
+        {hasNextPage ? (
+          <div
+            ref={loadMoreRef}
+            className='flex min-h-10 items-center justify-center gap-2 text-note text-fg-muted'
+          >
+            {isFetchingNextPage ? (
+              <>
+                <Spinner label='가게 더 불러오는 중' />
+                가게를 더 불러오고 있어요.
+              </>
+            ) : null}
+            {isFetchNextPageError && !isFetchingNextPage ? (
+              <div
+                role='alert'
+                className='flex flex-col items-center gap-2 py-2'
+              >
+                <span>가게를 더 불러오지 못했어요. {getErrorMessage(error)}</span>
+                <Button
+                  variant='secondary'
+                  onClick={() => void fetchNextPage()}
+                >
+                  다시 시도
+                </Button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {stores && stores.length === 0 ? (

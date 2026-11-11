@@ -1,15 +1,25 @@
 import type { CategoryCode } from '@/entities/category/@x/store';
 import { apiClient } from '@/shared/api';
 
-import type { StoreDetail, StoreSummary } from '../model/store-types';
+import type { StoreDetail, StoreListSummary, StorePage } from '../model/store-types';
 
 /**
- * 가게 목록을 조회한다. 카테고리를 생략하면 전체.
+ * 가게 목록 한 페이지를 등록순으로 조회한다. 카테고리를 생략하면 전체, 커서를 생략하면 첫 페이지.
  * @param category - 카테고리 코드
- * @returns 가게 요약 목록
+ * @param cursor - 이전 응답의 nextCursor
+ * @returns 가게 목록 페이지
  */
-export const getStoreList = async (category?: CategoryCode): Promise<StoreSummary[]> => {
-  const { data } = await apiClient.get<StoreSummary[]>('/stores', { params: { category } });
+export const getStoreList = async (category?: CategoryCode, cursor?: string): Promise<StorePage> => {
+  const { data } = await apiClient.get<StorePage>('/stores', { params: { category, cursor } });
+  return data;
+};
+
+/**
+ * 가게 목록 통계(전체·영업 중·카테고리별 가게 수, 최저 배달비)를 조회한다.
+ * @returns 가게 목록 통계
+ */
+export const getStoreListSummary = async (): Promise<StoreListSummary> => {
+  const { data } = await apiClient.get<StoreListSummary>('/stores/summary');
   return data;
 };
 

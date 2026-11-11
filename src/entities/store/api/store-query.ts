@@ -10,6 +10,11 @@ export const storeKeys = {
    */
   list: (category?: CategoryCode) => [...storeKeys.all, 'list', category ?? 'ALL'] as const,
   /**
+   * 가게 목록 통계 키를 만든다. storeKeys.all 아래라 가게 등록·수정 때 함께 갱신된다.
+   * @returns 쿼리 키
+   */
+  summary: () => [...storeKeys.all, 'summary'] as const,
+  /**
    * 가게 상세 키를 만든다.
    * @param storeId - 가게 ID
    * @returns 쿼리 키
