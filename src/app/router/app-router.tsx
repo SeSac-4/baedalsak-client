@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router';
 
 import { LoginPage } from '@/pages/common/login';
 import { MyPage } from '@/pages/common/my-page';
+import { PasswordResetPage } from '@/pages/common/password-reset';
 import { SignupCustomerPage } from '@/pages/common/signup-customer';
 import { SignupOwnerPage } from '@/pages/common/signup-owner';
 import { SignupRiderPage } from '@/pages/common/signup-rider';
@@ -49,6 +50,10 @@ export function AppRouter(): ReactNode {
         <Route
           path='/login'
           element={<LoginPage />}
+        />
+        <Route
+          path='/password-reset'
+          element={<PasswordResetPage />}
         />
         <Route
           path='/signup'
