@@ -39,12 +39,16 @@ const PAYMENT_REQUEST_ERROR_MESSAGE = '결제창을 열지 못했어요. 다시 
 /** PC에서 구매자가 토스 결제창을 닫으면 failUrl 대신 이 코드의 오류로 끝난다 */
 const USER_CANCEL_CODE = 'USER_CANCEL';
 
+/** 장바구니 가게가 폐업했거나 없어진 주문 실패 */
+const STORE_NOT_FOUND = 'STORE_NOT_FOUND';
+const STORE_NOT_FOUND_MESSAGE = '가게를 찾을 수 없어 주문할 수 없어요. 장바구니를 비우고 다른 가게에서 담아 주세요.';
 /** 장바구니를 다시 확인해야 하는 주문 실패 (사유를 알리고 장바구니로 돌려보낸다) */
 const CART_ERROR_CODES: readonly string[] = [
   'CART_EMPTY',
   'STORE_CLOSED',
   'MENU_NOT_ON_SALE',
   'MIN_ORDER_AMOUNT_NOT_MET',
+  STORE_NOT_FOUND,
 ];
 
 /** 서버 errors[].field → 폼 필드 */
@@ -128,6 +132,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
 
   /**
    * 주문을 만들고 토스 결제창을 연다. 주문 생성이 실패하면 에러 종류에 맞게 안내한다.
+   * 가게가 없으면(폐업) 장바구니 비우기를 안내하고 장바구니로 돌려보낸다.
    * @param values - 검증을 통과한 폼 값
    */
   const handleValidSubmit = async (values: CheckoutFormValues): Promise<void> => {
@@ -141,8 +146,9 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
         fieldErrors.forEach(({ field, reason }) => setError(SERVER_FIELD_MAP[field] ?? 'root', { message: reason }));
         return;
       }
-      toast(getErrorMessage(error));
-      if (CART_ERROR_CODES.includes(getErrorCode(error) ?? '')) {
+      const errorCode = getErrorCode(error) ?? '';
+      toast(errorCode === STORE_NOT_FOUND ? STORE_NOT_FOUND_MESSAGE : getErrorMessage(error));
+      if (CART_ERROR_CODES.includes(errorCode)) {
         navigate(CART_PATH, { replace: true });
         await queryClient.invalidateQueries({ queryKey: cartKeys.all });
       }
