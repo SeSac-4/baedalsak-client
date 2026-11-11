@@ -77,10 +77,11 @@ export function PasswordResetForm({ email, onChangeEmail, onSuccess }: PasswordR
   };
 
   /**
-   * 인증 코드 메일을 다시 요청한다.
+   * 인증 코드 메일을 다시 요청한다. 새 코드를 받으므로 이전 코드 오류는 지운다.
    */
   const handleResendClick = async (): Promise<void> => {
     clearErrors('root');
+    clearErrors('code');
     try {
       await requestCode({ email });
       toast(RESEND_SUCCESS_MESSAGE, 'success');
