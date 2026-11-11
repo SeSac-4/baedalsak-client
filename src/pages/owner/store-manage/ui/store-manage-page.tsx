@@ -8,12 +8,13 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { useToast } from '@/shared/ui/toast';
 
 import { BusinessHoursForm } from './business-hours-form';
+import { StoreCloseCard } from './store-close-card';
 import { StorePhotoCard } from './store-photo-card';
 
 const SAVED_MESSAGE = '가게 정보를 저장했어요.';
 
 /**
- * O-04 가게 관리 화면. 운영 상태, 가게 사진, 가게 정보, 요일별 영업시간을 카드마다 따로 저장한다.
+ * O-04 가게 관리 화면. 운영 상태, 가게 사진, 가게 정보, 요일별 영업시간을 카드마다 따로 저장하고, 맨 아래에서 가게를 폐업한다.
  * 내 가게는 사장님 라우트 가드가 먼저 불러 둔다.
  * @returns 가게 관리 페이지
  */
@@ -62,6 +63,8 @@ export function StoreManagePage(): ReactNode {
         hours={store.businessHours}
         today={store.todayHour.dayOfWeek}
       />
+
+      <StoreCloseCard store={store} />
     </div>
   );
 }
