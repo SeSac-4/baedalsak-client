@@ -1,9 +1,8 @@
 import { formatTime } from '@/shared/lib/format';
 
-import type { DeliveryRoute, RiderLocation } from '../model/delivery-types';
+import type { RiderLocation } from '../model/delivery-types';
 
 const MINUTE_MS = 60_000;
-const MINUTE_S = 60;
 const METERS_PER_KM = 1_000;
 /** 1km 미만은 10m 단위로 */
 const SHORT_DISTANCE_STEP_M = 10;
@@ -47,11 +46,3 @@ export const formatEta = (location: RiderLocation): string | null => {
   if (location.remainingDistanceM === null || !location.etaAt) return null;
   return `도착 예상 ${formatTime(location.etaAt)} · 약 ${formatDistance(location.remainingDistanceM)} 남음`;
 };
-
-/**
- * 경로 전체 거리·예상 시간 안내 (배차 완료 때 가게까지).
- * @param route - 경로
- * @returns 예: 약 920m · 3분
- */
-export const formatRouteSummary = (route: DeliveryRoute): string =>
-  `약 ${formatDistance(route.distanceM)} · ${Math.max(1, Math.ceil(route.durationS / MINUTE_S))}분`;
