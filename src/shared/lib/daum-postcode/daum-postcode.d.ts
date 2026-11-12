@@ -16,8 +16,10 @@ declare namespace daum {
     sido: string;
     /** 시·군·구 (예: 성동구) */
     sigungu: string;
-    /** 법정동·법정리 (예: 성수동1가) */
+    /** 법정동·법정리 (예: 성수동1가). 읍·면 지역은 리 이름 */
     bname: string;
+    /** 법정 읍·면 (예: 봉담읍). 동 지역은 빈 값 */
+    bname1: string;
     buildingName: string;
   }
 

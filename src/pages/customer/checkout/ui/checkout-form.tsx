@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router';
 import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
 import { PaymentMethodCard, useTossPayment, type TossPaymentMethod } from '@/features/payment/request-payment';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
+import type { PostcodeAddress } from '@/shared/lib/daum-postcode';
 import { formatPrice } from '@/shared/lib/format';
 import { AddressSearchInput } from '@/shared/ui/address-search-input';
 import { Button } from '@/shared/ui/button';
@@ -55,10 +56,17 @@ const CART_ERROR_CODES: readonly string[] = [
 /** 서버 errors[].field → 폼 필드 */
 const SERVER_FIELD_MAP: Record<string, Path<CheckoutFormValues>> = {
   deliveryAddress: 'address',
-  deliveryDong: 'deliveryDong',
+  deliveryDong: 'address',
   storeRequest: 'storeRequest',
   riderRequest: 'riderRequest',
 };
+
+/**
+ * 우편번호 검색 결과에서 배달지 동을 뽑는다. 읍·면 지역은 리 대신 읍·면 이름을 쓴다.
+ * @param picked - 우편번호 검색 결과
+ * @returns 배달지 동 (예: 성수동2가, 봉담읍)
+ */
+const getDeliveryDong = (picked: PostcodeAddress): string => picked.bname1 || picked.bname;
 
 /**
  * 폼 값을 주문 생성 요청으로 바꾼다. 주소·상세 주소는 한 줄로 합치고, 빈 요청사항은 null.
@@ -81,7 +89,7 @@ const isUserCancelError = (error: unknown): boolean =>
   typeof error === 'object' && error !== null && 'code' in error && error.code === USER_CANCEL_CODE;
 
 /**
- * U-04 주문서·결제 폼. 배달 주소·동·요청사항과 결제 수단(신용·체크카드·토스페이)을 보여 준다.
+ * U-04 주문서·결제 폼. 배달 주소(동은 주소 검색 결과로 채움)·요청사항과 결제 수단(신용·체크카드·토스페이)을 보여 준다.
  * 결제하기를 누르면 주문(POST /orders)을 한 번 만들고, 응답의 결제창 값으로 고른 수단의 토스 결제창을 연다.
  * 결제창을 닫으면 주문서에 그대로 머문다. 장바구니는 결제 완료 때 서버가 비운다.
  * 장바구니 문제(빈 장바구니·영업 종료·품절·최소주문 미달)면 사유를 알리고 장바구니로 돌려보낸다.
@@ -103,6 +111,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -183,7 +192,7 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
               <FormField
                 id={`${id}-address`}
                 label='주소'
-                error={errors.address?.message}
+                error={errors.address?.message ?? errors.deliveryDong?.message}
               >
                 <Controller
                   control={control}
@@ -195,44 +204,30 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
                       name={field.name}
                       placeholder='주소를 검색해 주세요'
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(address, picked) => {
+                        field.onChange(address);
+                        setValue('deliveryDong', getDeliveryDong(picked), { shouldValidate: true });
+                      }}
                       onBlur={field.onBlur}
-                      aria-invalid={Boolean(errors.address)}
+                      aria-invalid={Boolean(errors.address ?? errors.deliveryDong)}
                       aria-describedby={`${id}-address-message`}
                     />
                   )}
                 />
               </FormField>
-              <div className='grid grid-cols-2 items-start gap-2'>
-                <FormField
+              <FormField
+                id={`${id}-detail`}
+                label='상세 주소'
+                error={errors.addressDetail?.message}
+              >
+                <Input
                   id={`${id}-detail`}
-                  label='상세 주소'
-                  error={errors.addressDetail?.message}
-                >
-                  <Input
-                    id={`${id}-detail`}
-                    placeholder='예: 302호'
-                    aria-invalid={Boolean(errors.addressDetail)}
-                    aria-describedby={`${id}-detail-message`}
-                    {...register('addressDetail')}
-                  />
-                </FormField>
-                <FormField
-                  id={`${id}-dong`}
-                  label='동'
-                  error={errors.deliveryDong?.message}
-                >
-                  <Input
-                    id={`${id}-dong`}
-                    maxLength={50}
-                    placeholder='예: 성수동2가'
-                    aria-invalid={Boolean(errors.deliveryDong)}
-                    aria-describedby={`${id}-dong-message`}
-                    {...register('deliveryDong')}
-                  />
-                </FormField>
-              </div>
-              <p className='text-note text-fg-muted'>동은 라이더 배차 목록에 배달지로 보여요.</p>
+                  placeholder='예: 302호'
+                  aria-invalid={Boolean(errors.addressDetail)}
+                  aria-describedby={`${id}-detail-message`}
+                  {...register('addressDetail')}
+                />
+              </FormField>
               <div className='flex justify-between gap-3 border-t border-border pt-3'>
                 <span className='text-fg-muted'>연락처</span>
                 <span className='text-fg tabular-nums'>{phone}</span>
