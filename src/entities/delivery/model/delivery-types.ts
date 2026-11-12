@@ -79,16 +79,20 @@ export interface RiderDelivery {
   deliveryPoint?: DeliveryPoint | null;
 }
 
-/** GET /deliveries/by-order/{orderId}/route 응답 (픽업 전이면 204). 가게 → 배달지 경로 */
+/** 경로 구간: 라이더 현재 위치 → 가게 (배차 완료) · 가게 → 배달지 (픽업 후) */
+export type RouteLeg = 'TO_STORE' | 'TO_CUSTOMER';
+
+/** GET /deliveries/by-order/{orderId}/route 응답 (배차 전·경로 계산 전이면 204). 배차 완료면 라이더 → 가게, 픽업 후면 가게 → 배달지 */
 export interface DeliveryRoute {
   deliveryId: number;
-  /** 경로 좌표 (가게 → 배달지 순서) */
+  leg: RouteLeg;
+  /** 경로 좌표 (출발 → 도착 순서). TO_STORE 면 첫 점이 라이더 현재 위치 */
   path: DeliveryPoint[];
   /** 전체 거리 (m) */
   distanceM: number;
   /** 예상 소요 시간 (초) */
   durationS: number;
-  /** 길찾기 실패로 가게·배달지를 직선으로 이었으면 true */
+  /** 길찾기 실패로 출발·도착을 직선으로 이었으면 true */
   straight: boolean;
 }
 

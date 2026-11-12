@@ -1,3 +1,5 @@
+import type { RouteLeg } from '../model/delivery-types';
+
 /** 배달 쿼리 키 팩토리 */
 export const deliveryKeys = {
   all: ['delivery'] as const,
@@ -18,11 +20,17 @@ export const deliveryKeys = {
    */
   byOrder: (orderId: number) => [...deliveryKeys.all, 'by-order', orderId] as const,
   /**
-   * 주문의 배달 경로 키를 만든다.
-   * @param orderId - 주문 ID
+   * 내 현재 위치(라이더) 키를 만든다.
    * @returns 쿼리 키
    */
-  route: (orderId: number) => [...deliveryKeys.all, 'route', orderId] as const,
+  myPosition: () => [...deliveryKeys.all, 'my-position'] as const,
+  /**
+   * 주문의 배달 경로 키를 만든다. 구간마다 경로가 달라 따로 둔다.
+   * @param orderId - 주문 ID
+   * @param leg - 경로 구간
+   * @returns 쿼리 키
+   */
+  route: (orderId: number, leg: RouteLeg) => [...deliveryKeys.all, 'route', orderId, leg] as const,
   /**
    * 주문의 라이더 위치 키를 만든다.
    * @param orderId - 주문 ID

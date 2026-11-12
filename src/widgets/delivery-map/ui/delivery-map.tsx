@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 
 import {
   formatRemaining,
+  formatRouteSummary,
   useDeliveryLocation,
   useDeliveryRoute,
   type DeliveryPoint,
   type DeliveryStatus,
+  type RouteLeg,
 } from '@/entities/delivery';
 import { cn } from '@/shared/lib/cn';
 import { useAddressCoords, type LatLngLiteral } from '@/shared/lib/kakao-map';
@@ -17,7 +19,7 @@ export interface DeliveryMapProps {
   /** 배달지 주소 */
   deliveryAddress: string;
   status: DeliveryStatus;
-  /** 주문 ID. 있으면 픽업 중 경로선·라이더 위치를 서버에서 받아 2초마다 갱신한다 */
+  /** 주문 ID. 있으면 배차 완료 때 라이더 → 가게 경로, 픽업 중 가게 → 배달지 경로와 라이더 위치(2초 갱신)를 서버에서 받는다 */
   orderId?: number;
   /** 서버가 준 가게 좌표. 있으면 주소 변환을 건너뛴다 */
   pickupPoint?: DeliveryPoint | null;
@@ -53,13 +55,14 @@ const ARRIVED_CHIP: StatusChip = { text: '배달지 도착', isMoving: false };
 
 /**
  * 지도에 찍을 표시를 만든다. 픽업 전에는 가게, 픽업 후에는 배달지(라이더 위치가 있으면 라이더)를 강조한다.
+ * 라이더는 배차 완료(가게로 가는 출발점)·픽업 중에만 찍는다.
  * @param positions - 가게·배달지·라이더 좌표 (모르면 null)
  * @param status - 배달 상태
  * @returns 표시 목록
  */
 const buildMarkers = (positions: MarkerPositions, status: DeliveryStatus): KakaoMapMarker[] => {
   const isPickedUp = status === 'PICKED_UP' || status === 'DELIVERED';
-  const rider = status === 'PICKED_UP' ? positions.rider : null;
+  const rider = status === 'ASSIGNED' || status === 'PICKED_UP' ? positions.rider : null;
   const markers: KakaoMapMarker[] = [];
 
   if (positions.store) {
@@ -81,7 +84,13 @@ const buildMarkers = (positions: MarkerPositions, status: DeliveryStatus): Kakao
     });
   }
   if (rider) {
-    markers.push({ id: 'rider', position: rider, label: '라이더', tone: 'role', emphasized: true });
+    markers.push({
+      id: 'rider',
+      position: rider,
+      label: '라이더',
+      tone: isPickedUp ? 'role' : 'outline',
+      emphasized: isPickedUp,
+    });
   }
   return markers;
 };
@@ -96,8 +105,9 @@ const getAddressesToGeocode = (targets: { address: string | undefined; point: De
 
 /**
  * 배달 지도 (카카오맵). 라이더·고객·사장님 화면이 같이 쓴다.
- * 가게·배달지는 서버 좌표를 쓰고, 없으면 주소로 찾는다. orderId 를 넘기면 픽업 중에
- * 도로 경로선과 라이더 위치(2초 폴링), 남은 거리·시간을 함께 보여 준다.
+ * 가게·배달지는 서버 좌표를 쓰고, 없으면 주소로 찾는다. orderId 를 넘기면 배차 완료 때는
+ * 라이더 현재 위치 → 가게 경로선과 거리·예상 시간을, 픽업 중에는 가게 → 배달지 경로선과
+ * 라이더 위치(2초 폴링), 남은 거리·시간을 함께 보여 준다. 배차 완료 때 라이더는 움직이지 않는다.
  * @param props storeAddress, deliveryAddress, status, orderId, pickupPoint, deliveryPoint, riderPosition, routePath, className
  * @returns 지도 섹션 요소
  */
@@ -113,8 +123,13 @@ export function DeliveryMap({
   className,
 }: DeliveryMapProps): ReactNode {
   const isPickedUp = status === 'PICKED_UP';
+  const isAssigned = status === 'ASSIGNED';
+  const showsRoute = isAssigned || isPickedUp;
+  const leg: RouteLeg = isAssigned ? 'TO_STORE' : 'TO_CUSTOMER';
   const isLive = orderId > 0 && riderPosition === undefined;
-  const { data: route } = useDeliveryRoute(orderId, isLive && isPickedUp && routePath === undefined);
+  const { data: fetchedRoute } = useDeliveryRoute(orderId, leg, isLive && showsRoute && routePath === undefined);
+  // 상태가 막 바뀐 순간 다른 구간 응답이 올 수 있어 지금 구간과 맞을 때만 쓴다
+  const route = fetchedRoute?.leg === leg ? fetchedRoute : null;
   const { data: tracking } = useDeliveryLocation(orderId, isLive && status !== 'DELIVERED');
 
   const addresses = getAddressesToGeocode([
@@ -127,12 +142,18 @@ export function DeliveryMap({
   const home = deliveryPoint ?? geocoded.get(deliveryAddress) ?? null;
 
   const location = isLive && isPickedUp ? (tracking?.location ?? null) : null;
+  // 배차 완료 때 라이더는 가게까지 경로의 출발점에 서 있다
+  const approachStart = isAssigned ? (route?.path[0] ?? null) : null;
   const rider =
-    riderPosition !== undefined ? riderPosition : location ? { lat: location.lat, lng: location.lng } : null;
-  const path = isPickedUp ? (routePath ?? route?.path) : undefined;
+    riderPosition !== undefined ? riderPosition : location ? { lat: location.lat, lng: location.lng } : approachStart;
+  const path = showsRoute ? (routePath ?? route?.path) : undefined;
   const markers = buildMarkers({ store, home, rider }, status);
   const chip = location?.arrived ? ARRIVED_CHIP : STATUS_CHIP[status];
-  const remaining = location ? formatRemaining(location) : null;
+  const remaining = location
+    ? formatRemaining(location)
+    : isAssigned && route
+      ? `가게까지 ${formatRouteSummary(route)}`
+      : null;
 
   return (
     <section
@@ -143,7 +164,7 @@ export function DeliveryMap({
         markers={markers}
         path={path}
         pathStyle={route?.straight ? 'dashed' : 'solid'}
-        label='가게에서 배달지까지 지도'
+        label={isAssigned ? '라이더 위치에서 가게까지 지도' : '가게에서 배달지까지 지도'}
         className={cn('h-60 tablet:h-80 desktop:h-115', className)}
       />
       <span
