@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 
-import type { WaitingDelivery } from '@/entities/delivery';
+import { useMyRiderPosition, type WaitingDelivery } from '@/entities/delivery';
 import { useAddressCoords } from '@/shared/lib/kakao-map';
 import { KakaoMap, type KakaoMapMarker } from '@/shared/ui/kakao-map';
+
+const MY_POSITION_MARKER_ID = 'my-position';
 
 export interface PickupMapProps {
   /** 배차 대기 배달 */
@@ -15,14 +17,16 @@ export interface PickupMapProps {
 
 /**
  * 배차 대기 지도 (카카오맵). 픽업 주소를 좌표로 바꿔 순번 핀을 찍고, 선택된 요청을 강조한다.
+ * 내 현재 위치(서버가 준 가상 위치·GPS)도 함께 찍어 가게까지 거리를 가늠하게 한다. 위치를 모르면 빼고 그린다.
  * 배달지는 수락 전이라 동 단위만 알 수 있어 표시하지 않는다. 좌표를 못 찾은 주소는 빼고 그린다.
  * @param props deliveries(배차 대기 배달), selectedIndex(선택된 순서), onSelect(핀 선택)
  * @returns 지도 섹션 요소
  */
 export function PickupMap({ deliveries, selectedIndex, onSelect }: PickupMapProps): ReactNode {
   const { coords } = useAddressCoords(deliveries.map((delivery) => delivery.pickupAddress));
+  const { data: myPosition } = useMyRiderPosition();
 
-  const markers: KakaoMapMarker[] = deliveries.flatMap((delivery, index) => {
+  const pickupMarkers: KakaoMapMarker[] = deliveries.flatMap((delivery, index) => {
     const position = coords[index];
     if (!position) return [];
     const isSelected = index === selectedIndex;
@@ -37,6 +41,9 @@ export function PickupMap({ deliveries, selectedIndex, onSelect }: PickupMapProp
       },
     ];
   });
+  const markers: KakaoMapMarker[] = myPosition
+    ? [...pickupMarkers, { id: MY_POSITION_MARKER_ID, position: myPosition, label: '내 위치', tone: 'plain' }]
+    : pickupMarkers;
 
   return (
     <section
@@ -45,12 +52,19 @@ export function PickupMap({ deliveries, selectedIndex, onSelect }: PickupMapProp
     >
       <KakaoMap
         markers={markers}
-        label='배차 대기 중인 가게 위치'
+        label='배차 대기 중인 가게와 내 위치'
         className='h-45 tablet:h-60'
       />
-      <div className='absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.25 rounded-md border border-border bg-surface px-2.25 py-0.5 text-note text-fg-muted'>
-        <span className='size-2.25 rounded-full bg-role' />
-        픽업 가게 (번호 = 목록 순서)
+      <div className='absolute bottom-2.5 left-2.5 z-10 flex items-center gap-2.5 rounded-md border border-border bg-surface px-2.25 py-0.5 text-note text-fg-muted'>
+        <span className='flex items-center gap-1.25'>
+          <span className='size-2.25 rounded-full bg-role' />
+          픽업 가게 (번호 = 목록 순서)
+        </span>
+        {myPosition ? (
+          <span className='flex items-center gap-1.25'>
+            <span className='size-2.25 rounded-full border-2 border-fg bg-surface' />내 위치
+          </span>
+        ) : null}
       </div>
     </section>
   );

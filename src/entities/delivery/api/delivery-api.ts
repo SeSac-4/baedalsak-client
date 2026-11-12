@@ -3,6 +3,7 @@ import { apiClient } from '@/shared/api';
 import type {
   Delivery,
   DeliveryLocation,
+  DeliveryPoint,
   DeliveryRoute,
   RiderDelivery,
   WaitingDeliveryPage,
@@ -41,9 +42,18 @@ export const getDeliveryByOrder = async (orderId: number): Promise<Delivery | nu
 };
 
 /**
- * 주문의 배달 경로(가게 → 배달지)를 조회한다. (고객·사장님·배정된 라이더)
+ * 내 현재 위치를 조회한다. (라이더) 가상 위치면 처음 볼 때 가게 주변에 정해지고, 배달을 마치면 배달지로 옮겨진다.
+ * @returns 현재 위치 (모르면 204 → null)
+ */
+export const getMyRiderPosition = async (): Promise<DeliveryPoint | null> => {
+  const { data, status } = await apiClient.get<DeliveryPoint>('/deliveries/me/position');
+  return status === HTTP_NO_CONTENT ? null : data;
+};
+
+/**
+ * 주문의 배달 경로를 조회한다. (고객·사장님·배정된 라이더) 배차 완료면 라이더 → 가게, 픽업 후면 가게 → 배달지.
  * @param orderId - 주문 ID
- * @returns 경로 (픽업 전이라 경로가 없으면 204 → null)
+ * @returns 경로 (배차 전이거나 아직 계산 전이면 204 → null)
  */
 export const getDeliveryRoute = async (orderId: number): Promise<DeliveryRoute | null> => {
   const { data, status } = await apiClient.get<DeliveryRoute>(`/deliveries/by-order/${orderId}/route`);
