@@ -10,6 +10,7 @@ import { StatusPill } from '@/shared/ui/status-pill';
 const RIDER_NAV: NavPillItem[] = [
   { to: '/rider', label: '배차 대기', end: true },
   { to: '/rider/active', label: '진행 중 배달' },
+  { to: '/rider/history', label: '배달 내역' },
   { to: '/me', label: '내 정보' },
 ];
 

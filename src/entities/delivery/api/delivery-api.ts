@@ -5,6 +5,7 @@ import type {
   DeliveryLocation,
   DeliveryRoute,
   RiderDelivery,
+  RiderDeliveryHistory,
   WaitingDeliveryPage,
 } from '../model/delivery-types';
 
@@ -28,6 +29,17 @@ export const getWaitingDeliveryList = async (page: number, size: number): Promis
 export const getActiveDelivery = async (): Promise<RiderDelivery | null> => {
   const { data, status } = await apiClient.get<RiderDelivery>('/deliveries/me/active');
   return status === HTTP_NO_CONTENT ? null : data;
+};
+
+/**
+ * 내가 기간 안에 완료한 배달을 최근 완료 순으로 조회한다. (라이더) 날짜는 한국 날짜, 최대 93일.
+ * @param from - 시작 날짜 (YYYY-MM-DD, 포함)
+ * @param to - 끝 날짜 (YYYY-MM-DD, 포함)
+ * @returns 완료한 배달 목록
+ */
+export const getDeliveryHistory = async (from: string, to: string): Promise<RiderDeliveryHistory[]> => {
+  const { data } = await apiClient.get<RiderDeliveryHistory[]>('/deliveries/me/history', { params: { from, to } });
+  return data;
 };
 
 /**
