@@ -5,6 +5,8 @@ import { formatPrice } from '@/shared/lib/format';
 
 import { formatDateKey } from '../lib/history-period';
 
+const ZERO_BAR_HEIGHT = 3;
+
 /** 막대 하나 */
 export interface DailyFeeBar {
   dateKey: string;
@@ -22,7 +24,7 @@ export interface DailyFeeChartProps {
 
 /**
  * 일별 배달비 막대 차트. 막대를 누르면 그날을 고르고, 다시 누르면 고르기를 푼다.
- * 고른 날이 없으면 가장 많이 번 날을 역할색으로 강조한다.
+ * 고른 날이 없으면 가장 많이 번 날을 역할색으로 강조한다. 0원인 날은 회색 얇은 막대로 보여 준다.
  * @param props bars(막대 목록), selectedDateKey(고른 날짜), onSelect
  * @returns 차트 요소
  */
@@ -52,11 +54,16 @@ export function DailyFeeChart({ bars, selectedDateKey, onSelect }: DailyFeeChart
             <span
               className={cn(
                 'w-full max-w-6 rounded-t-[4px] transition-colors',
-                isHighlighted(bar) ? 'bg-role' : 'bg-role-soft group-hover:bg-role-light',
+                isHighlighted(bar)
+                  ? 'bg-role'
+                  : bar.totalFee === 0
+                    ? 'bg-border-strong'
+                    : 'bg-role-soft group-hover:bg-role-light',
               )}
               style={{
                 height: maxFee === 0 ? 0 : `${(bar.totalFee / maxFee) * 100}%`,
-                minHeight: bar.totalFee > 0 ? 2 : 0,
+                // 0원인 날도 날짜 칸이 비어 보이지 않게 얇은 막대를 둔다
+                minHeight: bar.totalFee > 0 ? ZERO_BAR_HEIGHT + 1 : ZERO_BAR_HEIGHT,
               }}
             />
           </span>
