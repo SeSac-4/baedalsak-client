@@ -1,19 +1,15 @@
 import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 
-import { useRiderOnlineStore } from '@/entities/delivery';
+import { useActiveDelivery, useRiderOnlineStore } from '@/entities/delivery';
 import type { MemberMe } from '@/entities/session';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 import { StatusPill } from '@/shared/ui/status-pill';
 import { Switch } from '@/shared/ui/switch';
+import { useToast } from '@/shared/ui/toast';
 
-/** 라이더 메뉴 */
-const RIDER_NAV: NavPillItem[] = [
-  { to: '/rider', label: '배차 대기', end: true },
-  { to: '/rider/active', label: '진행 중 배달' },
-  { to: '/rider/history', label: '배달 내역' },
-  { to: '/me', label: '내 정보' },
-];
+const WAITING_LOCKED_MESSAGE = '배달을 마치면 배차 대기를 볼 수 있어요.';
+const ONLINE_LOCKED_MESSAGE = '배달 중에는 운행을 끌 수 없어요.';
 
 export interface RiderLayoutProps {
   me: MemberMe;
@@ -27,6 +23,32 @@ export interface RiderLayoutProps {
  */
 export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
   const { isOnline, setOnline } = useRiderOnlineStore();
+  const { data: activeDelivery } = useActiveDelivery();
+  const toast = useToast();
+  const isDelivering = Boolean(activeDelivery);
+  const isOnlineLocked = isDelivering && isOnline;
+
+  // 진행 중인 배달이 있으면 배차 대기 탭과 운행 스위치를 잠그고, 누르면 이유를 알린다
+  const riderNav: NavPillItem[] = [
+    {
+      to: '/rider',
+      label: '배차 대기',
+      end: true,
+      disabled: isDelivering,
+      onDisabledClick: () => toast(WAITING_LOCKED_MESSAGE),
+    },
+    { to: '/rider/active', label: '진행 중 배달' },
+    { to: '/rider/history', label: '배달 내역' },
+    { to: '/me', label: '내 정보' },
+  ];
+
+  const handleOnlineChange = (checked: boolean): void => {
+    if (isOnlineLocked) {
+      toast(ONLINE_LOCKED_MESSAGE);
+      return;
+    }
+    setOnline(checked);
+  };
 
   return (
     <div className='flex min-h-dvh flex-col'>
@@ -56,13 +78,15 @@ export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
         <div className='flex items-center gap-2 px-3 pb-2 tablet:mx-auto tablet:max-w-[760px] tablet:px-5 desktop:max-w-none desktop:px-[calc(max(40px,calc(50%-550px))-4px)] desktop:pb-2.5'>
           <NavPills
             label='주요 메뉴'
-            items={RIDER_NAV}
+            items={riderNav}
             className='min-w-0 flex-1'
           />
           <Switch
             checked={isOnline}
-            onCheckedChange={setOnline}
+            onCheckedChange={handleOnlineChange}
             label='운행 중'
+            aria-disabled={isOnlineLocked}
+            className={isOnlineLocked ? 'opacity-50' : undefined}
           />
         </div>
       </header>
