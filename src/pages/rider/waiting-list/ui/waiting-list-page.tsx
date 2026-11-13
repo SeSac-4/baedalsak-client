@@ -91,49 +91,53 @@ export function WaitingListPage(): ReactNode {
           {!isLoading && error ? <EmptyState message={getErrorMessage(error)} /> : null}
 
           {!isLoading && deliveries && deliveries.length > 0 ? (
-            <>
-              <PickupMap
-                deliveries={deliveries}
-                selectedIndex={selectedIndex}
-                onSelect={setSelectedIndex}
-              />
-              <p className='text-note text-fg-muted'>
-                오래된 요청부터 보여요. 수락하면 상세 주소와 고객 연락처가 열려요.
-              </p>
-              <div className='flex flex-col gap-3 tablet:grid tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:items-start tablet:gap-3.5 desktop:gap-4'>
-                {deliveries.map((delivery, index) => (
-                  <DeliveryCard
-                    key={delivery.deliveryId}
-                    delivery={delivery}
-                    order={index + 1}
-                    selected={index === selectedIndex}
-                    onSelect={() => setSelectedIndex(index)}
-                    footer={
-                      <Button
-                        block
-                        size='lg'
-                        variant={index === selectedIndex ? 'primary' : 'outline'}
-                        disabled={isAccepting}
-                        onClick={() => accept(delivery.deliveryId)}
-                      >
-                        {isAccepting && acceptingId === delivery.deliveryId ? '수락 중…' : '수락하기'}
-                      </Button>
-                    }
-                  />
-                ))}
+            // PC: 지도 | 목록 2열. 휠로 목록을 내려도 지도는 헤더 아래에 고정된다
+            <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-6'>
+              <div className='desktop:sticky desktop:top-30'>
+                <PickupMap
+                  deliveries={deliveries}
+                  selectedIndex={selectedIndex}
+                  onSelect={setSelectedIndex}
+                />
               </div>
-            </>
-          ) : null}
-
-          {!isLoading && hasNextPage ? (
-            <Button
-              variant='secondary'
-              className='self-center'
-              disabled={isFetchingNextPage}
-              onClick={() => void fetchNextPage()}
-            >
-              더 보기
-            </Button>
+              <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:gap-4'>
+                <p className='text-note text-fg-muted'>
+                  오래된 요청부터 보여요. 수락하면 상세 주소와 고객 연락처가 열려요.
+                </p>
+                <div className='flex flex-col gap-3 tablet:grid tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:items-start tablet:gap-3.5 desktop:gap-4'>
+                  {deliveries.map((delivery, index) => (
+                    <DeliveryCard
+                      key={delivery.deliveryId}
+                      delivery={delivery}
+                      order={index + 1}
+                      selected={index === selectedIndex}
+                      onSelect={() => setSelectedIndex(index)}
+                      footer={
+                        <Button
+                          block
+                          size='lg'
+                          variant={index === selectedIndex ? 'primary' : 'outline'}
+                          disabled={isAccepting}
+                          onClick={() => accept(delivery.deliveryId)}
+                        >
+                          {isAccepting && acceptingId === delivery.deliveryId ? '수락 중…' : '수락하기'}
+                        </Button>
+                      }
+                    />
+                  ))}
+                </div>
+                {hasNextPage ? (
+                  <Button
+                    variant='secondary'
+                    className='self-center'
+                    disabled={isFetchingNextPage}
+                    onClick={() => void fetchNextPage()}
+                  >
+                    더 보기
+                  </Button>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {!isLoading && deliveries && deliveries.length === 0 ? (
