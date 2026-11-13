@@ -27,6 +27,7 @@ import { OrderDetailPage as OwnerOrderDetailPage } from '@/pages/owner/order-det
 import { StoreCreatePage } from '@/pages/owner/store-create';
 import { StoreManagePage } from '@/pages/owner/store-manage';
 import { ActiveDeliveryPage } from '@/pages/rider/active-delivery';
+import { DeliveryHistoryPage } from '@/pages/rider/delivery-history';
 import { WaitingListPage } from '@/pages/rider/waiting-list';
 
 import { useAuthEventHandlers } from '../model/use-auth-event-handlers';
@@ -165,6 +166,10 @@ export function AppRouter(): ReactNode {
             <Route
               path='/rider/active'
               element={<ActiveDeliveryPage />}
+            />
+            <Route
+              path='/rider/history'
+              element={<DeliveryHistoryPage />}
             />
           </Route>
         </Route>

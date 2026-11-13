@@ -120,3 +120,18 @@ export interface DeliveryLocation {
   /** 픽업 중(PICKED_UP)에만 있음. 픽업 전·완료 후·첫 위치 전이면 null */
   location: RiderLocation | null;
 }
+
+/** GET /deliveries/me/history 응답 항목. 라이더가 완료한 배달 한 건 */
+export interface RiderDeliveryHistory {
+  deliveryId: number;
+  orderId: number;
+  storeName: string;
+  deliveryAddress: string;
+  deliveryFee: number;
+  /** 경로 거리(m). 경로를 못 구했으면 null */
+  distanceM: number | null;
+  /** ISO 8601 */
+  assignedAt: string;
+  /** ISO 8601 */
+  completedAt: string;
+}

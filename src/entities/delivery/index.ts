@@ -5,6 +5,7 @@ export type {
   DeliveryRoute,
   DeliveryStatus,
   RiderDelivery,
+  RiderDeliveryHistory,
   RiderLocation,
   RiderLocationSource,
   WaitingDelivery,
@@ -15,6 +16,7 @@ export { formatDistance, formatEta, formatRemaining, getEtaMinutesLeft } from '.
 export { deliveryKeys } from './api/delivery-query';
 export { useRiderOnlineStore } from './model/delivery-store';
 export { useActiveDelivery } from './model/use-active-delivery';
+export { useDeliveryHistory } from './model/use-delivery-history';
 export { useDeliveryByOrder } from './model/use-delivery-by-order';
 export { useDeliveryLocation } from './model/use-delivery-location';
 export { useDeliveryRoute } from './model/use-delivery-route';
