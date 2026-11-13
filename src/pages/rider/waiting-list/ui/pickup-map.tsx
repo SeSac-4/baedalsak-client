@@ -46,7 +46,7 @@ export function PickupMap({ deliveries, selectedIndex, onSelect }: PickupMapProp
       <KakaoMap
         markers={markers}
         label='배차 대기 중인 가게 위치'
-        className='h-45 tablet:h-60'
+        className='h-45 tablet:h-60 desktop:h-[calc(100dvh-11rem)] desktop:min-h-100'
       />
       <div className='absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.25 rounded-md border border-border bg-surface px-2.25 py-0.5 text-note text-fg-muted'>
         <span className='size-2.25 rounded-full bg-role' />

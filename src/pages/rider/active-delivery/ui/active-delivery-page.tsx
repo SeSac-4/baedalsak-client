@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import {
@@ -26,6 +26,7 @@ import { DeliveryMap } from '@/widgets/delivery-map';
 
 import { useCompleteDelivery } from '../model/use-complete-delivery';
 import { usePickupDelivery } from '../model/use-pickup-delivery';
+import { CompleteConfirmModal } from './complete-confirm-modal';
 
 const WAITING_LIST_PATH = '/rider';
 const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
@@ -114,6 +115,8 @@ export function ActiveDeliveryPage(): ReactNode {
   const isSubmitting = isPickingUp || isCompleting;
   // 픽업 중 남은 거리·시간 (지도와 같은 캐시라 요청은 한 번)
   const { data: tracking } = useDeliveryLocation(delivery?.orderId ?? 0, delivery?.status === 'PICKED_UP');
+  // GPS상 미도착인데 배달 완료를 눌렀을 때 확인 모달
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   /**
    * 배달 주소를 클립보드에 복사한다.
@@ -130,11 +133,25 @@ export function ActiveDeliveryPage(): ReactNode {
 
   /**
    * 상태에 맞는 동작(픽업 완료·배달 완료)을 실행한다.
+   * 배달 완료는 GPS상 아직 도착 전이면 확인 모달을 먼저 띄운다. 위치를 모르면 묻지 않고 완료한다.
    * @param target 진행 중 배달
    */
   const handleActionClick = (target: RiderDelivery): void => {
     if (target.status === 'ASSIGNED') pickup(target.deliveryId);
-    if (target.status === 'PICKED_UP') complete(target.deliveryId);
+    if (target.status !== 'PICKED_UP') return;
+    if (tracking?.location && !tracking.location.arrived) {
+      setIsConfirmOpen(true);
+      return;
+    }
+    complete(target.deliveryId);
+  };
+
+  /**
+   * 미도착 확인 모달에서 그래도 완료를 누르면 모달을 닫고 완료한다.
+   */
+  const handleConfirmComplete = (): void => {
+    setIsConfirmOpen(false);
+    if (delivery?.status === 'PICKED_UP') complete(delivery.deliveryId);
   };
 
   const copy = delivery ? getActiveDeliveryCopy(delivery, tracking?.location ?? null) : null;
@@ -278,6 +295,13 @@ export function ActiveDeliveryPage(): ReactNode {
             </Button>
             <p className='text-center text-note text-fg-muted'>{copy.hint}</p>
           </div>
+
+          <CompleteConfirmModal
+            open={isConfirmOpen}
+            location={tracking?.location ?? null}
+            onClose={() => setIsConfirmOpen(false)}
+            onConfirm={handleConfirmComplete}
+          />
         </>
       ) : null}
     </div>
