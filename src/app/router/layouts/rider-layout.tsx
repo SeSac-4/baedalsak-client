@@ -3,6 +3,7 @@ import { Link, Outlet } from 'react-router';
 
 import { useActiveDelivery, useRiderOnlineStore } from '@/entities/delivery';
 import type { MemberMe } from '@/entities/session';
+import { cn } from '@/shared/lib/cn';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 import { StatusPill } from '@/shared/ui/status-pill';
 import { Switch } from '@/shared/ui/switch';
@@ -81,13 +82,21 @@ export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
             items={riderNav}
             className='min-w-0 flex-1'
           />
-          <Switch
-            checked={isOnline}
-            onCheckedChange={handleOnlineChange}
-            label='운행 중'
-            aria-disabled={isOnlineLocked}
-            className={isOnlineLocked ? 'opacity-50' : undefined}
-          />
+          {/* 스위치만 있으면 무슨 스위치인지 몰라 글자를 함께 둔다. 이름은 스위치 aria-label이 읽어 주므로 글자는 숨긴다 */}
+          <div className={cn('flex shrink-0 items-center gap-0.5', isOnlineLocked && 'opacity-50')}>
+            <span
+              aria-hidden
+              className={cn('text-note font-semibold whitespace-nowrap', isOnline ? 'text-role-ink' : 'text-fg-muted')}
+            >
+              {isOnline ? '운행 중' : '운행 쉼'}
+            </span>
+            <Switch
+              checked={isOnline}
+              onCheckedChange={handleOnlineChange}
+              label='운행'
+              aria-disabled={isOnlineLocked}
+            />
+          </div>
         </div>
       </header>
       <div className='flex-1'>
