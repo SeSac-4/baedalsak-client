@@ -11,7 +11,6 @@ import { Icon } from '@/shared/ui/icon';
 import { IconButton } from '@/shared/ui/icon-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
-import { Switch } from '@/shared/ui/switch';
 
 import { useAcceptDelivery } from '../model/use-accept-delivery';
 import { PickupMap } from './pickup-map';
@@ -31,7 +30,7 @@ export function WaitingListPage(): ReactNode {
   const { data, error, isPending, isFetching, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useWaitingDeliveryList();
   const { mutate: accept, isPending: isAccepting, variables: acceptingId } = useAcceptDelivery();
-  const { isOnline, setOnline } = useRiderOnlineStore();
+  const isOnline = useRiderOnlineStore((state) => state.isOnline);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (activeDelivery) {
@@ -61,23 +60,6 @@ export function WaitingListPage(): ReactNode {
           />
         }
       />
-
-      <Card
-        aria-label='운행 상태'
-        className='flex items-center gap-3 py-3.5 pr-4 pl-5'
-      >
-        <div className='min-w-0 flex-1 leading-[1.45]'>
-          <p className='font-bold text-fg'>{isOnline ? '운행 중' : '운행 쉬는 중'}</p>
-          <p className='text-note text-fg-muted'>
-            {isOnline ? '배차 요청을 받고 있어요' : '켜면 배차 요청을 받을 수 있어요'}
-          </p>
-        </div>
-        <Switch
-          checked={isOnline}
-          onCheckedChange={setOnline}
-          label='운행 중'
-        />
-      </Card>
 
       {isOnline ? (
         <>

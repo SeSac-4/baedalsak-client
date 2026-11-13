@@ -5,6 +5,7 @@ import { useRiderOnlineStore } from '@/entities/delivery';
 import type { MemberMe } from '@/entities/session';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 import { StatusPill } from '@/shared/ui/status-pill';
+import { Switch } from '@/shared/ui/switch';
 
 /** 라이더 메뉴 */
 const RIDER_NAV: NavPillItem[] = [
@@ -19,13 +20,13 @@ export interface RiderLayoutProps {
 }
 
 /**
- * 라이더 화면 레이아웃. 헤더에 로고와 라이더 이름 · 운행 상태를 두고, 그 아래 메뉴를 가로로 둔다.
+ * 라이더 화면 레이아웃. 헤더에 로고와 라이더 이름 · 운행 상태를 두고, 그 아래 메뉴를 가로로 두며 오른쪽 끝에 운행 스위치를 둔다.
  * 본문 폭과 여백은 페이지마다 정한다.
  * @param props me(로그인한 라이더)
  * @returns 레이아웃 요소
  */
 export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
-  const isOnline = useRiderOnlineStore((state) => state.isOnline);
+  const { isOnline, setOnline } = useRiderOnlineStore();
 
   return (
     <div className='flex min-h-dvh flex-col'>
@@ -52,11 +53,18 @@ export function RiderLayout({ me }: RiderLayoutProps): ReactNode {
             </span>
           </StatusPill>
         </div>
-        <NavPills
-          label='주요 메뉴'
-          items={RIDER_NAV}
-          className='px-3 pb-2 tablet:mx-auto tablet:max-w-[760px] tablet:px-5 desktop:max-w-none desktop:px-[calc(max(40px,calc(50%-550px))-4px)] desktop:pb-2.5'
-        />
+        <div className='flex items-center gap-2 px-3 pb-2 tablet:mx-auto tablet:max-w-[760px] tablet:px-5 desktop:max-w-none desktop:px-[calc(max(40px,calc(50%-550px))-4px)] desktop:pb-2.5'>
+          <NavPills
+            label='주요 메뉴'
+            items={RIDER_NAV}
+            className='min-w-0 flex-1'
+          />
+          <Switch
+            checked={isOnline}
+            onCheckedChange={setOnline}
+            label='운행 중'
+          />
+        </div>
       </header>
       <div className='flex-1'>
         <Outlet />
