@@ -29,7 +29,6 @@ import { usePickupDelivery } from '../model/use-pickup-delivery';
 import { CompleteConfirmModal } from './complete-confirm-modal';
 
 const WAITING_LIST_PATH = '/rider';
-const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
 const PAGE_CLASS =
   'mx-auto flex w-full flex-col gap-3 px-4 pt-4 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12';
 
@@ -187,7 +186,7 @@ export function ActiveDeliveryPage(): ReactNode {
           action={
             <Link
               to={WAITING_LIST_PATH}
-              className={LINK_CLASS}
+              className={getButtonClassName({ variant: 'outline' })}
             >
               배차 대기 목록으로
             </Link>
