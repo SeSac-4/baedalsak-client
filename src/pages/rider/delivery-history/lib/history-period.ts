@@ -1,5 +1,8 @@
-/** 조회 기간 */
-export type HistoryPeriod = 'today' | 'week' | 'month';
+/** 조회 기간. custom은 달력에서 고른 기간 */
+export type HistoryPeriod = 'today' | 'week' | 'month' | 'custom';
+
+/** 달력에서 한 번에 고를 수 있는 최대 일 수 (서버는 93일까지 허용) */
+export const MAX_CUSTOM_DAYS = 31;
 
 /** 기간 범위 (YYYY-MM-DD, 둘 다 포함) */
 export interface HistoryRange {
@@ -53,7 +56,7 @@ export const addDays = (dateKey: string, days: number): string => {
  * @param today - 오늘 날짜 키 (YYYY-MM-DD)
  * @returns 기간 범위
  */
-export const getHistoryRange = (period: HistoryPeriod, today: string): HistoryRange => {
+export const getHistoryRange = (period: Exclude<HistoryPeriod, 'custom'>, today: string): HistoryRange => {
   if (period === 'today') return { from: today, to: today };
   if (period === 'week') {
     const monday = addDays(today, -((parseDateKey(today).getUTCDay() + 6) % 7));
@@ -89,4 +92,46 @@ export const getWeekdayLabel = (dateKey: string): string => WEEKDAY_LABEL[parseD
 export const formatDateKey = (dateKey: string): string => {
   const date = parseDateKey(dateKey);
   return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일 (${getWeekdayLabel(dateKey)})`;
+};
+
+/**
+ * 두 날짜 키 사이의 일 수를 구한다.
+ * @param from - YYYY-MM-DD
+ * @param to - YYYY-MM-DD
+ * @returns to - from (일)
+ */
+export const diffDays = (from: string, to: string): number =>
+  Math.round((parseDateKey(to).getTime() - parseDateKey(from).getTime()) / DAY_MS);
+
+/**
+ * 날짜 키를 'M.D (요일)'로 짧게 표시한다.
+ * @param dateKey - YYYY-MM-DD
+ * @returns 예: 11.3 (화)
+ */
+export const formatShortDateKey = (dateKey: string): string => {
+  const date = parseDateKey(dateKey);
+  return `${date.getUTCMonth() + 1}.${date.getUTCDate()} (${getWeekdayLabel(dateKey)})`;
+};
+
+/**
+ * 달(YYYY-MM)에 개월 수를 더한다.
+ * @param monthKey - YYYY-MM
+ * @param months - 더할 개월 수 (음수면 뺀다)
+ * @returns YYYY-MM
+ */
+export const addMonths = (monthKey: string, months: number): string => {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1 + months, 1)).toISOString().slice(0, 7);
+};
+
+/**
+ * 달력 칸을 만든다. 1일 앞의 빈칸(일요일 시작)은 null로 채운다.
+ * @param monthKey - YYYY-MM
+ * @returns 날짜 키 또는 null 목록
+ */
+export const getMonthGrid = (monthKey: string): (string | null)[] => {
+  const first = `${monthKey}-01`;
+  const lastDay = new Date(Date.UTC(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)), 0)).getUTCDate();
+  const blanks: null[] = Array.from({ length: parseDateKey(first).getUTCDay() }, () => null);
+  return [...blanks, ...Array.from({ length: lastDay }, (_, index) => addDays(first, index))];
 };

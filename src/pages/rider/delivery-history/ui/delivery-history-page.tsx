@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import { formatDistance, useDeliveryHistory, type RiderDeliveryHistory } from '@/entities/delivery';
 import { getErrorMessage } from '@/shared/api';
@@ -12,7 +12,9 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
 import {
+  diffDays,
   formatDateKey,
+  formatShortDateKey,
   getDateKeyList,
   getHistoryRange,
   getKstDateKey,
@@ -22,21 +24,25 @@ import {
 } from '../lib/history-period';
 import { getHistoryDayList, getHistorySummary } from '../lib/history-summary';
 import { DailyFeeChart, type DailyFeeBar } from './daily-fee-chart';
+import { HistoryRangeModal } from './history-range-modal';
 
 const PAGE_CLASS =
   'mx-auto flex w-full flex-col gap-3 px-4 pt-4 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12';
 const MONTH_LABEL_STEP = 5;
+const WEEKDAY_LABEL_MAX_DAYS = 7;
 
 const PERIOD_TABS: TabItem[] = [
   { value: 'today', label: '오늘' },
   { value: 'week', label: '이번 주' },
   { value: 'month', label: '이번 달' },
+  { value: 'custom', label: '기간 선택' },
 ];
 
 const PERIOD_EMPTY_MESSAGE: Record<HistoryPeriod, string> = {
   today: '오늘 완료한 배달이 없어요.',
   week: '이번 주 완료한 배달이 없어요.',
   month: '이번 달 완료한 배달이 없어요.',
+  custom: '고른 기간에 완료한 배달이 없어요.',
 };
 
 /**
@@ -45,22 +51,22 @@ const PERIOD_EMPTY_MESSAGE: Record<HistoryPeriod, string> = {
  * @returns 조회 기간 여부
  */
 const isHistoryPeriod = (value: string): value is HistoryPeriod =>
-  value === 'today' || value === 'week' || value === 'month';
+  value === 'today' || value === 'week' || value === 'month' || value === 'custom';
 
 /**
- * 차트 막대를 만든다. 이번 주는 요일, 이번 달은 1일과 5일 단위만 이름을 붙인다.
- * @param period 조회 기간
+ * 차트 막대를 만든다. 7일 이하는 요일, 그보다 길면 1일과 5일 단위만 이름을 붙인다.
  * @param range 기간 범위
  * @param feeByDate 날짜별 배달비 합계
  * @returns 막대 목록
  */
-const getDailyFeeBars = (period: HistoryPeriod, range: HistoryRange, feeByDate: Map<string, number>): DailyFeeBar[] =>
-  getDateKeyList(range).map((dateKey) => {
+const getDailyFeeBars = (range: HistoryRange, feeByDate: Map<string, number>): DailyFeeBar[] => {
+  const isShort = diffDays(range.from, range.to) < WEEKDAY_LABEL_MAX_DAYS;
+  return getDateKeyList(range).map((dateKey) => {
     const day = Number(dateKey.slice(8));
-    const label =
-      period === 'week' ? getWeekdayLabel(dateKey) : day === 1 || day % MONTH_LABEL_STEP === 0 ? String(day) : '';
+    const label = isShort ? getWeekdayLabel(dateKey) : day === 1 || day % MONTH_LABEL_STEP === 0 ? String(day) : '';
     return { dateKey, label, totalFee: feeByDate.get(dateKey) ?? 0 };
   });
+};
 
 /**
  * 배달 한 건 줄을 렌더링한다.
@@ -93,33 +99,58 @@ const renderDeliveryRow = (delivery: RiderDeliveryHistory): ReactNode => (
 );
 
 /**
- * 라이더 배달 내역 화면. 오늘·이번 주·이번 달 동안 완료한 배달의 배달비 합계·건수·평균을 보여 주고,
- * 이번 주·이번 달은 일별 배달비 차트를 함께 보여 준다. 막대를 누르면 아래 목록이 그날 배달만 보여 준다.
+ * 라이더 배달 내역 화면. 오늘·이번 주·이번 달·달력에서 고른 기간 동안 완료한 배달의 배달비 합계·건수·평균을 보여 주고,
+ * 이틀 이상이면 일별 배달비 차트를 함께 보여 준다. 막대를 누르면 아래 목록이 그날 배달만 보여 준다.
  * @returns 배달 내역 페이지
  */
 export function DeliveryHistoryPage(): ReactNode {
   const [period, setPeriod] = useState<HistoryPeriod>('week');
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
-  const range = useMemo(() => getHistoryRange(period, getKstDateKey(new Date())), [period]);
+  const [customRange, setCustomRange] = useState<HistoryRange | null>(null);
+  const [isRangeOpen, setIsRangeOpen] = useState(false);
+  const today = getKstDateKey(new Date());
+  const range = useMemo(
+    () =>
+      period === 'custom' && customRange ? customRange : getHistoryRange(period === 'custom' ? 'week' : period, today),
+    [period, customRange, today],
+  );
   const { data: deliveries, error, isPending, isFetching, refetch } = useDeliveryHistory(range.from, range.to);
 
   const dayList = useMemo(() => getHistoryDayList(deliveries ?? []), [deliveries]);
   const summary = useMemo(() => getHistorySummary(deliveries ?? []), [deliveries]);
   const bars = useMemo(
-    () => getDailyFeeBars(period, range, new Map(dayList.map((day) => [day.dateKey, day.totalFee]))),
-    [period, range, dayList],
+    () => getDailyFeeBars(range, new Map(dayList.map((day) => [day.dateKey, day.totalFee]))),
+    [range, dayList],
   );
   const visibleDays = selectedDateKey ? dayList.filter((day) => day.dateKey === selectedDateKey) : dayList;
 
   /**
-   * 조회 기간을 바꾸고 고른 날짜를 푼다.
+   * 조회 기간을 바꾸고 고른 날짜를 푼다. 기간 선택은 달력을 열고, 적용해야 바뀐다.
    * @param value 탭 값
    */
   const handlePeriodChange = (value: string): void => {
     if (!isHistoryPeriod(value)) return;
+    if (value === 'custom') {
+      setIsRangeOpen(true);
+      return;
+    }
     setPeriod(value);
     setSelectedDateKey(null);
   };
+
+  /**
+   * 달력에서 고른 기간을 적용한다.
+   * @param nextRange 고른 기간
+   */
+  const handleRangeApply = (nextRange: HistoryRange): void => {
+    setCustomRange(nextRange);
+    setPeriod('custom');
+    setSelectedDateKey(null);
+    setIsRangeOpen(false);
+  };
+
+  // 모달은 onClose가 바뀌면 포커스를 다시 잡으므로 고정한다
+  const handleRangeClose = useCallback(() => setIsRangeOpen(false), []);
 
   const summaryItems = [
     { label: '건수', value: `${summary.count}건` },
@@ -146,7 +177,31 @@ export function DeliveryHistoryPage(): ReactNode {
         items={PERIOD_TABS}
         value={period}
         onChange={handlePeriodChange}
-        className='tablet:max-w-[400px]'
+        className='tablet:max-w-[520px]'
+      />
+
+      {period === 'custom' && customRange ? (
+        <button
+          type='button'
+          onClick={() => setIsRangeOpen(true)}
+          className='inline-flex min-h-9 items-center gap-1 self-start rounded-full border border-role bg-role-soft px-3 text-note font-semibold text-role-ink tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-ink'
+        >
+          {customRange.from === customRange.to
+            ? formatShortDateKey(customRange.from)
+            : `${formatShortDateKey(customRange.from)} ~ ${formatShortDateKey(customRange.to)}`}
+          <Icon
+            name='chevron-down'
+            size={14}
+          />
+        </button>
+      ) : null}
+
+      <HistoryRangeModal
+        open={isRangeOpen}
+        today={today}
+        initialRange={customRange}
+        onApply={handleRangeApply}
+        onClose={handleRangeClose}
       />
 
       {isPending ? (
@@ -173,7 +228,7 @@ export function DeliveryHistoryPage(): ReactNode {
             ))}
           </div>
 
-          {period === 'today' ? null : (
+          {range.from === range.to ? null : (
             <Card>
               <div className='mb-3 flex items-baseline justify-between gap-2'>
                 <h2 className='font-bold text-fg'>일별 배달비</h2>
