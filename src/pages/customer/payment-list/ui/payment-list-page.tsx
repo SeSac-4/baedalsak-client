@@ -1,115 +1,87 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
-import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, usePaymentList } from '@/entities/payment';
+import { usePaymentList } from '@/entities/payment';
 import { getErrorMessage } from '@/shared/api';
-import { formatDateTime, formatPrice } from '@/shared/lib/format';
-import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
-import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { IconButton } from '@/shared/ui/icon-button';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
 
-const LINK_CLASS = 'text-note font-medium text-role-ink hover:underline';
+import { PaymentCard } from './payment-card';
+
+const CONTAINER_CLASS =
+  'mx-auto flex w-full flex-col gap-3 px-4 pt-1 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12';
+const CARD_LINK_CLASS = 'block rounded-card focus-visible:ring-2 focus-visible:ring-role/50 focus-visible:outline-none';
+const NOTICE = '최근 결제부터 보여요. 테스트 환경이라 실제 출금은 없어요.';
 
 /**
- * 결제 목록 화면 틀(제목·최신순 표시) 안에 내용을 그린다.
- * @param content 목록 영역 내용
- * @returns 결제 목록 페이지 요소
- */
-const renderPageLayout = (content: ReactNode): ReactNode => (
-  <div className='mx-auto flex max-w-[1100px] flex-col px-4 py-6'>
-    <PageHeader
-      className='mb-4'
-      title='결제내역'
-      badge={<span className='text-note text-fg-muted'>최신순</span>}
-    />
-    {content}
-  </div>
-);
-
-/**
- * U-10 결제 목록 화면. 내 결제를 최신순 표로 보여 주고, 더 보기로 다음 페이지를 불러온다.
+ * U-10 결제 목록 화면. 내 결제를 최신순 카드로 보여 주고, 카드를 누르면 결제 상세(U-11)로 간다. 더 보기로 다음 페이지를 이어 받는다.
  * @returns 결제 목록 페이지
  */
 export function PaymentListPage(): ReactNode {
-  const { data, error, isPending, hasNextPage, isFetchingNextPage, fetchNextPage } = usePaymentList();
+  const { data, error, isPending, isRefetching, hasNextPage, isFetchingNextPage, fetchNextPage, refetch } =
+    usePaymentList();
+  const payments = data?.pages.flatMap((page) => page.content) ?? [];
 
-  if (isPending) {
-    return renderPageLayout(
-      <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>
-        <Spinner label='결제내역 불러오는 중' />
-        결제내역을 불러오고 있어요.
-      </div>,
-    );
-  }
-
-  if (error) return renderPageLayout(<EmptyState message={getErrorMessage(error)} />);
-
-  const payments = data.pages.flatMap((page) => page.content);
-
-  if (payments.length === 0) {
-    return renderPageLayout(
-      <EmptyState
-        message='결제 내역이 없어요.'
-        action={
-          <Link
-            to='/orders'
-            className={LINK_CLASS}
-          >
-            주문내역 보기
-          </Link>
+  return (
+    <div className={CONTAINER_CLASS}>
+      <PageHeader
+        title='결제내역'
+        description={NOTICE}
+        actions={
+          <IconButton
+            icon='refresh'
+            label='새로고침'
+            disabled={isRefetching}
+            onClick={() => void refetch()}
+          />
         }
-      />,
-    );
-  }
+      />
 
-  return renderPageLayout(
-    <>
-      <DataTable>
-        <thead>
-          <tr>
-            <th>승인 시각</th>
-            <th>가게</th>
-            <th className='text-right'>금액</th>
-            <th>상태</th>
-            <th>
-              <span className='sr-only'>상세</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
+      {isPending ? (
+        <div className='flex items-center justify-center gap-2 py-10 text-note text-fg-muted'>
+          <Spinner label='결제내역 불러오는 중' />
+          결제내역을 불러오고 있어요.
+        </div>
+      ) : null}
+
+      {error && !data ? <EmptyState message={getErrorMessage(error)} /> : null}
+
+      {data && payments.length === 0 ? (
+        <EmptyState
+          message='결제 내역이 없어요'
+          description='주문을 결제하면 여기에 모여요.'
+        />
+      ) : null}
+
+      {payments.length > 0 ? (
+        <ul className='flex flex-col gap-3 tablet:grid tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:items-start tablet:gap-3.5 desktop:gap-4'>
           {payments.map((payment) => (
-            <tr key={payment.paymentId}>
-              <td>{payment.approvedAt ? formatDateTime(payment.approvedAt) : '-'}</td>
-              <td>{payment.storeName}</td>
-              <td className='text-right'>{formatPrice(payment.amount)}</td>
-              <td>
-                <Badge tone={PAYMENT_STATUS_TONE[payment.status]}>{PAYMENT_STATUS_LABEL[payment.status]}</Badge>
-              </td>
-              <td className='text-right'>
-                <Link
-                  to={`/payments/${payment.paymentId}`}
-                  className={LINK_CLASS}
-                >
-                  상세
-                </Link>
-              </td>
-            </tr>
+            <li key={payment.paymentId}>
+              <Link
+                to={`/payments/${payment.paymentId}`}
+                className={CARD_LINK_CLASS}
+              >
+                <PaymentCard payment={payment} />
+              </Link>
+            </li>
           ))}
-        </tbody>
-      </DataTable>
+        </ul>
+      ) : null}
+
       {hasNextPage ? (
         <Button
           variant='secondary'
-          className='mt-4 self-center'
+          size='lg'
+          block
           disabled={isFetchingNextPage}
           onClick={() => void fetchNextPage()}
         >
-          {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
+          {isFetchingNextPage ? '불러오는 중' : '더 보기'}
         </Button>
       ) : null}
-    </>,
+    </div>
   );
 }
