@@ -20,6 +20,10 @@ export interface PaymentSummary {
   amount: number;
   /** ISO 8601, 승인 전이면 null */
   approvedAt: string | null;
+  /** 결제수단 (서버 응답에 추가 전이면 없음) */
+  method?: string | null;
+  /** 주문 ID (서버 응답에 추가 전이면 없음) */
+  orderId?: number;
 }
 
 /** GET /payments 응답. page는 0부터 */
@@ -51,4 +55,8 @@ export interface PaymentDetail {
   cancelReason: string | null;
   /** ISO 8601, 환불 완료 시각 (환불 처리 중이면 null) */
   canceledAt: string | null;
+  /** 가게명 스냅샷 (서버 응답에 추가 전이면 없음) */
+  storeName?: string;
+  /** 주문명, 예: 로제 떡볶이 외 1건 (서버 응답에 추가 전이면 없음) */
+  orderName?: string | null;
 }
