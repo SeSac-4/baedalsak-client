@@ -5,6 +5,8 @@ import { getCartItemCount, useCart } from '@/entities/cart';
 import { Icon } from '@/shared/ui/icon';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 
+import { MyLocationButton } from './my-location-button';
+
 /** 고객 메뉴. 장바구니는 헤더 오른쪽 아이콘으로 들어간다 */
 const CUSTOMER_NAV: NavPillItem[] = [
   { to: '/', label: '홈', end: true },
@@ -14,7 +16,7 @@ const CUSTOMER_NAV: NavPillItem[] = [
 ];
 
 /**
- * 고객 화면 레이아웃. 헤더에 로고와 장바구니(담긴 개수)를 두고, 그 아래 메뉴를 가로로 둔다.
+ * 고객 화면 레이아웃. 헤더에 로고·내 위치(동네)·장바구니(담긴 개수)를 두고, 그 아래 메뉴를 가로로 둔다.
  * 본문 폭과 여백은 아직 페이지마다 정한다.
  * @returns 레이아웃 요소
  */
@@ -37,6 +39,7 @@ export function CustomerLayout(): ReactNode {
             />
             배달싹
           </Link>
+          <MyLocationButton />
           <span className='flex-1' />
           <Link
             to='/cart'
