@@ -1,4 +1,5 @@
 import type { CategoryCode } from '@/entities/category/@x/store';
+import type { LatLngLiteral } from '@/shared/lib/kakao-map';
 
 /** 가게 운영 상태: 정상 운영 / 임시 중지 */
 export type OperationStatus = 'OPEN' | 'PAUSED';
@@ -29,6 +30,8 @@ export interface StoreSummary {
   imageUrl: string | null;
   /** 가게 사진 S3 키 (수정 요청에 그대로 다시 보낸다, 사진 없으면 null) */
   imageKey: string | null;
+  /** 내 위치에서 가게까지 직선거리 (m 정수). 위치 없이 조회하면 null */
+  distanceM: number | null;
 }
 
 /** GET /stores/{storeId} · GET /stores/me 응답 */
@@ -36,6 +39,15 @@ export interface StoreDetail extends StoreSummary {
   address: string;
   /** 7행 (일~토) */
   businessHours: BusinessHour[];
+}
+
+/** 가게 목록·통계 조회 조건. 생략한 조건은 거르지 않는다 */
+export interface StoreListFilter {
+  category?: CategoryCode;
+  /** 가게 이름 검색어 (부분 일치, 최대 50자) */
+  q?: string;
+  /** 내 위치. 있으면 반경(NEARBY_RADIUS_M) 안의 가게만 조회한다 */
+  position?: LatLngLiteral;
 }
 
 /** GET /stores 응답 (커서 기반 무한 스크롤). 마지막 페이지면 nextCursor null · hasNext false */

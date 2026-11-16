@@ -1,20 +1,59 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/format';
 import { Card } from '@/shared/ui/card';
 import { Thumbnail } from '@/shared/ui/thumbnail';
 
-import { getStoreClosedNotice, getStoreClosingInfo } from '../lib/get-store-availability';
+import { formatDistance } from '../lib/format-distance';
+import { getStoreClosedNotice, getStoreClosingInfo, type StoreClosingInfo } from '../lib/get-store-availability';
 import { getStoreDefaultImage } from '../lib/get-store-default-image';
 import type { StoreSummary } from '../model/store-types';
 
-/** CMP-10 StoreCard — 위쪽 가게 사진(주문 불가 안내) + 이름·카테고리·마감 시간 + 배달비·최소주문 두 칸. */
+/** CMP-10 StoreCard — 위쪽 가게 사진(주문 불가 안내) + 이름·카테고리·거리·마감 시간 + 배달비·최소주문 두 칸. */
 export interface StoreCardProps {
   store: StoreSummary;
   categoryName: string;
   className?: string;
 }
+
+/** 이름 아래 한 줄 정보 항목 (점으로 구분) */
+interface MetaItem {
+  key: string;
+  node: ReactNode;
+}
+
+/**
+ * 이름 아래 정보(카테고리·거리·마감 시간)를 있는 것만 고른다.
+ * @param info - 카테고리 표시명, 거리(m), 마감 정보
+ * @returns 표시할 항목 목록
+ */
+const getMetaItems = ({
+  categoryName,
+  distanceM,
+  closingInfo,
+}: {
+  categoryName: string;
+  distanceM: number | null;
+  closingInfo: StoreClosingInfo | null;
+}): MetaItem[] => {
+  const items: MetaItem[] = [];
+  if (categoryName) items.push({ key: 'category', node: <span>{categoryName}</span> });
+  if (distanceM !== null) {
+    items.push({ key: 'distance', node: <span className='tabular-nums'>{formatDistance(distanceM)}</span> });
+  }
+  if (closingInfo) {
+    items.push({
+      key: 'closing',
+      node: closingInfo.isClosingSoon ? (
+        <span className='font-semibold text-warn'>{closingInfo.closeTime} 곧 마감</span>
+      ) : (
+        <span>{closingInfo.closeTime}까지</span>
+      ),
+    });
+  }
+  return items;
+};
 
 /**
  * 가게 목록 항목 카드를 렌더링한다. 주문할 수 없는 가게는 사진만 덮어 이유를 보여 주고 글자는 읽히게 둔다.
@@ -26,6 +65,7 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
   const closingInfo = getStoreClosingInfo(store);
   const isFree = store.deliveryFee === 0;
   const valueColor = closedNotice ? 'text-fg-2' : 'text-fg';
+  const metaItems = getMetaItems({ categoryName, distanceM: store.distanceM, closingInfo });
 
   return (
     <Card
@@ -59,17 +99,17 @@ export function StoreCard({ store, categoryName, className }: StoreCardProps): R
             {store.name}
           </strong>
           <div className='mt-[3px] flex flex-wrap items-center gap-1.5 text-note text-fg-2'>
-            {categoryName ? <span>{categoryName}</span> : null}
-            {categoryName && closingInfo ? (
-              <span
-                aria-hidden='true'
-                className='size-[3px] rounded-full bg-fg-muted'
-              />
-            ) : null}
-            {closingInfo?.isClosingSoon ? (
-              <span className='font-semibold text-warn'>{closingInfo.closeTime} 곧 마감</span>
-            ) : null}
-            {closingInfo && !closingInfo.isClosingSoon ? <span>{closingInfo.closeTime}까지</span> : null}
+            {metaItems.map((item, index) => (
+              <Fragment key={item.key}>
+                {index > 0 ? (
+                  <span
+                    aria-hidden='true'
+                    className='size-[3px] rounded-full bg-fg-muted'
+                  />
+                ) : null}
+                {item.node}
+              </Fragment>
+            ))}
           </div>
         </div>
         <dl className='mt-auto grid grid-cols-2 border-t border-border pt-3'>

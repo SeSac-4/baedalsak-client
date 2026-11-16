@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { isLocationDenied } from '@/shared/lib/geolocation';
-import { useCurrentRegion } from '@/shared/lib/kakao-map';
+import { useCurrentLocation } from '@/shared/lib/kakao-map';
 import { Icon } from '@/shared/ui/icon';
 
 /**
@@ -20,7 +20,8 @@ const getLocationText = ({
 }): string => {
   if (isPending) return '위치 확인 중…';
   if (isLocationDenied(error)) return '위치 권한 필요';
-  return dong ?? '위치 찾기 실패';
+  if (error) return '위치 찾기 실패';
+  return dong ?? '현재 위치';
 };
 
 /**
@@ -29,7 +30,8 @@ const getLocationText = ({
  * @returns 내 위치 버튼 요소
  */
 export function MyLocationButton(): ReactNode {
-  const { data: region, isPending, isFetching, error, refetch } = useCurrentRegion();
+  const { data: location, isPending, isFetching, error, refetch } = useCurrentLocation();
+  const region = location?.region;
   const text = getLocationText({ dong: region?.dong, isPending, error });
 
   return (

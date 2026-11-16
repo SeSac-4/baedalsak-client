@@ -3,9 +3,19 @@ import { useEffect, useEffectEvent, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { isCategoryCode, useCategoryList, type Category, type CategoryCode } from '@/entities/category';
-import { StoreCard, storeKeys, useStoreList, useStoreListSummary } from '@/entities/store';
+import {
+  formatDistance,
+  NEARBY_RADIUS_M,
+  StoreCard,
+  storeKeys,
+  useStoreList,
+  useStoreListSummary,
+  type StoreListFilter,
+} from '@/entities/store';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
+import { isLocationDenied } from '@/shared/lib/geolocation';
+import { useCurrentLocation } from '@/shared/lib/kakao-map';
 import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
 import { useIntersection } from '@/shared/lib/use-intersection';
 import { Button } from '@/shared/ui/button';
@@ -54,8 +64,29 @@ const getCategoryName = (categories: Category[] | undefined, code: CategoryCode)
 const formatStoreCount = (count: number): string => (count > 0 ? `가게 ${count}곳` : '준비 중');
 
 /**
+ * 목록 범위 안내 문구를 고른다. 위치를 모르면 전체 가게를 보여 준다.
+ * @param state - 위치 확인 중 여부, 위치를 받았는지, 위치 오류
+ * @returns 안내 문구
+ */
+const getLocationNotice = ({
+  isPending,
+  hasPosition,
+  error,
+}: {
+  isPending: boolean;
+  hasPosition: boolean;
+  error: Error | null;
+}): string => {
+  if (hasPosition) return `내 위치에서 ${formatDistance(NEARBY_RADIUS_M)} 안의 가게예요.`;
+  if (isPending) return '내 위치를 확인하고 있어요. 그동안 전체 가게를 보여 드려요.';
+  if (isLocationDenied(error)) return '위치 권한을 허용하면 내 주변 가게만 보여 드려요.';
+  return '내 위치를 찾지 못해 전체 가게를 보여 드려요.';
+};
+
+/**
  * U-01 가게 목록(홈) 화면. PC는 카테고리 타일에서 고르면 그 가게 목록으로 들어가고, 태블릿·모바일은 칩과 목록을 바로 보여 준다.
  * 고른 카테고리(?category=)와 가게 이름 검색어(?q=)는 URL에 둔다. 검색어는 입력이 300ms 멈추면 반영하고, 검색 중이면 PC도 목록을 보여 준다.
+ * 내 위치를 받으면 목록·통계를 반경 안의 가게로 거르고, 위치를 모르면(확인 중·거부·실패) 전체 가게를 보여 준다.
  * @returns 가게 목록 페이지
  */
 export function StoreListPage(): ReactNode {
@@ -78,7 +109,10 @@ export function StoreListPage(): ReactNode {
 
   const { data: categories } = useCategoryList();
   const queryClient = useQueryClient();
-  const { data: summary, refetch: refetchSummary } = useStoreListSummary();
+  const { data: location, isPending: isLocationPending, error: locationError } = useCurrentLocation();
+  const position = location?.position;
+  const listFilter: StoreListFilter = { category, q: keyword || undefined, position };
+  const { data: summary, refetch: refetchSummary } = useStoreListSummary(position);
   const {
     data,
     error,
@@ -89,7 +123,7 @@ export function StoreListPage(): ReactNode {
     isFetchingNextPage,
     isFetchNextPageError,
     fetchNextPage,
-  } = useStoreList(category, keyword || undefined);
+  } = useStoreList(listFilter);
   const stores = data?.pages.flatMap((page) => page.content);
   const listCount = (category ? summary?.categoryCounts[category] : summary?.totalCount) ?? 0;
   // 다음 페이지가 실패하면 감지를 멈춘다 (계속 보이는 감지 요소가 요청을 반복하지 않게). 목록 아래 '다시 시도'로 다시 받는다.
@@ -165,7 +199,7 @@ export function StoreListPage(): ReactNode {
 
   /** 가게 목록을 첫 페이지부터 다시 받고, 통계도 다시 받는다. */
   const handleRefreshClick = (): void => {
-    void queryClient.resetQueries({ queryKey: storeKeys.list(category, keyword || undefined) });
+    void queryClient.resetQueries({ queryKey: storeKeys.list(listFilter) });
     void refetchSummary();
   };
 
@@ -262,6 +296,15 @@ export function StoreListPage(): ReactNode {
         onClear={handleSearchClear}
       />
 
+      <p className='flex items-center gap-1 text-note text-fg-muted'>
+        <Icon
+          name='location'
+          size={14}
+          className='shrink-0'
+        />
+        {getLocationNotice({ isPending: isLocationPending, hasPosition: Boolean(position), error: locationError })}
+      </p>
+
       {hasPicked ? null : (
         <ul
           aria-label='카테고리'
@@ -348,7 +391,7 @@ export function StoreListPage(): ReactNode {
 
         {stores && stores.length === 0 && !isSearching ? (
           <EmptyState
-            message={`아직 ${listTitle} 가게가 없어요`}
+            message={position ? `내 주변에 ${listTitle} 가게가 없어요` : `아직 ${listTitle} 가게가 없어요`}
             description='다른 카테고리를 골라 보세요.'
           />
         ) : null}
