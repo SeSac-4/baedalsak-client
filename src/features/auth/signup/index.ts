@@ -13,7 +13,8 @@ export {
   type SignupRiderValues,
 } from './model/signup-schema';
 export { useSignup } from './model/use-signup';
-export { useSignupPhoneVerification, type SignupPhoneVerification } from './model/use-signup-phone-verification';
+export type { SignupCodeVerification } from './model/use-signup-code-verification';
+export { useSignupPhoneVerification } from './model/use-signup-phone-verification';
 export { SignupCommonFields, type SignupCommonFieldsProps } from './ui/signup-common-fields';
 export { SignupLoginLink } from './ui/signup-login-link';
 export { SignupSubmitButton, type SignupSubmitButtonProps } from './ui/signup-submit-button';

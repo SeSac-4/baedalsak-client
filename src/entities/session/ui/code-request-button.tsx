@@ -6,10 +6,10 @@ import { Button } from '@/shared/ui/button';
 import { Icon } from '@/shared/ui/icon';
 import { Spinner } from '@/shared/ui/spinner';
 
-import type { PhoneCodeVerifier } from '../model/use-phone-code-verifier';
+import type { CodeVerifier } from '../model/use-code-verifier';
 
-export interface PhoneCodeRequestButtonProps {
-  verifier: PhoneCodeVerifier;
+export interface CodeRequestButtonProps {
+  verifier: CodeVerifier;
   /** 인증됨이면 버튼 대신 '인증됨' 배지를 보여 준다 */
   isVerified: boolean;
   /** 처음 버튼 문구 (기본 '인증번호 받기') */
@@ -19,16 +19,16 @@ export interface PhoneCodeRequestButtonProps {
 }
 
 /**
- * 휴대폰 번호 옆 [인증번호 받기] 버튼. 보낸 뒤에는 60초 동안 '다시 받기 0:59'로 막고, 인증되면 '인증됨' 배지로 바뀐다.
+ * 휴대폰 번호 · 이메일 옆 [인증번호 받기] 버튼 (공용). 보낸 뒤에는 60초 동안 '다시 받기 0:59'로 막고, 인증되면 '인증됨' 배지로 바뀐다.
  * @param props verifier(인증 상태), isVerified(인증됨 여부), label(처음 문구), size(버튼 크기)
  * @returns 버튼 또는 인증됨 배지
  */
-export function PhoneCodeRequestButton({
+export function CodeRequestButton({
   verifier,
   isVerified,
   label = '인증번호 받기',
   size = 'md',
-}: PhoneCodeRequestButtonProps): ReactNode {
+}: CodeRequestButtonProps): ReactNode {
   const { isSent, isRequesting, resendSeconds, handleRequestClick } = verifier;
 
   if (isVerified) {

@@ -1,13 +1,19 @@
 import type { ChangeEvent, ReactNode } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
-import { PASSWORD_HINT, PHONE_VERIFICATION_HINT, PhoneCodeField, PhoneCodeRequestButton } from '@/entities/session';
+import {
+  CodeField,
+  CodeRequestButton,
+  PASSWORD_HINT,
+  PHONE_CODE_VALID_HINT,
+  PHONE_VERIFICATION_HINT,
+} from '@/entities/session';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
 import { PasswordInput } from '@/shared/ui/password-input';
 
 import type { SignupCommonValues } from '../model/signup-schema';
-import type { SignupPhoneVerification } from '../model/use-signup-phone-verification';
+import type { SignupCodeVerification } from '../model/use-signup-code-verification';
 
 export interface SignupCommonFieldsProps {
   /** 입력칸 id 앞부분 (예: 'customer' → customer-email) */
@@ -17,7 +23,7 @@ export interface SignupCommonFieldsProps {
   /** 가입 폼의 필드 에러 */
   errors: FieldErrors<SignupCommonValues>;
   /** 휴대폰 인증 상태 (useSignupPhoneVerification) */
-  phoneVerification: SignupPhoneVerification;
+  phoneVerification: SignupCodeVerification;
 }
 
 /**
@@ -117,18 +123,19 @@ export function SignupCommonFields({
             aria-describedby={`${phoneId}-message`}
             {...register('phone', {
               onChange: (event: ChangeEvent<HTMLInputElement>) =>
-                phoneVerification.handlePhoneChange(event.target.value),
+                phoneVerification.handleValueChange(event.target.value),
             })}
           />
-          <PhoneCodeRequestButton
+          <CodeRequestButton
             verifier={phoneVerification.verifier}
             isVerified={phoneVerification.isVerified}
           />
         </div>
       </FormField>
-      <PhoneCodeField
+      <CodeField
         verifier={phoneVerification.verifier}
-        idPrefix={idPrefix}
+        id={`${idPrefix}-phone-code`}
+        hint={PHONE_CODE_VALID_HINT}
       />
     </>
   );
