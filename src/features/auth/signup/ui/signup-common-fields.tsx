@@ -53,7 +53,11 @@ export function SignupCommonFields({
     <>
       <FormField
         id={emailId}
-        label='이메일'
+        label={
+          <>
+            이메일 <span className='text-note font-normal text-fg-muted'>*(인증 필수)</span>
+          </>
+        }
         hint={EMAIL_VERIFICATION_HINT}
         error={errors.email?.message}
       >
