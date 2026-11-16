@@ -18,16 +18,16 @@ const PAYMENT_LIST_PATH = '/payments';
 const MISSING_PAYMENT_MESSAGE = '결제를 찾을 수 없어요.';
 
 /**
- * 결제 정보 목록을 만든다. 승인번호는 카드 결제에만 있고, 주문명은 서버 응답에 추가되기 전이면 '-'로 둔다.
+ * 결제 정보 목록을 만든다. 승인번호는 카드 결제에만 있어서, 값이 없으면 '-'로 보여 준다.
  * @param payment - 결제 상세
  * @returns 라벨·값 목록
  */
 const getPaymentInfoItems = (payment: PaymentDetail): KeyValueItem[] => [
+  { label: '결제번호', value: payment.paymentId },
+  { label: '주문번호', value: payment.orderId },
   { label: '결제수단', value: payment.method ?? '-' },
   { label: '승인번호', value: payment.approvalNumber ?? '-' },
   { label: '승인 시각', value: payment.approvedAt ? formatDateTime(payment.approvedAt) : '-' },
-  { label: '주문번호', value: `#${payment.orderId}` },
-  { label: '주문명', value: payment.orderName ?? '-' },
 ];
 
 /**
@@ -71,7 +71,8 @@ const renderNotice = (message: string): ReactNode => (
 );
 
 /**
- * U-11 결제 상세 화면. 가게·결제 금액과 결제 정보, 환불 결제면 환불 정보를 보여 주고 주문 상세로 이동한다.
+ * U-11 결제 상세 화면. 결제 금액과 결제 정보(결제번호·주문번호·결제수단·승인번호·승인 시각)를 보여 주고 주문 상세로 이동한다.
+ * 환불 처리 중·환불 완료 결제는 환불 금액·사유·환불 완료 시각을 함께 보여 준다.
  * 영수증 보기는 테스트 환경에서 토스 매출전표 데이터가 제공되지 않아 두지 않는다 (라이브 전환 때 receiptUrl로 연결).
  * 다른 고객의 결제(403)·없는 결제(404)는 서버 메시지로 안내한다.
  * @returns 결제 상세 페이지
@@ -111,7 +112,7 @@ export function PaymentDetailPage(): ReactNode {
 
       <Card className='flex flex-col gap-3.5'>
         <div>
-          {payment.storeName ? <h2 className='font-bold text-fg'>{payment.storeName}</h2> : null}
+          <h2 className='text-note text-fg-muted'>결제 금액</h2>
           <p className='mt-1 text-title font-bold text-fg tabular-nums'>{formatPrice(payment.amount)}</p>
         </div>
         <KeyValueList

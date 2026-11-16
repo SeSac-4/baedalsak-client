@@ -11,23 +11,11 @@ export interface PaymentCardProps {
 }
 
 /**
- * 결제수단·주문번호 줄을 만든다. 서버 응답에 없는 값은 빼고, 둘 다 없으면 null.
- * @param payment - 결제 요약
- * @returns 예: 카드 · 주문 #1042
- */
-const formatPaymentMeta = (payment: PaymentSummary): string | null => {
-  const parts = [payment.method, payment.orderId ? `주문 #${payment.orderId}` : null].filter(Boolean);
-  return parts.length > 0 ? parts.join(' · ') : null;
-};
-
-/**
- * U-10 결제 카드. 승인 시각·상태 배지, 가게·결제수단·주문번호, 결제 금액을 보여 준다.
+ * U-10 결제 카드. 결제 목록 응답의 승인 시각·상태 배지, 가게, 결제 금액을 보여 준다.
  * @param props payment(결제 요약)
  * @returns 결제 카드 요소
  */
 export function PaymentCard({ payment }: PaymentCardProps): ReactNode {
-  const meta = formatPaymentMeta(payment);
-
   return (
     <Card
       interactive
@@ -41,10 +29,7 @@ export function PaymentCard({ payment }: PaymentCardProps): ReactNode {
         <Badge tone={PAYMENT_STATUS_TONE[payment.status]}>{PAYMENT_STATUS_LABEL[payment.status]}</Badge>
       </div>
       <div className='flex items-center gap-2'>
-        <div className='min-w-0 flex-1'>
-          <strong className='block truncate text-fg'>{payment.storeName}</strong>
-          {meta ? <span className='block truncate text-note text-fg-muted'>{meta}</span> : null}
-        </div>
+        <strong className='min-w-0 flex-1 truncate text-fg'>{payment.storeName}</strong>
         <strong className='text-title font-bold text-fg tabular-nums'>{formatPrice(payment.amount)}</strong>
         <Icon
           name='chevron-right'
