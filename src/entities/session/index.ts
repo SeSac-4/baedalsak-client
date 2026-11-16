@@ -19,12 +19,18 @@ export {
   requestPhoneCode,
   type PhoneCodeConfirmResponse,
 } from './api/phone-verification-api';
+export { confirmEmailCode, requestEmailCode, type EmailCodeConfirmResponse } from './api/email-verification-api';
 export { PHONE_CODE_VALID_HINT, PHONE_VERIFICATION_HINT } from './config/phone-verification';
+export { EMAIL_CODE_VALID_HINT, EMAIL_VERIFICATION_HINT } from './config/email-verification';
 export {
-  PHONE_CODE_RESEND_SECONDS,
-  usePhoneCodeVerifier,
-  type PhoneCodeVerifier,
-  type PhoneCodeVerifierOptions,
-} from './model/use-phone-code-verifier';
-export { PhoneCodeField, type PhoneCodeFieldProps } from './ui/phone-code-field';
-export { PhoneCodeRequestButton, type PhoneCodeRequestButtonProps } from './ui/phone-code-request-button';
+  CODE_RESEND_SECONDS,
+  useCodeVerifier,
+  type CodeVerificationError,
+  type CodeVerifier,
+  type CodeVerifierOptions,
+} from './model/use-code-verifier';
+export { usePhoneCodeVerifier, type PhoneCodeVerifierOptions } from './model/use-phone-code-verifier';
+export { parsePhoneVerificationError } from './lib/parse-phone-verification-error';
+export { parseEmailVerificationError } from './lib/parse-email-verification-error';
+export { CodeField, type CodeFieldProps } from './ui/code-field';
+export { CodeRequestButton, type CodeRequestButtonProps } from './ui/code-request-button';

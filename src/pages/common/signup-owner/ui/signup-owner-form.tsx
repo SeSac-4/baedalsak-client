@@ -4,10 +4,12 @@ import { useForm, type Path } from 'react-hook-form';
 
 import {
   parseSignupError,
+  SIGNUP_EMAIL_REQUIRED_MESSAGE,
   SignupCommonFields,
   SignupSubmitButton,
   signupOwnerSchema,
   useSignup,
+  useSignupEmailVerification,
   useSignupPhoneVerification,
   type SignupOwnerValues,
   type SignupResponse,
@@ -41,6 +43,7 @@ const isOwnerField = (field: string): field is Path<SignupOwnerValues> => OWNER_
 export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode {
   const toast = useToast();
   const { mutateAsync: signup } = useSignup();
+  const emailVerification = useSignupEmailVerification();
   const phoneVerification = useSignupPhoneVerification();
   const {
     register,
@@ -53,7 +56,7 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
   });
 
   /**
-   * 가입 실패를 필드 에러 또는 토스트로 보여 준다. 휴대폰 인증 표 오류는 인증을 풀고 인증 칸에 안내한다.
+   * 가입 실패를 필드 에러 또는 토스트로 보여 준다. 이메일 · 휴대폰 인증 표 오류는 인증을 풀고 그 인증 칸에 안내한다.
    * @param error - 가입 요청 에러
    */
   const handleSignupError = (error: unknown): void => {
@@ -63,19 +66,28 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
       return;
     }
     fieldErrors.forEach(({ field, message }) => {
+      if (emailVerification.handleSignupFieldError(field, message)) return;
       if (phoneVerification.handleSignupFieldError(field, message)) return;
       setError(isOwnerField(field) ? field : 'root', { message });
     });
   };
 
   /**
-   * 가입하고, 성공하면 상위로 결과를 넘긴다. 휴대폰을 인증했으면 표를 함께 보낸다.
+   * 가입하고, 성공하면 상위로 결과를 넘긴다. 이메일 인증 표(필수)와, 휴대폰을 인증했으면 휴대폰 표를 함께 보낸다.
    * @param values - 검증을 통과한 폼 값
    */
   const handleValidSubmit = async (values: SignupOwnerValues): Promise<void> => {
+    if (!emailVerification.validateRequired() || !emailVerification.token) return;
     if (!phoneVerification.validateRequired()) return;
     try {
-      onSuccess(await signup({ role: 'OWNER', body: values, phoneVerificationToken: phoneVerification.token }));
+      onSuccess(
+        await signup({
+          role: 'OWNER',
+          body: values,
+          emailVerificationToken: emailVerification.token,
+          phoneVerificationToken: phoneVerification.token,
+        }),
+      );
     } catch (error: unknown) {
       handleSignupError(error);
     }
@@ -91,6 +103,7 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
         idPrefix='owner'
         register={register}
         errors={errors}
+        emailVerification={emailVerification}
         phoneVerification={phoneVerification}
       />
       <FormField
@@ -116,7 +129,10 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
           {errors.root.message}
         </Notice>
       ) : null}
-      <SignupSubmitButton isSubmitting={isSubmitting} />
+      <SignupSubmitButton
+        isSubmitting={isSubmitting}
+        blockedReason={emailVerification.isVerified ? null : SIGNUP_EMAIL_REQUIRED_MESSAGE}
+      />
     </form>
   );
 }

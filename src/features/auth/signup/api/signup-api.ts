@@ -11,13 +11,16 @@ const SIGNUP_PATH: Record<MemberRole, string> = {
   RIDER: '/auth/signup/rider',
 };
 
-/** 가입 요청 공통: 휴대폰 인증 표 (선택). 있으면 인증된 회원, 없으면 미인증 회원으로 가입된다 */
-interface SignupPhoneToken {
+/** 가입 요청 공통 인증 표 */
+interface SignupVerificationTokens {
+  /** 이메일 인증 표 (필수). 없거나 만료·재사용·다른 이메일이면 400 errors[emailVerificationToken] */
+  emailVerificationToken: string;
+  /** 휴대폰 인증 표 (선택). 있으면 인증된 회원, 없으면 미인증 회원으로 가입된다 */
   phoneVerificationToken?: string;
 }
 
-/** 가입 요청 (역할 + 역할별 폼 값 + 휴대폰 인증 표). 비밀번호 확인은 보내기 전에 뺀다 */
-export type SignupRequest = SignupPhoneToken &
+/** 가입 요청 (역할 + 역할별 폼 값 + 인증 표). 비밀번호 확인은 보내기 전에 뺀다 */
+export type SignupRequest = SignupVerificationTokens &
   (
     | { role: 'CUSTOMER'; body: SignupCommonValues }
     | { role: 'OWNER'; body: SignupOwnerValues }
@@ -32,13 +35,20 @@ export interface SignupResponse {
 
 /**
  * 역할별로 회원 가입한다. 성공(201)하면 서버가 로그인 쿠키까지 발급한다.
- * 이메일 중복은 409 EMAIL_DUPLICATED, 입력 오류는 400 VALIDATION_FAILED (표가 만료·재사용·다른 번호면 errors[phoneVerificationToken]).
- * @param request - 역할·가입 정보·휴대폰 인증 표
+ * 이메일 중복은 409 EMAIL_DUPLICATED, 입력 오류는 400 VALIDATION_FAILED
+ * (표가 없음·만료·재사용·다른 값이면 errors[emailVerificationToken] · errors[phoneVerificationToken]).
+ * @param request - 역할·가입 정보·이메일 인증 표·휴대폰 인증 표
  * @returns 회원 ID·역할
  */
-export const signupMember = async ({ role, body, phoneVerificationToken }: SignupRequest): Promise<SignupResponse> => {
+export const signupMember = async ({
+  role,
+  body,
+  emailVerificationToken,
+  phoneVerificationToken,
+}: SignupRequest): Promise<SignupResponse> => {
   const { data } = await apiClient.post<SignupResponse>(SIGNUP_PATH[role], {
     ...parseSignupBody(body),
+    emailVerificationToken,
     phoneVerificationToken,
   });
   return data;

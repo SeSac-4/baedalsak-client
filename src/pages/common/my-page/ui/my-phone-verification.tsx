@@ -2,10 +2,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 
 import {
+  CodeField,
+  CodeRequestButton,
   confirmMyPhoneCode,
+  PHONE_CODE_VALID_HINT,
   PHONE_VERIFICATION_HINT,
-  PhoneCodeField,
-  PhoneCodeRequestButton,
   requestMyPhoneCode,
   sessionKeys,
   usePhoneCodeVerifier,
@@ -58,7 +59,7 @@ export function MyPhoneVerification({ phone, phoneVerified }: MyPhoneVerificatio
     <div className='flex flex-col gap-2'>
       <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5'>
         <span>{phone}</span>
-        <PhoneCodeRequestButton
+        <CodeRequestButton
           verifier={verifier}
           isVerified={isVerified}
           label='휴대폰 인증하기'
@@ -66,9 +67,10 @@ export function MyPhoneVerification({ phone, phoneVerified }: MyPhoneVerificatio
         />
       </div>
       {isVerified ? null : <p className='text-note leading-[1.45] text-fg-muted'>{PHONE_VERIFICATION_HINT}</p>}
-      <PhoneCodeField
+      <CodeField
         verifier={verifier}
-        idPrefix='me'
+        id='me-phone-code'
+        hint={PHONE_CODE_VALID_HINT}
       />
     </div>
   );

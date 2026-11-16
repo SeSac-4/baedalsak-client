@@ -1,13 +1,21 @@
 import type { ChangeEvent, ReactNode } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 
-import { PASSWORD_HINT, PHONE_VERIFICATION_HINT, PhoneCodeField, PhoneCodeRequestButton } from '@/entities/session';
+import {
+  CodeField,
+  CodeRequestButton,
+  EMAIL_CODE_VALID_HINT,
+  EMAIL_VERIFICATION_HINT,
+  PASSWORD_HINT,
+  PHONE_CODE_VALID_HINT,
+  PHONE_VERIFICATION_HINT,
+} from '@/entities/session';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
 import { PasswordInput } from '@/shared/ui/password-input';
 
 import type { SignupCommonValues } from '../model/signup-schema';
-import type { SignupPhoneVerification } from '../model/use-signup-phone-verification';
+import type { SignupCodeVerification } from '../model/use-signup-code-verification';
 
 export interface SignupCommonFieldsProps {
   /** 입력칸 id 앞부분 (예: 'customer' → customer-email) */
@@ -16,20 +24,23 @@ export interface SignupCommonFieldsProps {
   register: UseFormRegister<SignupCommonValues>;
   /** 가입 폼의 필드 에러 */
   errors: FieldErrors<SignupCommonValues>;
-  /** 휴대폰 인증 상태 (useSignupPhoneVerification) */
-  phoneVerification: SignupPhoneVerification;
+  /** 이메일 인증 상태 (useSignupEmailVerification, 필수) */
+  emailVerification: SignupCodeVerification;
+  /** 휴대폰 인증 상태 (useSignupPhoneVerification, 선택) */
+  phoneVerification: SignupCodeVerification;
 }
 
 /**
  * 가입 공통 입력(이메일·비밀번호·비밀번호 확인·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.
- * 휴대폰 번호 옆 [인증번호 받기] → 인증번호 입력·[확인] → 인증됨. 인증은 선택이다.
- * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러), phoneVerification(휴대폰 인증 상태)
+ * 이메일 · 휴대폰 번호 옆 [인증번호 받기] → 인증번호 입력·[확인] → 인증됨. 이메일 인증은 필수, 휴대폰 인증은 선택이다.
+ * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러), emailVerification(이메일 인증 상태), phoneVerification(휴대폰 인증 상태)
  * @returns 공통 입력 요소
  */
 export function SignupCommonFields({
   idPrefix,
   register,
   errors,
+  emailVerification,
   phoneVerification,
 }: SignupCommonFieldsProps): ReactNode {
   const emailId = `${idPrefix}-email`;
@@ -43,19 +54,34 @@ export function SignupCommonFields({
       <FormField
         id={emailId}
         label='이메일'
+        hint={EMAIL_VERIFICATION_HINT}
         error={errors.email?.message}
       >
-        <Input
-          id={emailId}
-          type='email'
-          autoComplete='email'
-          inputMode='email'
-          maxLength={255}
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={`${emailId}-message`}
-          {...register('email')}
-        />
+        <div className='flex gap-2'>
+          <Input
+            id={emailId}
+            type='email'
+            autoComplete='email'
+            inputMode='email'
+            maxLength={255}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={`${emailId}-message`}
+            {...register('email', {
+              onChange: (event: ChangeEvent<HTMLInputElement>) =>
+                emailVerification.handleValueChange(event.target.value),
+            })}
+          />
+          <CodeRequestButton
+            verifier={emailVerification.verifier}
+            isVerified={emailVerification.isVerified}
+          />
+        </div>
       </FormField>
+      <CodeField
+        verifier={emailVerification.verifier}
+        id={`${idPrefix}-email-code`}
+        hint={EMAIL_CODE_VALID_HINT}
+      />
       <FormField
         id={passwordId}
         label='비밀번호'
@@ -117,18 +143,19 @@ export function SignupCommonFields({
             aria-describedby={`${phoneId}-message`}
             {...register('phone', {
               onChange: (event: ChangeEvent<HTMLInputElement>) =>
-                phoneVerification.handlePhoneChange(event.target.value),
+                phoneVerification.handleValueChange(event.target.value),
             })}
           />
-          <PhoneCodeRequestButton
+          <CodeRequestButton
             verifier={phoneVerification.verifier}
             isVerified={phoneVerification.isVerified}
           />
         </div>
       </FormField>
-      <PhoneCodeField
+      <CodeField
         verifier={phoneVerification.verifier}
-        idPrefix={idPrefix}
+        id={`${idPrefix}-phone-code`}
+        hint={PHONE_CODE_VALID_HINT}
       />
     </>
   );
