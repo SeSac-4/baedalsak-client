@@ -84,9 +84,21 @@ declare namespace kakao.maps {
       y: string;
     }
 
+    interface RegionCodeResult {
+      /** H: 행정동, B: 법정동 */
+      region_type: 'H' | 'B';
+      /** 전체 지역명 (예: 서울특별시 성동구 성수1가1동) */
+      address_name: string;
+      region_1depth_name: string;
+      region_2depth_name: string;
+      region_3depth_name: string;
+    }
+
     class Geocoder {
       constructor();
       addressSearch(address: string, callback: (result: AddressSearchResult[], status: Status) => void): void;
+      /** 좌표 → 행정·법정동. x 는 경도, y 는 위도 */
+      coord2RegionCode(x: number, y: number, callback: (result: RegionCodeResult[], status: Status) => void): void;
     }
   }
 }
