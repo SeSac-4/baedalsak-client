@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router';
 
+import { useAddressList } from '@/entities/address';
 import { useCart } from '@/entities/cart';
 import { useMe } from '@/entities/session';
 import { getErrorMessage } from '@/shared/api';
@@ -14,13 +15,16 @@ const CART_PATH = '/cart';
 /**
  * U-04 주문서·결제 화면. 내 장바구니(GET /cart)로 주문 요약을 보여 주고, 같은 화면에서 결제 방법을 고른다.
  * 장바구니가 비었거나 주문할 수 없으면(canOrder=false) 장바구니로 돌려보낸다. 연락처는 내 정보(GET /members/me)의 휴대폰 번호.
+ * 저장된 배달 주소(GET /members/me/addresses)가 있으면 기본 주소로 배달 정보를 미리 채운다.
  * @returns 주문서 페이지
  */
 export function CheckoutPage(): ReactNode {
   const { data: cart, error, isPending } = useCart();
   const { data: me } = useMe();
+  // 주소 목록을 받은 뒤 폼을 그려야 기본 주소를 처음 값으로 채울 수 있다 (실패하면 주소 없이 진행)
+  const { data: addresses, isPending: isAddressPending } = useAddressList();
 
-  if (isPending) {
+  if (isPending || isAddressPending) {
     return (
       <div className='flex items-center justify-center gap-2 py-16 text-note text-fg-muted'>
         <Spinner label='주문 정보 불러오는 중' />
@@ -50,6 +54,7 @@ export function CheckoutPage(): ReactNode {
     <CheckoutForm
       cart={cart}
       phone={me?.phone ?? ''}
+      addresses={addresses ?? []}
     />
   );
 }

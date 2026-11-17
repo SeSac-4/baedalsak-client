@@ -4,14 +4,15 @@ import { useId, useState, type ReactNode } from 'react';
 import { Controller, useForm, type Path } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 
+import { formatAddressName, getAddressDong, type DeliveryAddress } from '@/entities/address';
 import { cartKeys, getCartItemCount, type Cart } from '@/entities/cart';
 import { PaymentMethodCard, useTossPayment, type TossPaymentMethod } from '@/features/payment/request-payment';
 import { getErrorCode, getErrorMessage, getFieldErrors } from '@/shared/api';
-import type { PostcodeAddress } from '@/shared/lib/daum-postcode';
 import { formatPrice } from '@/shared/lib/format';
 import { AddressSearchInput } from '@/shared/ui/address-search-input';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
+import { ChoiceButton, ChoiceGroup } from '@/shared/ui/choice';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
 import { Notice } from '@/shared/ui/notice';
@@ -27,6 +28,8 @@ export interface CheckoutFormProps {
   cart: Cart;
   /** 가입 시 휴대폰 번호 (읽기 전용 표시) */
   phone: string;
+  /** 저장된 배달 주소 (기본 주소 먼저). 있으면 기본 주소로 미리 채우고 [저장된 주소]에서 고를 수 있다 */
+  addresses: DeliveryAddress[];
 }
 
 const CARD_CLASS = 'flex flex-col gap-3 p-5';
@@ -61,12 +64,19 @@ const SERVER_FIELD_MAP: Record<string, Path<CheckoutFormValues>> = {
   riderRequest: 'riderRequest',
 };
 
+/** 저장된 주소로 채우는 배달 정보 칸 */
+type AddressValues = Pick<CheckoutFormValues, 'address' | 'addressDetail' | 'deliveryDong'>;
+
 /**
- * 우편번호 검색 결과에서 배달지 동을 뽑는다. 읍·면 지역은 리 대신 읍·면 이름을 쓴다.
- * @param picked - 우편번호 검색 결과
- * @returns 배달지 동 (예: 성수동2가, 봉담읍)
+ * 저장된 주소를 배달 정보 칸 값으로 바꾼다.
+ * @param address - 저장된 주소 (없으면 빈 값)
+ * @returns 주소 · 상세 주소 · 동
  */
-const getDeliveryDong = (picked: PostcodeAddress): string => picked.bname1 || picked.bname;
+const getAddressValues = (address: DeliveryAddress | undefined): AddressValues => ({
+  address: address?.address ?? '',
+  addressDetail: address?.addressDetail ?? '',
+  deliveryDong: address?.dong ?? '',
+});
 
 /**
  * 폼 값을 주문 생성 요청으로 바꾼다. 주소·상세 주소는 한 줄로 합치고, 빈 요청사항은 null.
@@ -94,10 +104,11 @@ const isUserCancelError = (error: unknown): boolean =>
  * 결제창을 닫으면 주문서에 그대로 머문다. 장바구니는 결제 완료 때 서버가 비운다.
  * 장바구니 문제(빈 장바구니·영업 종료·품절·최소주문 미달)면 사유를 알리고 장바구니로 돌려보낸다.
  * 진행 중인 결제(409 PAYMENT_IN_PROGRESS)·결제 요청 실패(503)는 서버 메시지로 알리고 주문서에 머문다.
- * @param props cart(주문할 장바구니), phone(연락처)
+ * 저장된 배달 주소가 있으면 기본 주소로 미리 채우고, [저장된 주소]에서 다른 주소를 고르거나 직접 검색할 수 있다. 주문 요청 모양은 같다.
+ * @param props cart(주문할 장바구니), phone(연락처), addresses(저장된 배달 주소)
  * @returns 주문서 폼 요소
  */
-export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
+export function CheckoutForm({ cart, phone, addresses }: CheckoutFormProps): ReactNode {
   const id = useId();
   const navigate = useNavigate();
   const toast = useToast();
@@ -106,6 +117,9 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
   const { status: paymentStatus, requestPayment } = useTossPayment();
   const [paymentMethod, setPaymentMethod] = useState<TossPaymentMethod>('CARD');
   const [isAgreed, setIsAgreed] = useState<boolean>(false);
+  const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0];
+  /** 고른 저장 주소 (직접 검색하면 null) */
+  const [savedAddressId, setSavedAddressId] = useState<number | null>(defaultAddress?.id ?? null);
   const {
     register,
     control,
@@ -115,8 +129,20 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { address: '', addressDetail: '', deliveryDong: '', storeRequest: '', riderRequest: '' },
+    defaultValues: { ...getAddressValues(defaultAddress), storeRequest: '', riderRequest: '' },
   });
+
+  /**
+   * 저장된 주소로 배달 정보 칸을 채운다.
+   * @param address - 고른 저장 주소
+   */
+  const handleSavedAddressClick = (address: DeliveryAddress): void => {
+    setSavedAddressId(address.id);
+    const values = getAddressValues(address);
+    setValue('address', values.address, { shouldValidate: true });
+    setValue('addressDetail', values.addressDetail, { shouldValidate: true });
+    setValue('deliveryDong', values.deliveryDong, { shouldValidate: true });
+  };
 
   const isPayable = paymentStatus === 'ready' && isAgreed;
 
@@ -189,6 +215,32 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
               className={CARD_CLASS}
             >
               <h2 className={CARD_TITLE_CLASS}>배달 정보</h2>
+              {addresses.length > 0 ? (
+                <div className='flex flex-col gap-1.5'>
+                  <span
+                    id={`${id}-saved`}
+                    className='font-semibold text-fg'
+                  >
+                    저장된 주소
+                  </span>
+                  <ChoiceGroup
+                    aria-labelledby={`${id}-saved`}
+                    columns={Math.max(addresses.length, 2)}
+                  >
+                    {addresses.map((address) => (
+                      <ChoiceButton
+                        key={address.id}
+                        selected={savedAddressId === address.id}
+                        onClick={() => handleSavedAddressClick(address)}
+                        title={address.address}
+                        className='min-w-0'
+                      >
+                        <span className='truncate'>{formatAddressName(address)}</span>
+                      </ChoiceButton>
+                    ))}
+                  </ChoiceGroup>
+                </div>
+              ) : null}
               <FormField
                 id={`${id}-address`}
                 label='주소'
@@ -206,7 +258,8 @@ export function CheckoutForm({ cart, phone }: CheckoutFormProps): ReactNode {
                       value={field.value}
                       onChange={(address, picked) => {
                         field.onChange(address);
-                        setValue('deliveryDong', getDeliveryDong(picked), { shouldValidate: true });
+                        setValue('deliveryDong', getAddressDong(picked), { shouldValidate: true });
+                        setSavedAddressId(null);
                       }}
                       onBlur={field.onBlur}
                       aria-invalid={Boolean(errors.address ?? errors.deliveryDong)}
