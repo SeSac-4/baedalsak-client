@@ -29,10 +29,10 @@ interface DeliveryCopy {
 }
 
 /**
- * 배달 상태별 안내 문구를 고른다. 픽업 중에는 라이더 위치로 남은 거리·시간을 보여 준다.
+ * 배달 상태별 안내 문구를 고른다. 배차 완료·픽업 중에는 라이더 위치로 남은 거리·시간을 보여 준다.
  * @param delivery 배달 정보 (생성 전이면 null)
  * @param order 주문 상세
- * @param location 라이더 위치 (픽업 중이 아니거나 아직 없으면 null)
+ * @param location 라이더 위치 (배차 완료·픽업 중이 아니거나 아직 없으면 null)
  * @returns 큰 문구와 보조 문구
  */
 const getDeliveryCopy = (
@@ -48,9 +48,9 @@ const getDeliveryCopy = (
     case 'ASSIGNED':
       return {
         headline: '라이더가 가게로 오고 있어요',
-        description: order.estimatedReadyAt
-          ? `${formatTime(order.estimatedReadyAt)}까지 포장해 두면 바로 픽업해요.`
-          : undefined,
+        description:
+          (location ? formatRemaining(location) : null) ??
+          (order.estimatedReadyAt ? `${formatTime(order.estimatedReadyAt)}까지 포장해 두면 바로 픽업해요.` : undefined),
       };
     case 'PICKED_UP':
       return {
@@ -68,8 +68,8 @@ const getDeliveryCopy = (
 };
 
 /**
- * 배달 현황 카드 (O-03): 상태 안내(픽업 중이면 남은 거리·시간), 배정 라이더, 배차·픽업·도착 시각.
- * 지도는 픽업 후 OrderDeliveryMap 이 따로 보여 준다.
+ * 배달 현황 카드 (O-03): 상태 안내(배차 완료·픽업 중이면 남은 거리·시간), 배정 라이더, 배차·픽업·도착 시각.
+ * 지도는 배차 완료·픽업 중에 OrderDeliveryMap 이 따로 보여 준다.
  * @param props order(주문 상세), delivery(배달 정보), deliveryError(배달 조회 에러)
  * @returns 배달 현황 카드 요소
  */

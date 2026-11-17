@@ -63,9 +63,9 @@ export const getMyRiderPosition = async (): Promise<DeliveryPoint | null> => {
 };
 
 /**
- * 주문의 배달 경로(가게 → 배달지)를 조회한다. (고객·사장님·배정된 라이더)
+ * 주문의 지금 구간 경로를 조회한다. (고객·사장님·배정된 라이더) 배차 완료면 라이더 → 가게, 픽업 후면 가게 → 배달지.
  * @param orderId - 주문 ID
- * @returns 경로 (픽업 전이라 경로가 없으면 204 → null)
+ * @returns 경로 (배차 전이거나 아직 계산 전이면 204 → null)
  */
 export const getDeliveryRoute = async (orderId: number): Promise<DeliveryRoute | null> => {
   const { data, status } = await apiClient.get<DeliveryRoute>(`/deliveries/by-order/${orderId}/route`);

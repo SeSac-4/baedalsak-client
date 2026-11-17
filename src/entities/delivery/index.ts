@@ -8,6 +8,7 @@ export type {
   RiderDeliveryHistory,
   RiderLocation,
   RiderLocationSource,
+  RouteLeg,
   WaitingDelivery,
   WaitingDeliveryPage,
 } from './model/delivery-types';

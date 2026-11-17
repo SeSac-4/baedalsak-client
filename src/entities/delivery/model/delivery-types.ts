@@ -79,37 +79,44 @@ export interface RiderDelivery {
   deliveryPoint?: DeliveryPoint | null;
 }
 
-/** GET /deliveries/by-order/{orderId}/route 응답 (픽업 전이면 204). 가게 → 배달지 경로 */
+/** 경로 구간: 라이더 현재 위치 → 가게 (배차 완료) · 가게 → 배달지 (픽업 후) */
+export type RouteLeg = 'TO_STORE' | 'TO_CUSTOMER';
+
+/** GET /deliveries/by-order/{orderId}/route 응답 (배차 전·경로 계산 전이면 204). 배차 완료면 라이더 → 가게, 픽업 후면 가게 → 배달지 */
 export interface DeliveryRoute {
   deliveryId: number;
-  /** 경로 좌표 (가게 → 배달지 순서) */
+  /** 구간 */
+  leg: RouteLeg;
+  /** 경로 좌표 (출발 → 도착 순서). TO_STORE 면 첫 점이 배차 때 라이더 위치 */
   path: DeliveryPoint[];
   /** 전체 거리 (m) */
   distanceM: number;
   /** 예상 소요 시간 (초) */
   durationS: number;
-  /** 길찾기 실패로 가게·배달지를 직선으로 이었으면 true */
+  /** 길찾기 실패로 출발·도착을 직선으로 이었으면 true */
   straight: boolean;
 }
 
 /** 위치 출처: 서버 가상 GPS · 라이더 앱 실제 GPS */
 export type RiderLocationSource = 'VIRTUAL' | 'REAL';
 
-/** 라이더 현재 위치. 도착(arrived)은 배달 상태가 아니다 — 완료는 라이더가 완료 버튼을 눌러야 된다 */
+/** 라이더 현재 위치. 도착(arrived)은 배달 상태가 아니다 — 픽업·완료는 라이더가 버튼을 눌러야 된다 */
 export interface RiderLocation {
   lat: number;
   lng: number;
-  /** 경로를 따라 배달지까지 남은 거리 (m). 경로를 모르면 null */
+  /** 경로를 따라 구간 끝(가게·배달지)까지 남은 거리 (m). 경로를 모르면 null */
   remainingDistanceM: number | null;
   /** ISO 8601 도착 예정 시각. 도착 후에는 도착 시각. 경로를 모르면 null */
   etaAt: string | null;
-  /** 배달지 도착 여부 */
+  /** 구간 끝(가게·배달지) 도착 여부 */
   arrived: boolean;
   /** ISO 8601 처음 도착한 시각 */
   arrivedAt: string | null;
   /** ISO 8601 이 위치를 받은 시각 */
   updatedAt: string;
   source: RiderLocationSource;
+  /** 가고 있는 구간. 구간 구분 전에 저장된 위치면 null (배달지까지로 본다) */
+  leg: RouteLeg | null;
 }
 
 /** GET /deliveries/by-order/{orderId}/location 응답 (배달 생성 전이면 204). 2초마다 폴링 */
@@ -117,7 +124,7 @@ export interface DeliveryLocation {
   deliveryId: number;
   orderId: number;
   status: DeliveryStatus;
-  /** 픽업 중(PICKED_UP)에만 있음. 픽업 전·완료 후·첫 위치 전이면 null */
+  /** 배차 완료·픽업 중에만 있음. 배차 전·완료 후·첫 위치 전이면 null */
   location: RiderLocation | null;
 }
 

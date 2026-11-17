@@ -32,10 +32,10 @@ interface DeliveryCopy {
 }
 
 /**
- * 배달 상태별 안내 문구를 고른다. 픽업 중에는 라이더 위치로 도착 예상 시각·남은 거리를 보여 준다.
+ * 배달 상태별 안내 문구를 고른다. 배차 완료·픽업 중에는 라이더 위치로 도착 예상 시각·남은 거리를 보여 준다.
  * @param delivery 배달 정보 (생성 전이면 null)
  * @param order 주문 상세
- * @param location 라이더 위치 (픽업 중이 아니거나 아직 없으면 null)
+ * @param location 라이더 위치 (배차 완료·픽업 중이 아니거나 아직 없으면 null)
  * @returns 큰 문구와 보조 문구
  */
 const getDeliveryCopy = (
@@ -56,7 +56,10 @@ const getDeliveryCopy = (
           : '가게에서 조리하고 있어요',
       };
     case 'ASSIGNED':
-      return { headline: '라이더가 가게로 가고 있어요', description: '음식을 픽업하면 라이더 위치가 보여요' };
+      return {
+        headline: '라이더가 가게로 가고 있어요',
+        description: (location ? formatEta(location) : null) ?? '음식을 픽업하면 배달지로 출발해요',
+      };
     case 'PICKED_UP':
       return {
         headline: '라이더가 배달지로 오고 있어요',
@@ -88,7 +91,7 @@ const getMapPlaceholder = (delivery: Delivery | null): string =>
  * @returns 배달 현황 카드 요소
  */
 export function DeliveryStatusCard({ order, delivery, deliveryError }: DeliveryStatusCardProps): ReactNode {
-  // 배달이 진행 중이면 상태·위치를 폴링한다 (픽업되면 경로가 뜨고, 완료되면 화면이 바뀐다). 지도와 같은 캐시
+  // 배달이 진행 중이면 상태·위치를 폴링한다 (배차·픽업되면 경로가 바뀌고, 완료되면 화면이 바뀐다). 지도와 같은 캐시
   const { data: tracking } = useDeliveryLocation(order.id, Boolean(delivery) && delivery?.status !== 'DELIVERED');
 
   if (deliveryError || delivery === undefined) {

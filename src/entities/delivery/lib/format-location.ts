@@ -26,23 +26,32 @@ export const getEtaMinutesLeft = (etaAt: string): number =>
   Math.max(1, Math.ceil((new Date(etaAt).getTime() - Date.now()) / MINUTE_MS));
 
 /**
- * 남은 거리·시간 안내 (사장님·라이더). 도착했으면 도착 안내.
+ * 가게까지 가는 중인 위치인지 확인한다.
  * @param location - 라이더 위치
- * @returns 예: 약 1.2km · 6분 남음 / 배달지에 도착했어요 (경로를 모르면 null)
+ * @returns 가게까지 구간이면 true
+ */
+const isToStore = (location: RiderLocation): boolean => location.leg === 'TO_STORE';
+
+/**
+ * 남은 거리·시간 안내 (사장님·라이더). 도착했으면 도착 안내. 가게까지 구간이면 앞에 '가게까지'를 붙인다.
+ * @param location - 라이더 위치
+ * @returns 예: 약 1.2km · 6분 남음 / 가게까지 약 300m · 1분 남음 / 배달지에 도착했어요 (경로를 모르면 null)
  */
 export const formatRemaining = (location: RiderLocation): string | null => {
-  if (location.arrived) return '배달지에 도착했어요';
+  if (location.arrived) return isToStore(location) ? '가게에 도착했어요' : '배달지에 도착했어요';
   if (location.remainingDistanceM === null || !location.etaAt) return null;
-  return `약 ${formatDistance(location.remainingDistanceM)} · ${getEtaMinutesLeft(location.etaAt)}분 남음`;
+  const remaining = `약 ${formatDistance(location.remainingDistanceM)} · ${getEtaMinutesLeft(location.etaAt)}분 남음`;
+  return isToStore(location) ? `가게까지 ${remaining}` : remaining;
 };
 
 /**
- * 도착 예정 안내 (고객). 도착했으면 도착 안내.
+ * 도착 예정 안내 (고객). 도착했으면 도착 안내. 가게까지 구간이면 가게 도착 예상을 보여 준다.
  * @param location - 라이더 위치
- * @returns 예: 도착 예상 12:48 · 약 1.2km 남음 / 라이더가 도착했어요 (경로를 모르면 null)
+ * @returns 예: 도착 예상 12:48 · 약 1.2km 남음 / 가게 도착 예상 12:31 · 약 300m 남음 / 라이더가 도착했어요 (경로를 모르면 null)
  */
 export const formatEta = (location: RiderLocation): string | null => {
-  if (location.arrived) return '라이더가 도착했어요';
+  if (location.arrived) return isToStore(location) ? '라이더가 가게에 도착했어요' : '라이더가 도착했어요';
   if (location.remainingDistanceM === null || !location.etaAt) return null;
-  return `도착 예상 ${formatTime(location.etaAt)} · 약 ${formatDistance(location.remainingDistanceM)} 남음`;
+  const prefix = isToStore(location) ? '가게 도착 예상' : '도착 예상';
+  return `${prefix} ${formatTime(location.etaAt)} · 약 ${formatDistance(location.remainingDistanceM)} 남음`;
 };
