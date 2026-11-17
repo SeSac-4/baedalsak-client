@@ -111,6 +111,7 @@ export function SignupRiderForm({ onSuccess }: SignupRiderFormProps): ReactNode 
     >
       <SignupCommonFields
         idPrefix='rider'
+        role='RIDER'
         register={register}
         errors={errors}
         emailVerification={emailVerification}

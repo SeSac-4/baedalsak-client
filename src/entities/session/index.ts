@@ -23,7 +23,8 @@ export {
   type PhoneCodeConfirmResponse,
 } from './api/phone-verification-api';
 export { confirmEmailCode, requestEmailCode, type EmailCodeConfirmResponse } from './api/email-verification-api';
-export { PHONE_CODE_VALID_HINT, PHONE_VERIFICATION_HINT } from './config/phone-verification';
+export { PHONE_CODE_VALID_HINT, PHONE_VERIFICATION_HINT_BY_ROLE } from './config/phone-verification';
+export { getPhoneVerificationHint } from './lib/get-phone-verification-hint';
 export { EMAIL_CODE_VALID_HINT, EMAIL_VERIFICATION_HINT } from './config/email-verification';
 export {
   CODE_RESEND_SECONDS,

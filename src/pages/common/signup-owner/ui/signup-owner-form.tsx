@@ -101,6 +101,7 @@ export function SignupOwnerForm({ onSuccess }: SignupOwnerFormProps): ReactNode 
     >
       <SignupCommonFields
         idPrefix='owner'
+        role='OWNER'
         register={register}
         errors={errors}
         emailVerification={emailVerification}

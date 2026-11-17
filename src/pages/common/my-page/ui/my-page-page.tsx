@@ -33,6 +33,7 @@ const getMemberItems = (me: MemberMe): KeyValueItem[] => [
       <MyPhoneField
         phone={me.phone}
         phoneVerified={me.phoneVerified}
+        role={me.role}
       />
     ),
   },

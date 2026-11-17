@@ -98,6 +98,7 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
     >
       <SignupCommonFields
         idPrefix='customer'
+        role='CUSTOMER'
         register={register}
         errors={errors}
         emailVerification={emailVerification}
