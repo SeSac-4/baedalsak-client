@@ -1,13 +1,15 @@
-import type { RouteLeg } from '../model/delivery-types';
+import type { RouteLeg, WaitingSort } from '../model/delivery-types';
 
 /** 배달 쿼리 키 팩토리 */
 export const deliveryKeys = {
   all: ['delivery'] as const,
   /**
-   * 배차 대기 목록 키를 만든다.
+   * 배차 대기 목록 키를 만든다. 정렬을 빼면 모든 정렬을 아우르는 키 (다시 불러오기용).
+   * @param sort - 정렬
    * @returns 쿼리 키
    */
-  waiting: () => [...deliveryKeys.all, 'waiting'] as const,
+  waiting: (sort?: WaitingSort) =>
+    sort ? ([...deliveryKeys.all, 'waiting', sort] as const) : ([...deliveryKeys.all, 'waiting'] as const),
   /**
    * 내 진행 중 배달(라이더) 키를 만든다.
    * @returns 쿼리 키

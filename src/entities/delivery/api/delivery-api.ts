@@ -8,18 +8,24 @@ import type {
   RiderDelivery,
   RiderDeliveryHistory,
   WaitingDeliveryPage,
+  WaitingSort,
 } from '../model/delivery-types';
 
 const HTTP_NO_CONTENT = 204;
 
 /**
- * 배차 대기 목록을 오래된 순으로 조회한다. (라이더)
+ * 배차 대기 목록을 정렬해 조회한다. (라이더) 항목마다 내 위치 기준 예상 시간이 있다.
  * @param page - 페이지 번호 (0부터)
  * @param size - 페이지 크기 (최대 100)
+ * @param sort - 정렬 (빠른 배달순 · 배달비 높은순)
  * @returns 배차 대기 배달 목록 페이지
  */
-export const getWaitingDeliveryList = async (page: number, size: number): Promise<WaitingDeliveryPage> => {
-  const { data } = await apiClient.get<WaitingDeliveryPage>('/deliveries/waiting', { params: { page, size } });
+export const getWaitingDeliveryList = async (
+  page: number,
+  size: number,
+  sort: WaitingSort,
+): Promise<WaitingDeliveryPage> => {
+  const { data } = await apiClient.get<WaitingDeliveryPage>('/deliveries/waiting', { params: { page, size, sort } });
   return data;
 };
 

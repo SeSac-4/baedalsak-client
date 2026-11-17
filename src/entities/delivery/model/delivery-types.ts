@@ -43,7 +43,16 @@ export interface WaitingDelivery {
   createdAt: string;
   /** 가게 좌표 (배차 전이라 배달지 좌표는 없음). 주소 변환 전·실패면 null */
   pickupPoint?: DeliveryPoint | null;
+  /** 내 위치 → 가게 예상 이동 시간 (초, 직선 거리 기준 어림). 내 위치를 모르면 null */
+  pickupDurationS?: number | null;
+  /** 가게 → 배달지 예상 이동 시간 (초). 좌표가 없으면 null */
+  deliveryDurationS?: number | null;
+  /** 배달 완료까지 = max(조리 완료까지, 가게까지) + 배달 (초). 모르면 null */
+  totalDurationS?: number | null;
 }
+
+/** 배차 대기 정렬: 빠른 배달순(배달 완료까지 예상 시간 짧은 순) · 배달비 높은순 */
+export type WaitingSort = 'FASTEST' | 'FEE';
 
 /** GET /deliveries/waiting 응답. page는 0부터 */
 export interface WaitingDeliveryPage {
