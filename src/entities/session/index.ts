@@ -14,9 +14,12 @@ export {
 } from './model/credential-schema';
 export {
   confirmMyPhoneCode,
+  confirmPhoneChange,
   confirmPhoneCode,
   requestMyPhoneCode,
+  requestPhoneChangeCode,
   requestPhoneCode,
+  updateMyPhone,
   type PhoneCodeConfirmResponse,
 } from './api/phone-verification-api';
 export { confirmEmailCode, requestEmailCode, type EmailCodeConfirmResponse } from './api/email-verification-api';

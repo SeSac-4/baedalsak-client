@@ -54,3 +54,41 @@ export const requestMyPhoneCode = async (): Promise<void> => {
 export const confirmMyPhoneCode = async (request: MyPhoneCodeConfirmRequest): Promise<void> => {
   await apiClient.post('/members/me/phone/verify', request);
 };
+
+/** 내 정보 번호 변경: 새 번호 (인증번호 받기 · 인증 없이 바꾸기 공용 본문) */
+export interface PhoneChangeRequest {
+  /** 새 휴대폰 번호 (010 형식, 하이픈은 있어도 없어도 됨) */
+  phone: string;
+}
+
+/** 내 정보 번호 변경: 새 번호로 받은 인증번호 확인 본문 */
+export interface PhoneChangeConfirmRequest {
+  /** 인증번호를 받은 새 번호 (서버는 코드를 보낸 번호와 같아야 맞다고 본다) */
+  phone: string;
+  /** 문자로 받은 숫자 6자리 */
+  code: string;
+}
+
+/**
+ * 내 번호를 바꾸려고 새 번호로 인증번호 문자를 보내 달라고 요청한다 (로그인 필요, 202). 지금 번호와 같으면 400 errors[phone].
+ * @param request - 새 휴대폰 번호
+ */
+export const requestPhoneChangeCode = async (request: PhoneChangeRequest): Promise<void> => {
+  await apiClient.post('/members/me/phone/change/code', request);
+};
+
+/**
+ * 새 번호로 받은 인증번호를 확인하고 내 번호를 바꾼다 (로그인 필요, 204). 성공하면 새 번호가 인증됨이 된다.
+ * @param request - 새 휴대폰 번호·인증번호
+ */
+export const confirmPhoneChange = async (request: PhoneChangeConfirmRequest): Promise<void> => {
+  await apiClient.post('/members/me/phone/change/verify', request);
+};
+
+/**
+ * 인증 없이 내 번호를 바꾼다 (로그인 필요, 204). 새 번호는 미인증이 된다. 서버 휴대폰 인증 필수 스위치가 켜져 있으면 403.
+ * @param request - 새 휴대폰 번호
+ */
+export const updateMyPhone = async (request: PhoneChangeRequest): Promise<void> => {
+  await apiClient.patch('/members/me/phone', request);
+};
