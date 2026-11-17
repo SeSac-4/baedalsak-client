@@ -5,7 +5,7 @@ import { getCartItemCount, useCart } from '@/entities/cart';
 import { Icon } from '@/shared/ui/icon';
 import { NavPills, type NavPillItem } from '@/shared/ui/nav-pills';
 
-import { MyLocationButton } from './my-location-button';
+import { DeliveryLocationButton } from '@/features/address/set-delivery-location';
 
 /** 고객 메뉴. 장바구니는 헤더 오른쪽 아이콘으로 들어간다 */
 const CUSTOMER_NAV: NavPillItem[] = [
@@ -39,7 +39,7 @@ export function CustomerLayout(): ReactNode {
             />
             배달싹
           </Link>
-          <MyLocationButton />
+          <DeliveryLocationButton />
           <span className='flex-1' />
           <Link
             to='/cart'

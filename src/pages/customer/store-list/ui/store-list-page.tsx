@@ -12,10 +12,11 @@ import {
   useStoreListSummary,
   type StoreListFilter,
 } from '@/entities/store';
+import { formatAddressName } from '@/entities/address';
+import { useDeliveryLocation, type DeliveryLocation } from '@/features/address/set-delivery-location';
 import { getErrorMessage } from '@/shared/api';
 import { cn } from '@/shared/lib/cn';
 import { isLocationDenied } from '@/shared/lib/geolocation';
-import { useCurrentLocation } from '@/shared/lib/kakao-map';
 import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
 import { useIntersection } from '@/shared/lib/use-intersection';
 import { Button } from '@/shared/ui/button';
@@ -64,29 +65,23 @@ const getCategoryName = (categories: Category[] | undefined, code: CategoryCode)
 const formatStoreCount = (count: number): string => (count > 0 ? `가게 ${count}곳` : '준비 중');
 
 /**
- * 목록 범위 안내 문구를 고른다. 위치를 모르면 전체 가게를 보여 준다.
- * @param state - 위치 확인 중 여부, 위치를 받았는지, 위치 오류
+ * 목록 범위 안내 문구를 고른다. 기본 주소를 쓰면 그 주소 기준, 위치를 모르면 전체 가게를 보여 준다.
+ * @param location - 헤더와 같은 기준 위치
  * @returns 안내 문구
  */
-const getLocationNotice = ({
-  isPending,
-  hasPosition,
-  error,
-}: {
-  isPending: boolean;
-  hasPosition: boolean;
-  error: Error | null;
-}): string => {
-  if (hasPosition) return `내 위치에서 ${formatDistance(NEARBY_RADIUS_M)} 안의 가게예요.`;
+const getLocationNotice = ({ source, address, position, isPending, current }: DeliveryLocation): string => {
+  const radius = formatDistance(NEARBY_RADIUS_M);
+  if (source === 'address' && address) return `${formatAddressName(address)}에서 ${radius} 안의 가게예요.`;
+  if (position) return `내 위치에서 ${radius} 안의 가게예요.`;
   if (isPending) return '내 위치를 확인하고 있어요. 그동안 전체 가게를 보여 드려요.';
-  if (isLocationDenied(error)) return '위치 권한을 허용하면 내 주변 가게만 보여 드려요.';
+  if (isLocationDenied(current.error)) return '위치 권한을 허용하면 내 주변 가게만 보여 드려요.';
   return '내 위치를 찾지 못해 전체 가게를 보여 드려요.';
 };
 
 /**
  * U-01 가게 목록(홈) 화면. PC는 카테고리 타일에서 고르면 그 가게 목록으로 들어가고, 태블릿·모바일은 칩과 목록을 바로 보여 준다.
  * 고른 카테고리(?category=)와 가게 이름 검색어(?q=)는 URL에 둔다. 검색어는 입력이 300ms 멈추면 반영하고, 검색 중이면 PC도 목록을 보여 준다.
- * 내 위치를 받으면 목록·통계를 반경 안의 가게로 거르고, 위치를 모르면(확인 중·거부·실패) 전체 가게를 보여 준다.
+ * 헤더에서 정한 위치(로그인한 고객의 기본 주소 또는 브라우저 현재 위치)로 목록·통계를 반경 안의 가게로 거르고, 위치를 모르면(확인 중·거부·실패) 전체 가게를 보여 준다.
  * @returns 가게 목록 페이지
  */
 export function StoreListPage(): ReactNode {
@@ -109,8 +104,8 @@ export function StoreListPage(): ReactNode {
 
   const { data: categories } = useCategoryList();
   const queryClient = useQueryClient();
-  const { data: location, isPending: isLocationPending, error: locationError } = useCurrentLocation();
-  const position = location?.position;
+  const location = useDeliveryLocation();
+  const { position } = location;
   const listFilter: StoreListFilter = { category, q: keyword || undefined, position };
   const { data: summary, refetch: refetchSummary } = useStoreListSummary(position);
   const {
@@ -302,7 +297,7 @@ export function StoreListPage(): ReactNode {
           size={14}
           className='shrink-0'
         />
-        {getLocationNotice({ isPending: isLocationPending, hasPosition: Boolean(position), error: locationError })}
+        {getLocationNotice(location)}
       </p>
 
       {hasPicked ? null : (

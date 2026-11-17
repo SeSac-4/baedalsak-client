@@ -13,6 +13,7 @@ import { Spinner } from '@/shared/ui/spinner';
 
 import { WITHDRAW_CONTACT_NOTICE, WITHDRAWABLE_ROLE } from '../config/withdraw';
 import { useLogout } from '../model/use-logout';
+import { MyAddressCard } from './my-address-card';
 import { MyPhoneField } from './my-phone-field';
 import { OwnerStoreCard } from './owner-store-card';
 import { WithdrawModal } from './withdraw-modal';
@@ -52,7 +53,7 @@ const PAGE_CLASS =
 const getInitial = (name: string): string => name.trim().charAt(0);
 
 /**
- * C-06 내 정보 화면. 프로필 머리(이니셜·이름·역할 배지) 아래 이메일·이름·휴대폰·역할을 보여 주고, 사장님은 내 가게 요약을 함께 보여 준다.
+ * C-06 내 정보 화면. 프로필 머리(이니셜·이름·역할 배지) 아래 이메일·이름·휴대폰·역할을 보여 주고, 고객은 배달 주소, 사장님은 내 가게 요약을 함께 보여 준다.
  * 로그아웃하면 캐시를 비우고 로그인 화면으로 간다. 맨 아래 회원 탈퇴는 고객에게만 보이고, 사장님·라이더는 문의 안내만 보여 준다.
  * @returns 내 정보 페이지
  */
@@ -117,6 +118,7 @@ export function MyPage(): ReactNode {
           className='gap-y-2.5 border-t border-border pt-3.5'
         />
       </Card>
+      {me.role === 'CUSTOMER' ? <MyAddressCard /> : null}
       {me.role === 'OWNER' ? <OwnerStoreCard /> : null}
       <Button
         variant='secondary'

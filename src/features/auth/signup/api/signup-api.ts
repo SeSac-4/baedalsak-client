@@ -1,3 +1,4 @@
+import type { AddressRequest } from '@/entities/address';
 import type { MemberRole } from '@/entities/session';
 import { apiClient } from '@/shared/api';
 
@@ -19,10 +20,13 @@ interface SignupVerificationTokens {
   phoneVerificationToken?: string;
 }
 
+/** 고객 가입의 배달 주소 (선택). 넣으면 첫 주소 = 기본 주소. isDefault는 받지 않는다 */
+export type SignupAddressRequest = Omit<AddressRequest, 'isDefault'>;
+
 /** 가입 요청 (역할 + 역할별 폼 값 + 인증 표). 비밀번호 확인은 보내기 전에 뺀다 */
 export type SignupRequest = SignupVerificationTokens &
   (
-    | { role: 'CUSTOMER'; body: SignupCommonValues }
+    | { role: 'CUSTOMER'; body: SignupCommonValues; address?: SignupAddressRequest }
     | { role: 'OWNER'; body: SignupOwnerValues }
     | { role: 'RIDER'; body: SignupRiderValues }
   );
@@ -36,20 +40,18 @@ export interface SignupResponse {
 /**
  * 역할별로 회원 가입한다. 성공(201)하면 서버가 로그인 쿠키까지 발급한다.
  * 이메일 중복은 409 EMAIL_DUPLICATED, 입력 오류는 400 VALIDATION_FAILED
- * (표가 없음·만료·재사용·다른 값이면 errors[emailVerificationToken] · errors[phoneVerificationToken]).
- * @param request - 역할·가입 정보·이메일 인증 표·휴대폰 인증 표
+ * (표가 없음·만료·재사용·다른 값이면 errors[emailVerificationToken] · errors[phoneVerificationToken], 고객 배달 주소는 errors[address.lat]처럼 address. 접두사).
+ * @param request - 역할·가입 정보·이메일 인증 표·휴대폰 인증 표 (고객은 배달 주소 선택)
  * @returns 회원 ID·역할
  */
-export const signupMember = async ({
-  role,
-  body,
-  emailVerificationToken,
-  phoneVerificationToken,
-}: SignupRequest): Promise<SignupResponse> => {
+export const signupMember = async (request: SignupRequest): Promise<SignupResponse> => {
+  const { role, body, emailVerificationToken, phoneVerificationToken } = request;
+  const address = request.role === 'CUSTOMER' ? request.address : undefined;
   const { data } = await apiClient.post<SignupResponse>(SIGNUP_PATH[role], {
     ...parseSignupBody(body),
     emailVerificationToken,
     phoneVerificationToken,
+    address,
   });
   return data;
 };
