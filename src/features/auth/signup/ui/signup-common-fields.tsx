@@ -6,9 +6,10 @@ import {
   CodeRequestButton,
   EMAIL_CODE_VALID_HINT,
   EMAIL_VERIFICATION_HINT,
+  getPhoneVerificationHint,
   PASSWORD_HINT,
   PHONE_CODE_VALID_HINT,
-  PHONE_VERIFICATION_HINT,
+  type MemberRole,
 } from '@/entities/session';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
@@ -20,6 +21,8 @@ import type { SignupCodeVerification } from '../model/use-signup-code-verificati
 export interface SignupCommonFieldsProps {
   /** 입력칸 id 앞부분 (예: 'customer' → customer-email) */
   idPrefix: string;
+  /** 가입하는 회원 유형 (휴대폰 칸 안내 문구가 역할마다 다르다) */
+  role: MemberRole;
   /** 가입 폼의 register (역할별 폼 값은 공통 필드를 포함한다) */
   register: UseFormRegister<SignupCommonValues>;
   /** 가입 폼의 필드 에러 */
@@ -33,11 +36,13 @@ export interface SignupCommonFieldsProps {
 /**
  * 가입 공통 입력(이메일·비밀번호·비밀번호 확인·이름·휴대폰) — 고객·사장님·라이더 가입 폼(C-03~C-05) 공용.
  * 이메일 · 휴대폰 번호 옆 [인증번호 받기] → 인증번호 입력·[확인] → 인증됨. 이메일 인증은 필수, 휴대폰 인증은 선택이다.
- * @param props idPrefix(입력칸 id 앞부분), register(폼 등록 함수), errors(필드 에러), emailVerification(이메일 인증 상태), phoneVerification(휴대폰 인증 상태)
+ * 휴대폰 칸 아래 안내는 회원 유형별 문구이고, 알림 문자가 없는 라이더는 안내 줄을 그리지 않는다.
+ * @param props idPrefix(입력칸 id 앞부분), role(회원 유형), register(폼 등록 함수), errors(필드 에러), emailVerification(이메일 인증 상태), phoneVerification(휴대폰 인증 상태)
  * @returns 공통 입력 요소
  */
 export function SignupCommonFields({
   idPrefix,
+  role,
   register,
   errors,
   emailVerification,
@@ -132,7 +137,7 @@ export function SignupCommonFields({
       <FormField
         id={phoneId}
         label='휴대폰 번호'
-        hint={PHONE_VERIFICATION_HINT}
+        hint={getPhoneVerificationHint(role) ?? undefined}
         error={errors.phone?.message}
       >
         <div className='flex gap-2'>
