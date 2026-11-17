@@ -5,6 +5,8 @@ import {
   DELIVERY_STATUS_LABEL,
   formatRemaining,
   getReadyMinutesLeft,
+  getRouteLeg,
+  isLocationOnLeg,
   useActiveDelivery,
   useDeliveryLocation,
   type RiderDelivery,
@@ -112,8 +114,10 @@ export function ActiveDeliveryPage(): ReactNode {
   const { mutate: pickup, isPending: isPickingUp } = usePickupDelivery();
   const { mutate: complete, isPending: isCompleting } = useCompleteDelivery();
   const isSubmitting = isPickingUp || isCompleting;
-  // 픽업 중 남은 거리·시간 (지도와 같은 캐시라 요청은 한 번)
+  // 픽업 중 남은 거리·시간 (지도와 같은 캐시라 요청은 한 번). 픽업 직후 남은 가게까지 위치는 쓰지 않는다
   const { data: tracking } = useDeliveryLocation(delivery?.orderId ?? 0, delivery?.status === 'PICKED_UP');
+  const polled = tracking?.location ?? null;
+  const location = delivery && polled && isLocationOnLeg(polled, getRouteLeg(delivery.status)) ? polled : null;
   // GPS상 미도착인데 배달 완료를 눌렀을 때 확인 모달
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -138,7 +142,7 @@ export function ActiveDeliveryPage(): ReactNode {
   const handleActionClick = (target: RiderDelivery): void => {
     if (target.status === 'ASSIGNED') pickup(target.deliveryId);
     if (target.status !== 'PICKED_UP') return;
-    if (tracking?.location && !tracking.location.arrived) {
+    if (location && !location.arrived) {
       setIsConfirmOpen(true);
       return;
     }
@@ -153,7 +157,7 @@ export function ActiveDeliveryPage(): ReactNode {
     if (delivery?.status === 'PICKED_UP') complete(delivery.deliveryId);
   };
 
-  const copy = delivery ? getActiveDeliveryCopy(delivery, tracking?.location ?? null) : null;
+  const copy = delivery ? getActiveDeliveryCopy(delivery, location) : null;
   const isPickedUp = delivery?.status === 'PICKED_UP';
 
   return (

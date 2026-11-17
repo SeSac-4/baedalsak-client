@@ -14,6 +14,7 @@ export type {
 } from './model/delivery-types';
 export { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, getReadyMinutesLeft } from './lib/format-delivery';
 export { formatDistance, formatEta, formatRemaining, getEtaMinutesLeft } from './lib/format-location';
+export { getRouteLeg, isLocationOnLeg } from './lib/route-leg';
 export { deliveryKeys } from './api/delivery-query';
 export { useRiderOnlineStore } from './model/delivery-store';
 export { useActiveDelivery } from './model/use-active-delivery';

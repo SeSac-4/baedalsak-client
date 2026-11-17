@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import {
   formatRemaining,
+  getRouteLeg,
+  isLocationOnLeg,
   useDeliveryLocation,
   useDeliveryRoute,
   type DeliveryPoint,
@@ -125,7 +127,8 @@ export function DeliveryMap({
   const isPickedUp = status === 'PICKED_UP';
   const isMoving = status === 'ASSIGNED' || isPickedUp;
   const isLive = orderId > 0 && riderPosition === undefined;
-  const { data: route } = useDeliveryRoute(orderId, isLive && isMoving && routePath === undefined);
+  const leg = getRouteLeg(status);
+  const { data: route } = useDeliveryRoute(orderId, leg, isLive && isMoving && routePath === undefined);
   const { data: tracking } = useDeliveryLocation(orderId, isLive && status !== 'DELIVERED');
 
   const addresses = getAddressesToGeocode([
@@ -137,7 +140,9 @@ export function DeliveryMap({
   const store = pickupPoint ?? (storeAddress ? (geocoded.get(storeAddress) ?? null) : null);
   const home = deliveryPoint ?? geocoded.get(deliveryAddress) ?? null;
 
-  const location = isLive && isMoving ? (tracking?.location ?? null) : null;
+  // 픽업 직후 폴링 캐시에 가게까지 위치가 남아 있으면 쓰지 않는다 (도착 표시가 이어지지 않게)
+  const polled = tracking?.location ?? null;
+  const location = isLive && isMoving && polled && isLocationOnLeg(polled, leg) ? polled : null;
   const rider =
     riderPosition !== undefined ? riderPosition : location ? { lat: location.lat, lng: location.lng } : null;
   const path = isMoving ? (routePath ?? route?.path) : undefined;
@@ -154,7 +159,7 @@ export function DeliveryMap({
         markers={markers}
         path={path}
         pathStyle={route?.straight ? 'dashed' : 'solid'}
-        label={isPickedUp || status === 'DELIVERED' ? '가게에서 배달지까지 지도' : '라이더 위치에서 가게까지 지도'}
+        label={leg === 'TO_STORE' ? '라이더 위치에서 가게까지 지도' : '가게에서 배달지까지 지도'}
         className={cn('h-60 tablet:h-80 desktop:h-115', className)}
       />
       <span
