@@ -18,6 +18,8 @@ export interface MyPhoneVerificationProps {
   phone: string;
   /** 서버 기준 인증 여부 (GET /members/me phoneVerified) */
   phoneVerified: boolean;
+  /** 번호 줄 끝에 붙일 요소 (예: [번호 변경]) */
+  action?: ReactNode;
 }
 
 const VERIFIED_MESSAGE = '휴대폰 인증을 마쳤어요.';
@@ -25,10 +27,10 @@ const VERIFIED_MESSAGE = '휴대폰 인증을 마쳤어요.';
 /**
  * 내 정보(C-06) 휴대폰 번호 칸. 인증했으면 '인증됨' 배지, 안 했으면 [휴대폰 인증하기]와 안내 문구를 보여 준다.
  * 인증번호는 서버가 DB의 내 번호로 보내고, 성공하거나 이미 인증됨(409)이면 내 정보를 다시 불러온다.
- * @param props phone(내 번호), phoneVerified(인증 여부)
+ * @param props phone(내 번호), phoneVerified(인증 여부), action(번호 줄 끝 요소)
  * @returns 휴대폰 번호·인증 요소
  */
-export function MyPhoneVerification({ phone, phoneVerified }: MyPhoneVerificationProps): ReactNode {
+export function MyPhoneVerification({ phone, phoneVerified, action }: MyPhoneVerificationProps): ReactNode {
   const toast = useToast();
   const queryClient = useQueryClient();
   /** 다시 불러온 내 정보가 오기 전에도 바로 인증됨으로 보이도록 */
@@ -65,6 +67,7 @@ export function MyPhoneVerification({ phone, phoneVerified }: MyPhoneVerificatio
           label='휴대폰 인증하기'
           size='sm'
         />
+        {action}
       </div>
       {isVerified ? null : <p className='text-note leading-[1.45] text-fg-muted'>{PHONE_VERIFICATION_HINT}</p>}
       <CodeField
