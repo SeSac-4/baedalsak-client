@@ -18,7 +18,9 @@ export type CodeVerificationError =
   /** 이미 인증됨: 쓰는 쪽이 정보를 다시 불러와 인증됨으로 보여 준다 */
   | { type: 'already-verified' }
   /** 503·네트워크 등: 토스트 */
-  | { type: 'toast'; message: string };
+  | { type: 'toast'; message: string }
+  /** 쓰는 쪽이 이미 보여 줌 (예: 내 정보 번호 변경의 errors[phone]은 새 번호 칸 아래) */
+  | { type: 'handled' };
 
 export interface CodeVerifierOptions<T> {
   /** 인증번호 요청 (휴대폰 문자 · 이메일) */
@@ -98,6 +100,7 @@ export const useCodeVerifier = <T>({
    * @param parsed - 나눈 에러
    */
   const showError = (parsed: CodeVerificationError): void => {
+    if (parsed.type === 'handled') return;
     if (parsed.type === 'code') {
       setCodeError(parsed.message);
       if (parsed.clearCode) setCode('');
