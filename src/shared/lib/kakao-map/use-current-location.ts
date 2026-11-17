@@ -28,10 +28,12 @@ const getRegionOrNull = (position: LatLngLiteral): Promise<Region | null> => get
 
 /**
  * 브라우저 위치로 현재 좌표와 동네를 구한다. 권한 거부 등 실패하면 재시도하지 않고, refetch 로 다시 묻는다.
+ * @param enabled - false면 위치를 묻지 않는다 (저장된 배달 주소를 쓸 때). 기본 true
  * @returns 현재 위치 쿼리 결과
  */
-export const useCurrentLocation = (): UseQueryResult<CurrentLocation> =>
+export const useCurrentLocation = (enabled: boolean = true): UseQueryResult<CurrentLocation> =>
   useQuery({
+    enabled,
     queryKey: currentLocationKeys.all,
     queryFn: async (): Promise<CurrentLocation> => {
       const position = await getCurrentPosition();
