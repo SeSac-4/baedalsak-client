@@ -1,4 +1,4 @@
-export type { SignupRequest, SignupResponse } from './api/signup-api';
+export type { SignupAddressRequest, SignupRequest, SignupResponse } from './api/signup-api';
 export { SIGNUP_EMAIL_REQUIRED_MESSAGE } from './config/email-verification';
 export { getSignupDonePath } from './lib/get-signup-done-path';
 export { parseSignupError, type SignupFieldError } from './lib/parse-signup-error';
