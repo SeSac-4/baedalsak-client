@@ -3,6 +3,7 @@ import { apiClient } from '@/shared/api';
 import type {
   Delivery,
   DeliveryLocation,
+  DeliveryPoint,
   DeliveryRoute,
   RiderDelivery,
   RiderDeliveryHistory,
@@ -49,6 +50,15 @@ export const getDeliveryHistory = async (from: string, to: string): Promise<Ride
  */
 export const getDeliveryByOrder = async (orderId: number): Promise<Delivery | null> => {
   const { data, status } = await apiClient.get<Delivery>(`/deliveries/by-order/${orderId}`);
+  return status === HTTP_NO_CONTENT ? null : data;
+};
+
+/**
+ * 내 현재 위치를 조회한다. (라이더) 가상 위치면 처음 볼 때 배차 대기 가게 바로 주변에 정해진다.
+ * @returns 현재 위치 (둘 곳이 없거나 모르면 204 → null)
+ */
+export const getMyRiderPosition = async (): Promise<DeliveryPoint | null> => {
+  const { data, status } = await apiClient.get<DeliveryPoint>('/deliveries/me/position');
   return status === HTTP_NO_CONTENT ? null : data;
 };
 

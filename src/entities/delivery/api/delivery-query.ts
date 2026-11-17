@@ -19,6 +19,11 @@ export const deliveryKeys = {
    */
   history: (from: string, to: string) => [...deliveryKeys.all, 'history', from, to] as const,
   /**
+   * 내 현재 위치(라이더) 키를 만든다.
+   * @returns 쿼리 키
+   */
+  myPosition: () => [...deliveryKeys.all, 'my-position'] as const,
+  /**
    * 주문의 배달 상태 키를 만든다.
    * @param orderId - 주문 ID
    * @returns 쿼리 키

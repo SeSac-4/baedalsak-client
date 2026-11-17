@@ -20,5 +20,6 @@ export { useDeliveryHistory } from './model/use-delivery-history';
 export { useDeliveryByOrder } from './model/use-delivery-by-order';
 export { useDeliveryLocation } from './model/use-delivery-location';
 export { useDeliveryRoute } from './model/use-delivery-route';
+export { useMyRiderPosition } from './model/use-my-rider-position';
 export { useWaitingDeliveryList } from './model/use-waiting-delivery-list';
 export { DeliveryCard, type DeliveryCardProps } from './ui/delivery-card';
