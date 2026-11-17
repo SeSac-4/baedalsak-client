@@ -6,14 +6,21 @@ import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { Icon } from '@/shared/ui/icon';
 
-import { DELIVERY_STATUS_LABEL, DELIVERY_STATUS_TONE, getReadyMinutesLeft } from '../lib/format-delivery';
+import {
+  DELIVERY_STATUS_LABEL,
+  DELIVERY_STATUS_TONE,
+  getReadyMinutesLeft,
+  getWaitingEta,
+  type WaitingEta,
+} from '../lib/format-delivery';
 import type { RiderDelivery, WaitingDelivery } from '../model/delivery-types';
 
 /** 조리 완료까지 이 분 이하로 남으면 주황으로 강조한다 */
 const READY_SOON_MINUTES = 5;
 
 /**
- * CMP-20 DeliveryCard — 순번·배달비·조리 완료까지 남은 시간, 픽업 → 배달 경로 + 동작 버튼 슬롯.
+ * CMP-20 DeliveryCard — 순번·배달비·조리 완료까지 남은 시간, (배차 대기면) 배달 완료까지 예상 시간,
+ * 픽업 → 배달 경로 + 동작 버튼 슬롯.
  * 배차 대기(WaitingDelivery)는 배달지를 동 단위로, 진행 중(RiderDelivery)은 상태 배지와 전체 주소로 보여 준다.
  */
 export interface DeliveryCardProps {
@@ -32,6 +39,8 @@ export interface DeliveryCardProps {
 interface RouteStep {
   label: string;
   title: string;
+  /** 제목 옆 보조 정보 (가게까지 이동 시간 등) */
+  meta?: string;
   description?: string;
 }
 
@@ -45,10 +54,16 @@ const isRiderDelivery = (delivery: WaitingDelivery | RiderDelivery): delivery is
 /**
  * 픽업 → 배달 경로 단계를 만든다. 배차 전에는 배달지를 동 단위로만 보여 준다.
  * @param delivery 배차 대기 또는 진행 중 배달
+ * @param eta 배차 대기 예상 시간 (없으면 null)
  * @returns 경로 단계 2개
  */
-const getRouteSteps = (delivery: WaitingDelivery | RiderDelivery): RouteStep[] => [
-  { label: '픽업', title: delivery.storeName, description: delivery.pickupAddress },
+const getRouteSteps = (delivery: WaitingDelivery | RiderDelivery, eta: WaitingEta | null): RouteStep[] => [
+  {
+    label: '픽업',
+    title: delivery.storeName,
+    meta: eta?.pickupMinutes != null ? `가게까지 ${eta.pickupMinutes}분` : undefined,
+    description: delivery.pickupAddress,
+  },
   isRiderDelivery(delivery)
     ? { label: '배달', title: delivery.deliveryAddress }
     : { label: '배달', title: delivery.deliveryDong, description: '상세 주소는 수락 후 보여요' },
@@ -75,6 +90,24 @@ const renderReadyBadge = (estimatedReadyAt: string): ReactNode => {
 };
 
 /**
+ * 배달 완료까지 예상 시간 줄을 렌더링한다. 예: 배달 완료까지 약 13분 · 조리 대기 4분 + 배달 9분
+ * @param eta 배차 대기 예상 시간
+ * @returns 예상 시간 요소
+ */
+const renderEta = (eta: WaitingEta): ReactNode => (
+  <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg bg-role-soft px-2.5 py-2 text-role-ink'>
+    <Icon
+      name='motorcycle'
+      size={16}
+    />
+    <span className='font-bold tabular-nums'>배달 완료까지 약 {eta.totalMinutes}분</span>
+    <span className='ml-auto text-note tabular-nums'>
+      {eta.waitMinutes > 0 ? `${eta.waitLabel} ${eta.waitMinutes}분 + ` : ''}배달 {eta.deliveryMinutes}분
+    </span>
+  </div>
+);
+
+/**
  * 배달 카드를 렌더링한다.
  * @param props delivery(배차 대기 또는 진행 중 배달), order(순번), selected(선택 여부), onSelect(본문 선택), footer(하단 동작 영역)
  * @returns 배달 카드 요소
@@ -87,7 +120,8 @@ export function DeliveryCard({
   footer,
   className,
 }: DeliveryCardProps): ReactNode {
-  const steps = getRouteSteps(delivery);
+  const eta = isRiderDelivery(delivery) ? null : getWaitingEta(delivery);
+  const steps = getRouteSteps(delivery, eta);
 
   const body = (
     <>
@@ -113,6 +147,8 @@ export function DeliveryCard({
         )}
       </div>
 
+      {eta ? renderEta(eta) : null}
+
       <ol className='flex flex-col'>
         {steps.map((step, index) => {
           const isFirst = index === 0;
@@ -136,7 +172,12 @@ export function DeliveryCard({
               </span>
               <div className={cn('leading-[1.45]', isFirst && 'pb-2.5')}>
                 <p className='text-note text-fg-muted'>{step.label}</p>
-                <p className='font-bold text-fg'>{step.title}</p>
+                <p className='font-bold text-fg'>
+                  {step.title}
+                  {step.meta ? (
+                    <span className='ml-1.5 text-note font-normal text-fg-muted tabular-nums'>· {step.meta}</span>
+                  ) : null}
+                </p>
                 {step.description ? <p className='text-note text-fg-muted'>{step.description}</p> : null}
               </div>
             </li>

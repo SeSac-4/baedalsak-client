@@ -1,7 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router';
 
-import { DeliveryCard, useActiveDelivery, useRiderOnlineStore, useWaitingDeliveryList } from '@/entities/delivery';
+import {
+  DeliveryCard,
+  useActiveDelivery,
+  useRiderOnlineStore,
+  useWaitingDeliveryList,
+  type WaitingSort,
+} from '@/entities/delivery';
 import { getErrorMessage } from '@/shared/api';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -10,24 +16,43 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { Notice } from '@/shared/ui/notice';
 import { PageHeader } from '@/shared/ui/page-header';
 import { Spinner } from '@/shared/ui/spinner';
+import { Tabs, type TabItem } from '@/shared/ui/tabs';
 
 import { useAcceptDelivery } from '../model/use-accept-delivery';
 import { PickupMap } from './pickup-map';
 
 const ACTIVE_DELIVERY_PATH = '/rider/active';
+const SORT_TABS: TabItem[] = [
+  { value: 'FASTEST', label: '빠른 배달순' },
+  { value: 'FEE', label: '배달비 높은순' },
+];
+
+const SORT_HINT: Record<WaitingSort, string> = {
+  FASTEST: '배달을 빨리 끝낼 수 있는 순서예요. 조리 대기·가게까지 중 오래 걸리는 쪽 + 배달 시간으로 계산해요.',
+  FEE: '배달비가 높은 순서예요. 수락하면 상세 주소와 고객 연락처가 열려요.',
+};
+
+/**
+ * 탭 값을 정렬로 바꾼다.
+ * @param value 탭 값
+ * @returns 정렬 (모르는 값이면 빠른 배달순)
+ */
+const toWaitingSort = (value: string): WaitingSort => (value === 'FEE' ? 'FEE' : 'FASTEST');
+
 const PAGE_CLASS =
   'mx-auto flex w-full flex-col gap-3 px-4 pt-4 pb-6 tablet:max-w-[760px] tablet:gap-3.5 tablet:px-6 tablet:pt-5 tablet:pb-10 desktop:max-w-[1180px] desktop:gap-4 desktop:px-10 desktop:pt-7 desktop:pb-12';
 
 /**
- * R-01 배차 대기 목록 화면. 픽업 가게 지도와 배차 대기 배달을 오래된 순으로 보여 주고 수락한다.
+ * R-01 배차 대기 목록 화면. 픽업 가게 지도와 배차 대기 배달을 빠른 배달순 또는 배달비 높은순으로 보여 주고 수락한다.
  * 카드를 누르면 지도에서 그 요청을 강조한다. 쉬는 중이어도 목록은 보여 주고 수락만 막는다(운행 상태는 화면 상태로만 둔다).
  * 진행 중인 배달이 있으면 진행 중 배달 화면으로 보낸다. 상태 갱신은 새로고침 버튼으로만 한다.
  * @returns 배차 대기 목록 페이지
  */
 export function WaitingListPage(): ReactNode {
   const { data: activeDelivery, isPending: isActivePending } = useActiveDelivery();
+  const [sort, setSort] = useState<WaitingSort>('FASTEST');
   const { data, error, isPending, isFetching, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useWaitingDeliveryList();
+    useWaitingDeliveryList(sort);
   const { mutate: accept, isPending: isAccepting, variables: acceptingId } = useAcceptDelivery();
   const isOnline = useRiderOnlineStore((state) => state.isOnline);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -40,6 +65,15 @@ export function WaitingListPage(): ReactNode {
       />
     );
   }
+
+  /**
+   * 정렬을 바꾸고 선택을 첫 요청으로 되돌린다.
+   * @param value 탭 값
+   */
+  const handleSortChange = (value: string): void => {
+    setSort(toWaitingSort(value));
+    setSelectedIndex(0);
+  };
 
   const deliveries = data?.pages.flatMap((page) => page.content);
   const totalCount = data?.pages[0]?.totalElements;
@@ -58,6 +92,14 @@ export function WaitingListPage(): ReactNode {
             onClick={() => void refetch()}
           />
         }
+      />
+
+      <Tabs
+        label='배차 대기 정렬'
+        items={SORT_TABS}
+        value={sort}
+        onChange={handleSortChange}
+        className='tablet:max-w-[520px]'
       />
 
       {isOnline ? null : <Notice>운행을 쉬는 중이에요. 목록은 볼 수 있고, 운행을 켜면 수락할 수 있어요.</Notice>}
@@ -82,9 +124,7 @@ export function WaitingListPage(): ReactNode {
             />
           </div>
           <div className='flex flex-col gap-3 tablet:gap-3.5 desktop:gap-4'>
-            <p className='text-note text-fg-muted'>
-              오래된 요청부터 보여요. 수락하면 상세 주소와 고객 연락처가 열려요.
-            </p>
+            <p className='text-note text-fg-muted'>{SORT_HINT[sort]}</p>
             <div className='flex flex-col gap-3 tablet:grid tablet:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] tablet:items-start tablet:gap-3.5 desktop:gap-4'>
               {deliveries.map((delivery, index) => (
                 <DeliveryCard
