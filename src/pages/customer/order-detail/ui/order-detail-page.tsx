@@ -1,18 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
 
-import { useDeliveryByOrder, type Delivery } from '@/entities/delivery';
-import {
-  ORDER_STATUS_FLOW,
-  ORDER_STATUS_LABEL,
-  ORDER_STATUS_TONE,
-  isOrderInFlow,
-  useOrder,
-  type OrderStatus,
-} from '@/entities/order';
+import { useDeliveryByOrder } from '@/entities/delivery';
+import { ORDER_STATUS_FLOW, ORDER_STATUS_LABEL, ORDER_STATUS_TONE, isOrderInFlow, useOrder } from '@/entities/order';
 import { usePaymentByOrder, type PaymentStatus } from '@/entities/payment';
 import { getErrorMessage } from '@/shared/api';
-import { formatTime } from '@/shared/lib/format';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -31,29 +23,8 @@ const CONTAINER_CLASS =
 const COLUMN_CLASS = 'flex min-w-0 flex-col gap-3 tablet:gap-3.5 desktop:gap-4';
 const PAID_PAYMENT_STATUSES: PaymentStatus[] = ['APPROVED', 'CANCEL_REQUESTED', 'CANCELED'];
 
-/**
- * 단계에 보여 줄 시각을 고른다. 서버에 단계별 이력이 없어 아는 시각만 쓴다:
- * 배달중 = 픽업 시각, 배달완료 = 완료 시각(배달 API). 결제완료·조리중은 시각 없음.
- * @param status 단계
- * @param delivery 배달 정보
- * @returns ISO 시각 (모르면 null)
- */
-const getStepTime = (status: OrderStatus, delivery: Delivery | null | undefined): string | null => {
-  if (status === 'DELIVERING') return delivery?.pickedUpAt ?? null;
-  if (status === 'DELIVERED') return delivery?.completedAt ?? null;
-  return null;
-};
-
-/**
- * 진행 단계(이름·시각)를 만든다. 결제대기는 고객에게 보이지 않아 결제완료부터 시작한다.
- * @param delivery 배달 정보
- * @returns 단계 목록
- */
-const getOrderSteps = (delivery: Delivery | null | undefined): Step[] =>
-  ORDER_STATUS_FLOW.map((status) => {
-    const time = getStepTime(status, delivery);
-    return { label: ORDER_STATUS_LABEL[status], time: time ? formatTime(time) : undefined };
-  });
+/** 진행 단계 이름. 결제대기는 고객에게 보이지 않아 결제완료부터 시작한다. 시각은 보여 주지 않는다 */
+const ORDER_STEPS: Step[] = ORDER_STATUS_FLOW.map((status) => ({ label: ORDER_STATUS_LABEL[status] }));
 
 /**
  * U-09 주문 상세 화면. 주문(GET /orders/{id})·배달(GET /deliveries/by-order/{id})·결제(GET /payments/by-order/{id})를 합쳐 보여 준다.
@@ -145,7 +116,7 @@ export function OrderDetailPage(): ReactNode {
             <>
               <Card className='px-2.5 py-4'>
                 <Stepper
-                  steps={getOrderSteps(delivery)}
+                  steps={ORDER_STEPS}
                   current={ORDER_STATUS_FLOW.indexOf(order.status)}
                 />
               </Card>
