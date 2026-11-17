@@ -30,6 +30,7 @@ export function MyPhoneField({ phone, phoneVerified, role }: MyPhoneFieldProps):
         <span>{phone}</span>
         <MyPhoneChange
           phoneVerified={phoneVerified}
+          role={role}
           onClose={() => setIsEditing(false)}
         />
       </div>

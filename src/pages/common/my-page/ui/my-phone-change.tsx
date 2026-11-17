@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { KeyboardEvent, ReactNode } from 'react';
 
-import { CodeField, CodeRequestButton, PHONE_CODE_VALID_HINT, sessionKeys } from '@/entities/session';
+import { CodeField, CodeRequestButton, PHONE_CODE_VALID_HINT, sessionKeys, type MemberRole } from '@/entities/session';
 import { Button } from '@/shared/ui/button';
 import { FormField } from '@/shared/ui/form-field';
 import { Input } from '@/shared/ui/input';
@@ -12,7 +12,7 @@ import { useToast } from '@/shared/ui/toast';
 import {
   PHONE_CHANGED_MESSAGE,
   PHONE_CHANGED_UNVERIFIED_MESSAGE,
-  UNVERIFIED_PHONE_NOTICE,
+  UNVERIFIED_PHONE_NOTICE_BY_ROLE,
   VERIFICATION_RELEASE_NOTICE,
 } from '../config/phone-change';
 import { usePhoneChange } from '../model/use-phone-change';
@@ -20,6 +20,8 @@ import { usePhoneChange } from '../model/use-phone-change';
 export interface MyPhoneChangeProps {
   /** 지금 번호가 인증돼 있는지 (인증 없이 바꾸면 해제된다고 알린다) */
   phoneVerified: boolean;
+  /** 회원 유형 (미인증 번호 안내가 역할마다 다르다) */
+  role: MemberRole;
   /** 편집을 닫는다 ([취소] · 바꾼 뒤) */
   onClose: () => void;
 }
@@ -29,10 +31,10 @@ const NEW_PHONE_ID = 'me-new-phone';
 /**
  * 내 정보(C-06) 휴대폰 번호 변경 칸. 새 번호 → [인증번호 받기] → 인증번호 [확인]으로 인증된 번호로 바꾼다.
  * 서버 스위치가 꺼져 있으면 [인증 없이 바꾸기]로 미인증 번호로 바로 바꿀 수도 있다. 바꾸면 내 정보를 다시 불러온 뒤 닫는다.
- * @param props phoneVerified(지금 번호 인증 여부), onClose(편집 닫기)
+ * @param props phoneVerified(지금 번호 인증 여부), role(회원 유형), onClose(편집 닫기)
  * @returns 번호 변경 요소
  */
-export function MyPhoneChange({ phoneVerified, onClose }: MyPhoneChangeProps): ReactNode {
+export function MyPhoneChange({ phoneVerified, role, onClose }: MyPhoneChangeProps): ReactNode {
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -48,6 +50,12 @@ export function MyPhoneChange({ phoneVerified, onClose }: MyPhoneChangeProps): R
 
   const { newPhone, phoneError, verifier, canSkipVerification, isUpdating, handlePhoneChange, handleUpdateClick } =
     usePhoneChange({ onChanged: handleChanged });
+
+  /** 인증 없이 바꾸기 안내 (라이더는 미인증 번호 안내 없이, 인증된 번호면 해제 안내만) */
+  const skipNotices = [
+    UNVERIFIED_PHONE_NOTICE_BY_ROLE[role],
+    phoneVerified ? VERIFICATION_RELEASE_NOTICE : null,
+  ].filter((notice): notice is string => notice !== null);
 
   /**
    * 새 번호 칸에서 엔터를 누르면 인증번호를 받는다.
@@ -91,15 +99,14 @@ export function MyPhoneChange({ phoneVerified, onClose }: MyPhoneChangeProps): R
         id='me-new-phone-code'
         hint={PHONE_CODE_VALID_HINT}
       />
-      {canSkipVerification ? (
+      {canSkipVerification && skipNotices.length > 0 ? (
         <Notice>
-          {UNVERIFIED_PHONE_NOTICE}
-          {phoneVerified ? (
-            <>
-              <br />
-              {VERIFICATION_RELEASE_NOTICE}
-            </>
-          ) : null}
+          {skipNotices.map((notice, index) => (
+            <span key={notice}>
+              {index > 0 ? <br /> : null}
+              {notice}
+            </span>
+          ))}
         </Notice>
       ) : null}
       <div className='flex flex-col-reverse gap-2 tablet:flex-row tablet:justify-end'>
