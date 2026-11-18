@@ -4,8 +4,10 @@ import { useForm, type Path } from 'react-hook-form';
 
 import {
   ADDRESS_DETAIL_MAX_LENGTH,
+  ADDRESS_LABEL_MAX_LENGTH,
   AddressLocationField,
   parseAddressField,
+  type AddressField,
   type AddressLocation,
 } from '@/entities/address';
 import {
@@ -35,24 +37,39 @@ export interface SignupCustomerFormProps {
 const CUSTOMER_FIELDS: readonly string[] = ['email', 'password', 'name', 'phone'];
 const ADDRESS_ID = 'customer-address';
 const ADDRESS_DETAIL_ID = 'customer-address-detail';
+const ADDRESS_LABEL_ID = 'customer-address-label';
 
-/** 배달 주소 칸 오류 (주소 · 동 · 좌표는 주소 칸, 상세 주소는 상세 칸) */
+/** 배달 주소 칸 오류 (주소 · 동 · 좌표는 주소 칸, 상세 주소 · 별칭은 각자 칸) */
 interface AddressErrors {
   address?: string;
   addressDetail?: string;
+  label?: string;
 }
 
 /**
  * 고른 배달 주소를 가입 요청의 address로 바꾼다. 주소를 고르지 않았으면 보내지 않는다.
+ * 상세 주소 · 별칭은 공백뿐이면 보내지 않는다 (별칭이 없으면 동 이름으로 보인다).
  * @param location - 고른 주소 위치 (없으면 null)
  * @param addressDetail - 상세 주소
+ * @param label - 별칭 (예: 집, 회사)
  * @returns 배달 주소 본문 (없으면 undefined)
  */
 const parseSignupAddress = (
   location: AddressLocation | null,
   addressDetail: string,
+  label: string,
 ): SignupAddressRequest | undefined =>
-  location ? { ...location, addressDetail: addressDetail.trim() || undefined } : undefined;
+  location
+    ? { ...location, addressDetail: addressDetail.trim() || undefined, label: label.trim() || undefined }
+    : undefined;
+
+/**
+ * 서버 주소 칸을 화면 칸으로 바꾼다. 동 · 좌표는 주소 검색 결과라 주소 칸에 보여 준다.
+ * @param field - 서버 주소 칸 (address. 접두사를 뗀 이름)
+ * @returns 화면 칸
+ */
+const getAddressFormField = (field: AddressField): keyof AddressErrors =>
+  field === 'label' || field === 'addressDetail' ? field : 'address';
 
 /**
  * 서버 필드명이 폼 필드인지 확인한다.
@@ -64,6 +81,7 @@ const isCustomerField = (field: string): field is Path<SignupCommonValues> => CU
 /**
  * 고객 가입 폼 (C-03). 이메일 중복(409)·입력 오류(400)는 필드 아래에, 그 밖의 에러는 토스트로 보여 준다.
  * 휴대폰 아래 배달 주소는 선택이다. 고르면 첫 주소 = 기본 주소로 저장되고, 비우면 address를 보내지 않는다.
+ * 주소를 고르면 상세 주소 · 별칭 칸이 나오고, 둘 다 선택이다 (별칭을 비우면 동 이름으로 보인다).
  * @param props onSuccess(가입 성공 처리)
  * @returns 고객 가입 폼 요소
  */
@@ -74,6 +92,7 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
   const phoneVerification = useSignupPhoneVerification();
   const [addressLocation, setAddressLocation] = useState<AddressLocation | null>(null);
   const [addressDetail, setAddressDetail] = useState<string>('');
+  const [label, setLabel] = useState<string>('');
   const [addressErrors, setAddressErrors] = useState<AddressErrors>({});
   const {
     register,
@@ -89,6 +108,7 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
   const handleAddressClear = (): void => {
     setAddressLocation(null);
     setAddressDetail('');
+    setLabel('');
     setAddressErrors({});
   };
 
@@ -106,7 +126,7 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
     fieldErrors.forEach(({ field, message }) => {
       const addressField = parseAddressField(field);
       if (addressField) {
-        nextAddressErrors[addressField === 'addressDetail' ? 'addressDetail' : 'address'] = message;
+        nextAddressErrors[getAddressFormField(addressField)] = message;
         return;
       }
       if (emailVerification.handleSignupFieldError(field, message)) return;
@@ -130,7 +150,7 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
           body: values,
           emailVerificationToken: emailVerification.token,
           phoneVerificationToken: phoneVerification.token,
-          address: parseSignupAddress(addressLocation, addressDetail),
+          address: parseSignupAddress(addressLocation, addressDetail, label),
         }),
       );
     } catch (error: unknown) {
@@ -168,30 +188,48 @@ export function SignupCustomerForm({ onSuccess }: SignupCustomerFormProps): Reac
         error={addressErrors.address}
       />
       {addressLocation ? (
-        <FormField
-          id={ADDRESS_DETAIL_ID}
-          label='상세 주소'
-          error={addressErrors.addressDetail}
-          aside={
-            <button
-              type='button'
-              onClick={handleAddressClear}
-              className='min-h-6 rounded-control px-1 underline underline-offset-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-role-ink'
-            >
-              배달 주소 지우기
-            </button>
-          }
-        >
-          <Input
+        <>
+          <FormField
             id={ADDRESS_DETAIL_ID}
-            value={addressDetail}
-            onChange={(event) => setAddressDetail(event.target.value)}
-            placeholder='예: 302호'
-            maxLength={ADDRESS_DETAIL_MAX_LENGTH}
-            aria-invalid={Boolean(addressErrors.addressDetail)}
-            aria-describedby={`${ADDRESS_DETAIL_ID}-message`}
-          />
-        </FormField>
+            label='상세 주소'
+            error={addressErrors.addressDetail}
+            aside={
+              <button
+                type='button'
+                onClick={handleAddressClear}
+                className='min-h-6 rounded-control px-1 underline underline-offset-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-role-ink'
+              >
+                배달 주소 지우기
+              </button>
+            }
+          >
+            <Input
+              id={ADDRESS_DETAIL_ID}
+              value={addressDetail}
+              onChange={(event) => setAddressDetail(event.target.value)}
+              placeholder='예: 302호'
+              maxLength={ADDRESS_DETAIL_MAX_LENGTH}
+              aria-invalid={Boolean(addressErrors.addressDetail)}
+              aria-describedby={`${ADDRESS_DETAIL_ID}-message`}
+            />
+          </FormField>
+          <FormField
+            id={ADDRESS_LABEL_ID}
+            label='별칭'
+            hint='비워 두면 동 이름으로 보여요.'
+            error={addressErrors.label}
+          >
+            <Input
+              id={ADDRESS_LABEL_ID}
+              value={label}
+              onChange={(event) => setLabel(event.target.value)}
+              placeholder='예: 집, 회사 (선택)'
+              maxLength={ADDRESS_LABEL_MAX_LENGTH}
+              aria-invalid={Boolean(addressErrors.label)}
+              aria-describedby={`${ADDRESS_LABEL_ID}-message`}
+            />
+          </FormField>
+        </>
       ) : null}
       {errors.root ? (
         <Notice
